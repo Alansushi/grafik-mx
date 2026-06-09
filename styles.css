@@ -804,3 +804,39 @@
       .ssr-fallback h2 { font-size: 20px; }
       .chip-btn { font-size: 10px; padding: 7px 10px; }
     }
+
+/* ── Splash intro ──────────────────────────── */
+@keyframes splash-exit {
+  0%   { opacity: 1; }
+  60%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--negro);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  animation: splash-exit 2.5s ease-out forwards;
+}
+
+.splash-mark svg { color: var(--blanco); }
+
+.splash-wordmark {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 12vw, 7rem);
+  letter-spacing: 0.05em;
+  color: var(--blanco);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { animation-duration: 0.1s; }
+}

@@ -45,7 +45,7 @@
     "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
     "url": "https://grafik.mx",
-    "email": "contacto@grafik.mx",
+    "email": "",
     "telephone": "+52-55-3901-4600",
     "logo": {
       "@type": "ImageObject",
@@ -438,6 +438,22 @@
         return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
       }, []);
       return <canvas ref={ref} className="hero-bg" aria-hidden="true" />;
+    };
+
+    /* ── Splash intro ───────────────────────── */
+    const SplashScreen = () => {
+      const [gone, setGone] = React.useState(false);
+      if (gone) return null;
+      return (
+        <div className="splash" onAnimationEnd={() => setGone(true)}>
+          <div className="splash-mark">
+            <svg width="120" height="120" color="currentColor">
+              <use href="/defs.svg#mark"/>
+            </svg>
+          </div>
+          <div className="splash-wordmark">GRAFIK</div>
+        </div>
+      );
     };
 
     /* ── Hero ───────────────────────────────── */
@@ -974,6 +990,7 @@
     /* ── App ────────────────────────────────── */
     const App = () => (
       <div>
+        <SplashScreen />
         <Nav />
         <main>
           <Hero />
