@@ -694,6 +694,12 @@
       text-transform: uppercase;
       color: var(--plata-dim);
     }
+    .footer-dev-link {
+      color: var(--plata-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-dev-link:hover { color: var(--rojo); }
     @media (max-width: 640px) {
       .footer-main { flex-direction: column; align-items: flex-start; }
       .footer-contact { align-items: flex-start; }
