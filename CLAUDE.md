@@ -32,16 +32,25 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 ## Pendientes
 
-- [ ] Confirmar nombre del negocio (placeholder: "GraficaMX") — reemplazar en `CONFIG.brand`, `<title>`, JSON-LD y `sitemap.xml`
+- [x] Nombre de marca: **GRAFIK** — ya aplicado en `CONFIG.brand`, JSON-LD y SSR fallback
 - [x] Dominio resuelto: `grafik.mx` — ya aplicado en todos los archivos
-- [ ] Crear `og-image.png` (1200×630 px) para Open Graph
+- [ ] Crear `og-image.png` (1200×630 px) — fondo negro, logo GRAFIK centrado, acento rojo
 - [ ] Añadir dirección física si se quiere mejorar el schema `LocalBusiness`
 
-## Tokens de diseño
+## Sistema de diseño
+
+Ver `design-system.html` (guía visual) y `design-system.md` (referencia de tokens).
 
 ```
---paper: #ECE6D7  --ink: #1A1712  --green: #1F5A3A
-Fuentes: Archivo (sans) · Newsreader (serif display) · IBM Plex Mono (mono)
+Paleta:
+  --negro: #0C0C0C  --carbon: #181818  --carbon-hi: #2E2E2E
+  --rojo: #D02B34   --rojo-dark: #A0202A
+  --blanco: #F0F0EE  --plata: #B8B8B8  --wa: #25D366
+
+Fuentes: Barlow Condensed (display/logo, peso 900) · Barlow (body/UI)
+
+Logo: anillos concéntricos SVG con punto rojo central (#D02B34)
+Símbolo: defs.svg#mark · Favicon: favicon.svg
 ```
 
 ## Responsive

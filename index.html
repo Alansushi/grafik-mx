@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Imprenta y Publicidad en CDMX — Lonas, Vinil y Artículos Promocionales</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/grafik-favicon-32.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/grafik-favicon-512.png">
 
   <meta name="description" content="Imprenta y publicidad en Ciudad de México. Impresión de lonas, vinil para rotulación, artículos promocionales, brazaletes para eventos y sublimación personalizada. Cotización sin compromiso." />
   <meta name="keywords" content="imprenta CDMX, publicidad CDMX, impresión lonas, vinil rotulación, artículos promocionales CDMX, brazaletes eventos, sublimación personalizada, grabado láser CDMX, serigrafía, tampografía" />
-  <meta name="author" content="GraficaMX" />
+  <meta name="author" content="GRAFIK" />
   <meta name="robots" content="index, follow" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="geo.region" content="MX-CMX" />
@@ -35,7 +37,7 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": "https://grafik.mx/#org",
-    "name": "GraficaMX",
+    "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
     "url": "https://grafik.mx",
     "telephone": "+52-55-3901-4600",
@@ -66,7 +68,7 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": "https://grafik.mx/#business",
-    "name": "GraficaMX — Imprenta y Publicidad",
+    "name": "GRAFIK — Imprenta y Publicidad",
     "description": "Imprenta y publicidad en CDMX. Especialistas en impresión de lonas, vinil para rotulación, artículos promocionales personalizados, brazaletes para control de acceso en eventos y sublimación.",
     "url": "https://grafik.mx",
     "telephone": "+52-55-3901-4600",
@@ -173,7 +175,7 @@
     "@type": "WebSite",
     "@id": "https://grafik.mx/#website",
     "url": "https://grafik.mx",
-    "name": "GraficaMX — Imprenta y Publicidad",
+    "name": "GRAFIK — Imprenta y Publicidad",
     "inLanguage": "es",
     "publisher": { "@id": "https://grafik.mx/#org" }
   }
@@ -184,7 +186,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" integrity="sha384-1qlE7MZPM2pHD/pBZCU/yB8UCP52RYL8bge/qNdfNBCWToySp8/M+JL2waXU4hjJ" crossorigin="anonymous"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
@@ -194,7 +197,7 @@
     <!-- SSR Fallback: contenido completo para crawlers sin JS -->
     <div class="ssr-fallback">
       <header>
-        <strong>GraficaMX</strong> · Imprenta y Publicidad en CDMX
+        <strong>GRAFIK</strong> · Imprenta y Publicidad en CDMX
         <nav>
           <a href="#servicios">Servicios</a>
           <a href="#materiales">Materiales</a>
@@ -273,10 +276,11 @@
     const { useState } = React;
 
     const CONFIG = {
-      brand: "GraficaMX",
+      brand: "GRAFIK",
       tagline: "Imprenta y Publicidad",
       whatsapp: "525539014600",
       tel: "5539014600",
+      email: "contacto@grafik.mx",
       waMsg: "Hola, me interesa cotizar un trabajo de imprenta/publicidad. ¿Me pueden ayudar?"
     };
 
@@ -353,7 +357,7 @@
               const d = Math.hypot(dx, dy);
               if (d < REP && d > 0) { const f = (1 - d/REP) * 22; x += dx/d*f; y += dy/d*f; }
               ctx.beginPath(); ctx.arc(x, y, R, 0, 6.283);
-              ctx.fillStyle = 'rgba(26,23,18,0.10)'; ctx.fill();
+              ctx.fillStyle = 'rgba(184,184,184,0.12)'; ctx.fill();
             }
           }
           raf = requestAnimationFrame(tick);
@@ -822,18 +826,24 @@
     /* ── Footer ─────────────────────────────── */
     const Footer = () => (
       <footer className="site-footer">
-        <span>
-          © {new Date().getFullYear()} {CONFIG.brand}
-          <span className="footer-dot"> · </span>
-          {CONFIG.tagline}
-          <span className="footer-dot"> · </span>
-          Ciudad de México
-        </span>
-        <span>
-          <a href={waLink()} target="_blank" rel="noopener noreferrer">
-            WhatsApp 55 3901 4600
-          </a>
-        </span>
+        <div className="footer-main">
+          <div className="footer-brand">
+            <div className="footer-logo-row">
+              <Ico id="mark" w={36} h={36} />
+              <span className="footer-brand-name">{CONFIG.brand}</span>
+            </div>
+            <p className="footer-tagline">{CONFIG.tagline} · CDMX</p>
+          </div>
+          <div className="footer-contact">
+            <a href={`mailto:${CONFIG.email}`}>{CONFIG.email}</a>
+            <a href={`tel:+52${CONFIG.tel}`}>+52 55 3901 4600</a>
+            <span>grafik.mx</span>
+          </div>
+        </div>
+        <div className="footer-legal">
+          <span>© {new Date().getFullYear()} {CONFIG.brand} · Ciudad de México</span>
+          <span>Todos los derechos reservados</span>
+        </div>
       </footer>
     );
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900');</style></defs>
+  <rect width="800" height="960" fill="#0C0C0C"/>
+  <circle cx="400" cy="364.8" r="201.76" fill="none" stroke="#444" stroke-width="5.824"/>
+  <circle cx="400" cy="364.8" r="162.24" fill="none" stroke="#777" stroke-width="8.736"/>
+  <circle cx="400" cy="364.8" r="118.55999999999999" fill="none" stroke="#B8B8B8" stroke-width="12.064"/>
+  <circle cx="400" cy="364.8" r="76.96" fill="none" stroke="#D8D8D8" stroke-width="16.224"/>
+  <circle cx="400" cy="364.8" r="43.68" fill="#D02B34"/>
+  <circle cx="400" cy="364.8" r="13.728000000000002" fill="#0C0C0C"/>
+  <text x="400" y="691.1999999999999" font-family="'Barlow Condensed',sans-serif" font-weight="900" font-size="108" fill="#F0F0EE" text-anchor="middle" dominant-baseline="middle" letter-spacing="19">GRAFIK</text>
+</svg>

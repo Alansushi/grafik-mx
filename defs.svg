@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <symbol id="mark" viewBox="0 0 48 48">
-      <rect width="48" height="48" fill="none"/>
-      <rect x="8" y="10" width="32" height="28" fill="none" stroke="currentColor" stroke-width="2.4"/>
-      <path d="M14 18h20M14 24h14M14 30h17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    <symbol id="mark" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="47" stroke="#444" stroke-width="1.2" fill="none"/>
+      <circle cx="50" cy="50" r="38" stroke="#777" stroke-width="1.8" fill="none"/>
+      <circle cx="50" cy="50" r="28" stroke="#B8B8B8" stroke-width="2.5" fill="none"/>
+      <circle cx="50" cy="50" r="18" stroke="#D8D8D8" stroke-width="3.5" fill="none"/>
+      <circle cx="50" cy="50" r="10" fill="#D02B34"/>
+      <circle cx="50" cy="50" r="3.2" fill="#0C0C0C"/>
     </symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6"/></g></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></g></symbol>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900');</style></defs>
+  
+  <circle cx="400" cy="400" r="325.92" fill="none" stroke="#444" stroke-width="9.408"/>
+  <circle cx="400" cy="400" r="262.08" fill="none" stroke="#777" stroke-width="14.112"/>
+  <circle cx="400" cy="400" r="191.51999999999998" fill="none" stroke="#B8B8B8" stroke-width="19.488"/>
+  <circle cx="400" cy="400" r="124.32" fill="none" stroke="#D8D8D8" stroke-width="26.208"/>
+  <circle cx="400" cy="400" r="70.56" fill="#D02B34"/>
+  <circle cx="400" cy="400" r="22.176000000000002" fill="#0C0C0C"/>
+</svg>
