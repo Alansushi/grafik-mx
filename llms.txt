@@ -1,0 +1,61 @@
+# GRAFIK — Imprenta y Publicidad en CDMX
+# https://grafik.mx | Actualizado: 2026-06-09
+
+About: GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Servicios: impresión gran formato (lonas), vinil y rotulación, artículos promocionales personalizados, brazaletes para eventos, sublimación personalizada y grabado láser. Más de 20 materiales. Entrega en 1–3 días hábiles, express disponible. Cotización inmediata por WhatsApp.
+
+## Pages
+
+### Home — Impresión y Publicidad en CDMX
+URL: https://grafik.mx/
+Description: Página principal con catálogo completo de servicios, 20+ materiales, proceso de cotización, preguntas frecuentes y contacto directo por WhatsApp.
+
+### Servicios de Impresión y Publicidad en CDMX
+Anchor: https://grafik.mx/#servicios
+Services:
+- Impresión en Gran Formato (lonas Front, Mate, Mesh, Back Light, 18oz Oplex, Canvas) — 720–1440 DPI, HP Latex
+- Vinil y Rotulación (brillante, mate, transparente, Arlon automotriz, microperforado, laminado, floor graphic)
+- Artículos Promocionales en CDMX (plumas, USB, tazas, termos, playeras, llaveros — desde 1 pieza con grabado láser)
+- Brazaletes para Eventos CDMX (Tyvek: VIP, General, Staff, 21+, Acceso — full color o 1 tinta, express)
+- Sublimación Personalizada (frazadas Personal/Individual/Matrimonial, entrega 3–4 días)
+- Grabado Láser y Técnicas Especiales (serigrafía, tampografía, gota de resina)
+
+### Catálogo de Materiales (20+)
+Anchor: https://grafik.mx/#materiales
+- Lona: Front 360DPI, Mate, Mesh, Back Light, 18oz Oplex, Tela Canvas
+- Vinil: Blanco Brillante, Mate, Transparente, Estático, Microperforado, Laminado, Floor Graphic, Imantado Cal.15, Arlon Automotriz
+- Papel y Especiales: Blue Back, City Light, Couche 200–300, Photo Glossy, Película Back Light
+
+### Proceso de Cotización
+Anchor: https://grafik.mx/#proceso
+1. Comparte tu idea por WhatsApp (medidas, material, cantidad)
+2. Cotización en minutos (precio + tiempo de entrega)
+3. Aprobación del arte (revisión conjunta sin sorpresas)
+4. Producción y entrega (tiempo acordado)
+
+### Preguntas Frecuentes
+Anchor: https://grafik.mx/#faqs
+- Tiempo producción lonas: 1–3 días hábiles; express disponible
+- Formatos aceptados: PDF, AI, CDR, PNG/PSD (150 DPI mínimo)
+- Mínimos artículos: grabado láser desde 1 pieza; serigrafía/tampografía 12–50 piezas
+- Brazaletes: Tyvek VIP/General/Staff/21+/Acceso; full color o 1 tinta; express disponible
+- Entregas: CDMX y zona metropolitana; también recogida en local
+- Cotización: WhatsApp 55 3901 4600 (respuesta en minutos)
+- Vinil automotriz: Arlon (alta exposición), laminado, brillante, mate, microperforado
+
+### Contacto
+Anchor: https://grafik.mx/#contacto
+WhatsApp (recomendado): https://wa.me/525539014600
+Teléfono: +52 55 3901 4600
+Email: contacto@grafik.mx
+Horarios: Lunes a sábado 9am–7pm (CDMX)
+
+## Contact
+WhatsApp: +52 55 3901 4600
+Email: contacto@grafik.mx
+Service area: Ciudad de México y zona metropolitana
+
+## Keywords
+imprenta en CDMX, publicidad CDMX, rotulación vinil CDMX, artículos promocionales personalizados CDMX, brazaletes para eventos CDMX, sublimación personalizada CDMX, grabado láser CDMX, impresión lonas gran formato, vinil Arlon automotriz, serigrafía tampografía CDMX
+
+## Last-Updated
+2026-06-09

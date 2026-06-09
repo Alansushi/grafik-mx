@@ -16,6 +16,9 @@
   <meta name="geo.region" content="MX-CMX" />
   <meta name="geo.placename" content="Ciudad de México" />
   <link rel="canonical" href="https://grafik.mx/" />
+  <link rel="alternate" hreflang="es-MX" href="https://grafik.mx/" />
+  <link rel="alternate" hreflang="x-default" href="https://grafik.mx/" />
+  <link rel="llms.txt" href="/llms.txt" type="text/plain" />
 
   <meta property="og:title" content="Imprenta y Publicidad en CDMX — Lonas, Vinil y Artículos Promocionales" />
   <meta property="og:description" content="Impresión de lonas, vinil, artículos promocionales, brazaletes para eventos y sublimación personalizada en CDMX. Cotización sin compromiso." />
@@ -32,6 +35,8 @@
   <meta name="twitter:image" content="https://grafik.mx/og-image.png" />
 
   <!-- Schema.org · Organization -->
+  <!-- TODO-AEO: Llenar sameAs con URLs reales de perfiles verificados (Instagram, Facebook, LinkedIn, Google Maps) -->
+  <!-- TODO-AEO: Completar streetAddress y postalCode con dirección física real -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -40,7 +45,15 @@
     "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
     "url": "https://grafik.mx",
+    "email": "contacto@grafik.mx",
     "telephone": "+52-55-3901-4600",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://grafik.mx/assets/grafik-simbolo.svg",
+      "width": 512,
+      "height": 512
+    },
+    "sameAs": [],
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+52-55-3901-4600",
@@ -68,17 +81,25 @@
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": "https://grafik.mx/#business",
-    "name": "GRAFIK — Imprenta y Publicidad",
+    "name": "GRAFIK",
+    "alternateName": "Imprenta y Publicidad CDMX",
+    "organization": { "@id": "https://grafik.mx/#org" },
     "description": "Imprenta y publicidad en CDMX. Especialistas en impresión de lonas, vinil para rotulación, artículos promocionales personalizados, brazaletes para control de acceso en eventos y sublimación.",
     "url": "https://grafik.mx",
     "telephone": "+52-55-3901-4600",
+    "email": "contacto@grafik.mx",
     "priceRange": "$$",
+    "sameAs": [],
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Ciudad de México",
       "addressRegion": "CDMX",
       "addressCountry": "MX"
     },
+    "areaServed": [
+      { "@type": "City", "name": "Ciudad de México" },
+      { "@type": "Country", "name": "Mexico" }
+    ],
     "openingHoursSpecification": [
       {
         "@type": "OpeningHoursSpecification",
@@ -163,6 +184,22 @@
           "@type": "Answer",
           "text": "Trabajamos con vinil Arlon de alta calidad para rotulación automotriz, además de vinil blanco brillante, mate, transparente, microperforado y laminado. Para flotillas y proyectos de alta exposición recomendamos Arlon o vinil laminado."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuáles son los tipos de brazaletes para eventos que ofrecen?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta con nombre del evento, fecha, QR, número de folio o logo. El material Tyvek es resistente al agua y no transferible, ideal para control de acceso en festivales, conciertos, conferencias y eventos corporativos. Entrega express disponible según cantidad."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuál es la cantidad mínima para artículos promocionales con grabado láser?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El grabado láser no tiene cantidad mínima — personalizamos desde 1 pieza en madera, acrílico, cristal, cuero y metal. Para serigrafía el mínimo es de 12 a 50 piezas según diseño, y para tampografía es de 50 piezas. Contáctanos para cotizar tu pedido específico por WhatsApp al 55 3901 4600."
+        }
       }
     ]
   }
@@ -177,9 +214,40 @@
     "url": "https://grafik.mx",
     "name": "GRAFIK — Imprenta y Publicidad",
     "inLanguage": "es",
+    "dateModified": "2026-06-09",
     "publisher": { "@id": "https://grafik.mx/#org" }
   }
   </script>
+
+  <!-- Schema.org · BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://grafik.mx/" },
+      { "@type": "ListItem", "position": 2, "name": "Servicios de Impresión y Publicidad", "item": "https://grafik.mx/#servicios" },
+      { "@type": "ListItem", "position": 3, "name": "Materiales", "item": "https://grafik.mx/#materiales" },
+      { "@type": "ListItem", "position": 4, "name": "Preguntas Frecuentes", "item": "https://grafik.mx/#faqs" },
+      { "@type": "ListItem", "position": 5, "name": "Contacto", "item": "https://grafik.mx/#contacto" }
+    ]
+  }
+  </script>
+
+  <!-- TODO-AEO: Agregar Person schema con nombre real del founder/director y perfil de LinkedIn -->
+  <!-- Plantilla:
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://grafik.mx/#founder",
+    "name": "[NOMBRE DEL FOUNDER]",
+    "jobTitle": "Fundador / Director",
+    "worksFor": { "@id": "https://grafik.mx/#org" },
+    "sameAs": ["https://www.linkedin.com/in/[PERFIL]"]
+  }
+  </script>
+  -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha384-tMH8h3BGESGckSAVGZ82T9n90ztNXxvdwvdM6UoR56cYcf+0iGXBliJ29D+wZ/x8" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha384-bm7MnzvK++ykSwVJ2tynSE5TRdN+xL418osEVF2DE/L/gfWHj91J2Sphe582B1Bh" crossorigin="anonymous"></script>
@@ -213,14 +281,14 @@
         </section>
 
         <section id="servicios">
-          <h2>Nuestros Servicios</h2>
+          <h2>¿Qué servicios de impresión y publicidad ofrecemos en CDMX?</h2>
           <ul>
-            <li><strong>Impresión en Gran Formato</strong> — Lonas Front, Mate, Mesh, Back Light, 18oz Oplex, Tela Canvas y Película Back Light. Resolución de 720 a 1440 DPI.</li>
-            <li><strong>Vinil y Rotulación</strong> — Vinil blanco brillante, mate, transparente, estático, microperforado, laminado, floor graphic, imantado y rotulación automotriz Arlon.</li>
-            <li><strong>Artículos Promocionales</strong> — Plumas, llaveros, USB, bolsas, agendas, termos, vasos, libretas, cilindros, playeras, tazas y más.</li>
-            <li><strong>Brazaletes para Eventos</strong> — Control de acceso en eventos: VIP, General, Staff, 21+, Acceso. Material Tyvek resistente, full color o 1 tinta. Entrega express disponible.</li>
-            <li><strong>Sublimación Personalizada</strong> — Frazadas sublimadas en tamaños Personal (100×150 cm), Individual (200×150 cm) y Matrimonial (220×150 cm). Entrega en 3-4 días hábiles.</li>
-            <li><strong>Grabado Láser y Técnicas Especiales</strong> — Personalización mediante grabado láser, serigrafía, tampografía y gota de resina.</li>
+            <li><strong>Impresión en Gran Formato</strong> — La impresión en gran formato es el proceso de reproducir imágenes a escala ampliada sobre lona, vinil o canvas. Materiales: Front, Mate, Mesh, Back Light, 18oz Oplex, Canvas y Back Light. Resolución 720–1440 DPI con tecnología HP Latex.</li>
+            <li><strong>Vinil y Rotulación en CDMX</strong> — La rotulación en vinil es la aplicación de películas adhesivas en fachadas, vehículos y pisos para señalización duradera. Tipos: brillante, mate, transparente, estático, microperforado, laminado, floor graphic, imantado y <a href="#materiales">vinil Arlon automotriz</a>.</li>
+            <li><strong>Artículos Promocionales en CDMX</strong> — Los artículos promocionales son productos personalizados con el logo o diseño de tu marca para difusión y regalos corporativos. Plumas, llaveros, USB, bolsas, agendas, termos, vasos, libretas, cilindros, playeras, tazas y más. Desde 1 pieza con grabado láser.</li>
+            <li><strong>Brazaletes para Eventos en CDMX</strong> — Los brazaletes para eventos son pulseras Tyvek personalizadas para control de acceso en festivales, conciertos y conferencias. Categorías: VIP, General, Staff, 21+, Acceso. Full color o 1 tinta. Entrega express disponible.</li>
+            <li><strong>Sublimación Personalizada</strong> — Frazadas sublimadas en tamaños Personal (100×150 cm), Individual (200×150 cm) y Matrimonial (220×150 cm). Entrega en 3–4 días hábiles.</li>
+            <li><strong>Grabado Láser y Técnicas Especiales</strong> — Personalización mediante grabado láser, serigrafía, tampografía y gota de resina. Mínimo desde 1 pieza (láser).</li>
           </ul>
         </section>
 
@@ -245,22 +313,24 @@
         </section>
 
         <section id="faqs">
-          <h2>Preguntas Frecuentes</h2>
+          <h2>¿Tienes dudas sobre tu proyecto de imprenta o publicidad en CDMX?</h2>
           <dl>
-            <dt>¿Cuánto tarda la producción de lonas?</dt>
-            <dd>Generalmente de 1 a 3 días hábiles. Contamos con servicio express para proyectos urgentes.</dd>
-            <dt>¿Qué formatos de archivo aceptan?</dt>
-            <dd>PDF, AI (Illustrator), CDR (CorelDRAW) y PNG/PSD a alta resolución (mínimo 150 DPI a tamaño real).</dd>
-            <dt>¿Hacen diseño gráfico?</dt>
-            <dd>Sí, contamos con servicio de diseño. Consúltanos el costo y tiempos por WhatsApp.</dd>
-            <dt>¿Cuál es el mínimo para artículos promocionales?</dt>
-            <dd>Varía según el artículo y técnica. Algunos desde 1 pieza; otros desde 12 o 50 piezas.</dd>
+            <dt>¿Cuánto tarda la producción de lonas e impresión en gran formato?</dt>
+            <dd>El tiempo de producción varía según el material y la cantidad. Para lonas y vinil en gran formato, generalmente es de 1 a 3 días hábiles. Si necesitas entrega urgente, contamos con servicio express — consúltanos disponibilidad por WhatsApp al 55 3901 4600.</dd>
+            <dt>¿Qué formatos de archivo aceptan para imprimir?</dt>
+            <dd>Aceptamos archivos PDF, AI (Adobe Illustrator), CDR (CorelDRAW) y PNG/PSD de alta resolución (mínimo 150 DPI a tamaño real). Si no tienes el archivo listo, podemos asesorarte o apoyarte con el servicio de diseño.</dd>
+            <dt>¿Hacen servicio de diseño gráfico?</dt>
+            <dd>Sí, contamos con servicio de diseño gráfico para tu proyecto de impresión o publicidad. Contáctanos por WhatsApp para conocer costos y tiempos según tu necesidad.</dd>
+            <dt>¿Cuál es la cantidad mínima para artículos promocionales con grabado láser?</dt>
+            <dd>El grabado láser no tiene cantidad mínima — personalizamos desde 1 pieza. Para serigrafía el mínimo es de 12 a 50 piezas, y para tampografía es de 50 piezas. Contáctanos para cotizar tu pedido específico.</dd>
+            <dt>¿Cuáles son los tipos de brazaletes para eventos que ofrecen?</dt>
+            <dd>Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta. Material Tyvek: resistente al agua, no transferible. Entrega express disponible.</dd>
             <dt>¿Entregan a domicilio en CDMX?</dt>
-            <dd>Sí, entregamos en CDMX y zona metropolitana. También puedes recoger tu pedido.</dd>
-            <dt>¿Cómo pido cotización?</dt>
-            <dd>WhatsApp al 55 3901 4600. Cuéntanos qué necesitas y te respondemos en minutos.</dd>
-            <dt>¿Qué vinil usan para rotulación vehicular?</dt>
-            <dd>Vinil Arlon para alta exposición, plus tipos brillante, mate, microperforado y laminado.</dd>
+            <dd>Sí, realizamos entregas en Ciudad de México y área metropolitana. También puedes pasar a recoger tu pedido. Consulta el costo y tiempo estimado al solicitar tu cotización.</dd>
+            <dt>¿Cómo puedo pedir una cotización?</dt>
+            <dd>La forma más rápida es escribirnos por WhatsApp al 55 3901 4600. Cuéntanos qué necesitas: tipo de material, medidas, cantidad y acabado deseado. Te respondemos en minutos.</dd>
+            <dt>¿Qué tipos de vinil manejan para rotulación vehicular?</dt>
+            <dd>Trabajamos con vinil Arlon para rotulación automotriz de alta exposición, además de vinil brillante, mate, transparente, microperforado y laminado. Para flotillas recomendamos Arlon o vinil laminado por su durabilidad superior.</dd>
           </dl>
         </section>
 
@@ -476,7 +546,7 @@
             <div className="sec-hdr sec-hdr--solo">
               <div>
                 <div className="sec-kicker">Lo que hacemos</div>
-                <h2 className="sec-title">Servicios de <em>imprenta y publicidad</em></h2>
+                <h2 className="sec-title">¿Qué servicios de <em>impresión y publicidad</em> ofrecemos en CDMX?</h2>
                 <p className="sec-desc">Todo lo que necesitas para tu empresa, evento o proyecto en un solo lugar. Cotización sin compromiso.</p>
               </div>
             </div>
@@ -534,9 +604,36 @@
             <div className="sec-hdr sec-hdr--solo">
               <div>
                 <div className="sec-kicker">Materiales</div>
-                <h2 className="sec-title">Más de <em>20 materiales</em> para cada proyecto</h2>
+                <h2 className="sec-title">¿En qué materiales imprimimos? <em>20+ opciones</em> para cada proyecto</h2>
                 <p className="sec-desc">Contamos con la variedad de materiales para interior, exterior, eventos y vehículos. Si no encuentras lo que buscas, consúltanos.</p>
               </div>
+            </div>
+            <div style={{overflowX:"auto",marginBottom:"32px"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:"13px",color:"var(--ink-70)"}}>
+                <thead>
+                  <tr style={{borderBottom:"1px solid var(--line)"}}>
+                    <th style={{textAlign:"left",padding:"10px 12px",color:"var(--blanco)",fontFamily:"var(--serif)",fontWeight:700,letterSpacing:"0.06em"}}>Material</th>
+                    <th style={{textAlign:"left",padding:"10px 12px",color:"var(--blanco)",fontFamily:"var(--serif)",fontWeight:700,letterSpacing:"0.06em"}}>Durabilidad</th>
+                    <th style={{textAlign:"left",padding:"10px 12px",color:"var(--blanco)",fontFamily:"var(--serif)",fontWeight:700,letterSpacing:"0.06em"}}>Uso ideal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Vinil Blanco Brillante","3 años","Señalización interior / exterior estándar"],
+                    ["Vinil Arlon Automotriz","7+ años","Rotulación vehicular y flotillas de alta exposición"],
+                    ["Vinil Laminado","5 años","Exterior con protección UV máxima"],
+                    ["Lona Front 360 DPI","3 años","Espectaculares, banners y fachadas"],
+                    ["Lona Back Light","2 años","Luminosos y cajas de luz"],
+                    ["Vinil Microperforado","3 años","Ventanas con visibilidad al interior"],
+                  ].map(([mat,dur,uso]) => (
+                    <tr key={mat} style={{borderBottom:"1px solid var(--line)"}}>
+                      <td style={{padding:"9px 12px",fontWeight:600,color:"var(--blanco)"}}>{mat}</td>
+                      <td style={{padding:"9px 12px"}}>{dur}</td>
+                      <td style={{padding:"9px 12px"}}>{uso}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             <div className="pillars-grid">
               {cats.map(cat => (
@@ -685,6 +782,14 @@
         {
           q: "¿Qué tipos de vinil manejan para rotulación vehicular?",
           a: "Trabajamos con vinil Arlon de alta calidad para rotulación automotriz, además de vinil blanco brillante, mate, transparente, microperforado y laminado. Para flotillas y proyectos de alta exposición recomendamos Arlon o vinil laminado por su durabilidad.",
+        },
+        {
+          q: "¿Cuáles son los tipos de brazaletes para eventos que ofrecen?",
+          a: "Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta con nombre del evento, fecha, QR, número de folio o logo. Material Tyvek: resistente al agua y no transferible. Entrega express disponible según cantidad.",
+        },
+        {
+          q: "¿Cuál es la cantidad mínima para artículos promocionales con grabado láser?",
+          a: "El grabado láser no tiene cantidad mínima — personalizamos desde 1 pieza en madera, acrílico, cristal, cuero y metal. Para serigrafía el mínimo es de 12 a 50 piezas según el diseño, y para tampografía es de 50 piezas. Contáctanos para cotizar tu pedido específico.",
         },
       ];
 
@@ -842,7 +947,7 @@
         </div>
         <div className="footer-legal">
           <span>© {new Date().getFullYear()} {CONFIG.brand} · Ciudad de México</span>
-          <span>Todos los derechos reservados</span>
+          <span><time dateTime="2026-06-09">Actualizado: jun 2026</time> · Todos los derechos reservados</span>
         </div>
       </footer>
     );
