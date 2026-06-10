@@ -45,7 +45,7 @@
     "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
     "url": "https://grafik.mx",
-    "email": "contacto@grafik.mx",
+    "email": "",
     "telephone": "+52-55-3901-4600",
     "logo": {
       "@type": "ImageObject",
@@ -440,6 +440,22 @@
       return <canvas ref={ref} className="hero-bg" aria-hidden="true" />;
     };
 
+    /* ── Splash intro ───────────────────────── */
+    const SplashScreen = () => {
+      const [gone, setGone] = React.useState(false);
+      if (gone) return null;
+      return (
+        <div className="splash" onAnimationEnd={() => setGone(true)}>
+          <div className="splash-mark">
+            <svg width="120" height="120" color="currentColor">
+              <use href="/defs.svg#mark"/>
+            </svg>
+          </div>
+          <div className="splash-wordmark">GRAFIK</div>
+        </div>
+      );
+    };
+
     /* ── Hero ───────────────────────────────── */
     const Hero = () => (
       <section id="top" className="hero">
@@ -482,7 +498,7 @@
       const stats = [
         { n: "+20",          d: "Materiales disponibles" },
         { n: "1–3 días",     d: "Tiempo de producción" },
-        { n: "6",            d: "Tipos de servicios" },
+        { n: "7",            d: "Tipos de servicios" },
         { n: "Lun–Sáb",     d: "Atención 9am–7pm" },
       ];
       return (
@@ -974,6 +990,7 @@
     /* ── App ────────────────────────────────── */
     const App = () => (
       <div>
+        <SplashScreen />
         <Nav />
         <main>
           <Hero />
