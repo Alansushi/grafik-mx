@@ -231,7 +231,7 @@
     }
     .nav-mobile a {
       display: block;
-      padding: 10px 0;
+      padding: 13px 0;
       font-family: var(--mono);
       font-size: 12px;
       font-weight: 500;
@@ -584,7 +584,7 @@
     textarea.field { resize: none; }
     .seg-wrap { margin-bottom: 20px; }
     .seg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip-btn { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 8px 12px; border: 1.5px solid rgba(240,240,238,0.12); background: var(--carbon-mid); color: var(--plata); cursor: pointer; transition: background .12s, color .12s; line-height: 1; }
+    .chip-btn { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 13px 16px; border: 1.5px solid rgba(240,240,238,0.12); background: var(--carbon-mid); color: var(--plata); cursor: pointer; transition: background .12s, color .12s; line-height: 1; }
     .chip-btn:hover { background: var(--carbon-hi); color: var(--blanco); }
     .chip-sel { background: var(--rojo) !important; color: var(--blanco) !important; border-color: var(--rojo-dark) !important; }
     .form-submit { margin-top: 18px; width: 100%; justify-content: center; font-size: 15px; padding: 15px 24px; }
@@ -802,7 +802,7 @@
       .stat-n { font-size: 1.6rem; }
       .ssr-fallback h1 { font-size: 30px; }
       .ssr-fallback h2 { font-size: 20px; }
-      .chip-btn { font-size: 10px; padding: 7px 10px; }
+      .chip-btn { font-size: 10px; padding: 11px 14px; }
     }
 
 /* ── Splash intro ──────────────────────────── */
