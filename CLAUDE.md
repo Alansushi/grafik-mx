@@ -21,12 +21,20 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 ## Secciones
 
-`Hero → StatsBar → Servicios → Materiales → PorQueNosotros → Proceso → FAQs → Contacto → CtaFinal → Footer + FloatingWA`
+`Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Contacto → CtaFinal → Footer + FloatingWA`
+
+## Catálogo
+
+7 servicios: Lonas · Flyers · Pósters · Boletos · Pendones · Brazaletes · Artículos Promocionales.
+Los chips del formulario añaden Stickers (8º, sin tarjeta propia).
+
+Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la tarjeta en el componente `Servicios`, la `Offer` del `hasOfferCatalog`, el `<li>` del `.ssr-fallback` y los archivos `llms.txt` / `llms-full.txt`.
 
 ## SEO / AEO
 
 - JSON-LD: `Organization`, `LocalBusiness` (PrintingService con `hasOfferCatalog`), `FAQPage`, `WebSite`
 - `.ssr-fallback` completo con todo el contenido para crawlers sin JS
+- **Las FAQs están triplicadas** — acordeón React, `FAQPage` JSON-LD y `.ssr-fallback`. Google exige que el schema refleje lo visible: al tocar una, tocar las tres.
 - `robots.txt` permite explícitamente crawlers IA (ClaudeBot, GPTBot, PerplexityBot, etc.)
 - `sitemap.xml` — actualizar `lastmod` después de cambios de contenido
 
@@ -34,8 +42,9 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 - [x] Nombre de marca: **GRAFIK** — ya aplicado en `CONFIG.brand`, JSON-LD y SSR fallback
 - [x] Dominio resuelto: `grafik.mx` — ya aplicado en todos los archivos
-- [ ] Crear `og-image.png` (1200×630 px) — fondo negro, logo GRAFIK centrado, acento rojo
+- [x] `og-image.png` (1200×630 px) — ya existe en la raíz
 - [ ] Añadir dirección física si se quiere mejorar el schema `LocalBusiness`
+- [ ] Íconos propios en `defs.svg` para Flyers, Pósters, Boletos y Pendones — hoy reusan `i-dtf`, `i-vinil`, `i-promo` y `i-lona`
 
 ## Sistema de diseño
 
@@ -56,4 +65,6 @@ Símbolo: defs.svg#mark · Favicon: favicon.svg
 ## Responsive
 
 - `960px`: nav links ocultos, hamburger visible; grids → 2 col
-- `640px`: grids → 1 col; CTAs se apilan; padding 80px → 56px
+- `640px`: grids → 1 col; CTAs se apilan; padding 80px → 56px; logo 68→44px
+
+`--nav-h` debe coincidir con el alto real del navbar (símbolo + 32px de padding + 1px de borde). Alimenta el `min-height` del hero y el `scroll-padding-top` que evita que la barra sticky tape los anclajes.

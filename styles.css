@@ -34,11 +34,11 @@
       --mono:  'Barlow', sans-serif;
       --maxw: 1180px;
       --gut: 56px;
-      --nav-h: 67px;
+      --nav-h: 101px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
     ::selection { background: var(--rojo); color: var(--blanco); }
 
     body {
@@ -176,12 +176,14 @@
       text-decoration: none;
     }
     .nav-logo svg {
+      width: 68px;
+      height: 68px;
       color: var(--blanco);
       transition: color .35s;
     }
     .nav-wordmark {
       font-family: var(--serif);
-      font-size: 20px;
+      font-size: 40px;
       font-weight: 900;
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -292,6 +294,25 @@
       margin: 24px auto 0;
     }
     .hero-sub b { color: var(--blanco); font-weight: 600; }
+    .hero-list {
+      list-style: none;
+      padding: 0;
+      text-align: left;
+      display: inline-block;
+    }
+    .hero-list li {
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    .hero-list li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      color: var(--rojo);
+      font-weight: 900;
+      font-size: 22px;
+      line-height: 1.2;
+    }
     .hero-ctas {
       display: flex;
       flex-wrap: wrap;
@@ -785,6 +806,9 @@
     }
 
     @media (max-width: 640px) {
+      :root { --nav-h: 77px; }
+      .nav-logo svg { width: 44px; height: 44px; }
+      .nav-wordmark { font-size: 26px; }
       .sec-hdr { grid-template-columns: 1fr; gap: 10px; }
       .sec-num { font-size: 48px; }
       .section { padding: 56px 0; }
