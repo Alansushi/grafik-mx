@@ -79,5 +79,14 @@
         <path d="M7 17v2M11 17v2.5M15 17v2"/>
       </g>
     </symbol>
+
+    <!-- Zoom / Ampliar: lupa con + -->
+    <symbol id="i-zoom" viewBox="0 0 24 24">
+      <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10.5" cy="10.5" r="6.5"/>
+        <path d="M15.5 15.5 21 21"/>
+        <path d="M10.5 7.5v6M7.5 10.5h6"/>
+      </g>
+    </symbol>
   </defs>
 </svg>

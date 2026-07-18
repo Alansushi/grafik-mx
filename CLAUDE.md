@@ -21,7 +21,9 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 ## Secciones
 
-`Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Contacto → CtaFinal → Footer + FloatingWA`
+`Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Trabajos → Contacto → CtaFinal → Footer + FloatingWA`
+
+**Trabajos**: marquee auto-desplazable de fotos reales (`assets/trabajos/`, optimizadas con `sips`). Los datos viven en el array `works` del babel script; al hacer clic abren un `Lightbox` (Esc/flechas/backdrop, con CTA a WhatsApp). Se pausa en hover y respeta `prefers-reduced-motion`.
 
 ## Catálogo
 
@@ -32,9 +34,10 @@ Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la 
 
 ## SEO / AEO
 
-- JSON-LD: `Organization`, `LocalBusiness` (PrintingService con `hasOfferCatalog`), `FAQPage`, `WebSite`
+- JSON-LD: `Organization`, `LocalBusiness` (PrintingService con `hasOfferCatalog`), `FAQPage`, `WebSite`, `BreadcrumbList`, `ImageGallery`
 - `.ssr-fallback` completo con todo el contenido para crawlers sin JS
 - **Las FAQs están triplicadas** — acordeón React, `FAQPage` JSON-LD y `.ssr-fallback`. Google exige que el schema refleje lo visible: al tocar una, tocar las tres.
+- **La galería de Trabajos está triplicada** — array `works` (React), `ImageGallery` JSON-LD y las `<figure>` del `.ssr-fallback`. Al añadir/quitar una foto, tocar las tres.
 - `robots.txt` permite explícitamente crawlers IA (ClaudeBot, GPTBot, PerplexityBot, etc.)
 - `sitemap.xml` — actualizar `lastmod` después de cambios de contenido
 
