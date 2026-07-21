@@ -23,7 +23,26 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 `Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Trabajos → Contacto → CtaFinal → Footer + FloatingWA`
 
-**Trabajos**: marquee auto-desplazable de fotos reales (`assets/trabajos/`, optimizadas con `sips`). Los datos viven en el array `works` del babel script; al hacer clic abren un `Lightbox` (Esc/flechas/backdrop, con CTA a WhatsApp). Se pausa en hover y respeta `prefers-reduced-motion`.
+**Trabajos**: marquee auto-desplazable de fotos reales. Los datos viven en el array `works` del babel script; al hacer clic abren un `Lightbox` (Esc/flechas/backdrop, con CTA a WhatsApp). Se pausa en hover y respeta `prefers-reduced-motion`.
+
+### Pipeline de imágenes (dos tamaños)
+
+Cada foto vive en dos resoluciones, ambas generadas con `sips`:
+
+| Archivo | Uso | Receta |
+|---|---|---|
+| `assets/trabajos/<slug>.jpg` | Lightbox y crawlers (JSON-LD + SSR) | `sips -Z 1100 -s format jpeg -s formatOptions 70` |
+| `assets/trabajos/thumb/<slug>.avif` | Lo que carga el marquee | `sips --resampleHeight 720 -s format avif -s formatOptions 50` |
+| `assets/trabajos/thumb/<slug>.jpg` | Fallback del `<picture>` | `sips --resampleHeight 720 -s format jpeg -s formatOptions 68` |
+
+Los thumbs se generan **por altura** (`--resampleHeight`), no por lado mayor: el marquee restringe la altura (`.work-card`, `clamp(280px, 40vh, 360px)`) y 720 px la cubre a 2× DPR. **Nunca ampliar** — si la altura del origen ya es ≤ 720 px (caso `chamarra-4ases`, `vasos-luis`), sólo re-encodear sin `--resampleHeight`.
+
+Cuidados al tocar esta sección:
+
+- El marquee usa `<picture>` (`source` AVIF + `img` JPEG). El `img` **debe** llevar `width`/`height` de `tw`/`th`: con `height:100%; width:auto`, sin ellos la tarjeta mide 0 px de ancho hasta que carga y el track salta mientras la animación corre.
+- `w`/`h` y `tw`/`th` en `works` deben ser las dimensiones **reales** de los archivos — leerlas de `sips -g pixelWidth -g pixelHeight`, no calcularlas.
+- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (14 fotos → 92 s). Si no, añadir fotos acelera el desplazamiento.
+- Las fuentes suelen llegar como exports de WhatsApp (1280–1600 px). **Revisar cada foto antes de integrarla**: descartar capturas de pantalla de chats (llevan barra de estado y teléfonos de clientes).
 
 ## Catálogo
 
