@@ -363,7 +363,7 @@ export function blendColorPixel(backdrop: Rgb, source: Rgb): Rgb  // gco 'color'
 export function blendMultiplyPixel(backdrop: Rgb, source: Rgb): Rgb
 export function grayscaleStats(data: Uint8ClampedArray):
   { mean:number, min:number, max:number, alphaMean:number, opaqueCount:number }
-export function normalizeFoldMapPixels(data: Uint8ClampedArray, targetMean?: number): Uint8ClampedArray
+export function normalizeFoldMapPixels(data: Uint8ClampedArray, targetLevel?: number, referencePercentile?: number): Uint8ClampedArray
 export function tintPixels(base: Uint8ClampedArray, hex: string): Uint8ClampedArray
 export function dominantColorFromPixels(data: Uint8ClampedArray, opts?: {alphaThreshold?:number, bucketBits?:number}): string
 export function pixelsHaveAlpha(data: Uint8ClampedArray, threshold?: number): boolean
@@ -385,7 +385,9 @@ export function samplePixel(data: Uint8ClampedArray, width: number, x: number, y
 | 9 | `blendMultiplyPixel({200,200,200},{255,255,255})` | `{200,200,200}` |
 | 10 | `blendMultiplyPixel(x,{0,0,0})` | `{0,0,0}` |
 | 11 | `grayscaleStats` sobre array uniforme de 128 | `{mean:128,min:128,max:128}` |
-| 12 | `normalizeFoldMapPixels(datos, 255).mean` | `≈255` ±1 |
+| 12 | `normalizeFoldMapPixels(mapaReal, 255)[0]` con tela plana a 180 | `255` — la **tela plana** aterriza en 255, donde multiply es factor 1.0. **NO la media**: la media incluye los pliegues, y llevarla a 255 (el techo del rango) obligaría a recortar toda la sombra. La referencia es un percentil alto (`referencePercentile`, 0.9) |
+| 12b | razones de atenuación con mapa real (plana 180, pliegue 120, arruga 80) | `out[pliegue]/255 ≈ 120/180` y `out[arruga]/255 ≈ 80/180`. **Normalización MULTIPLICATIVA**, no aditiva: multiply es multiplicativo, así que lo que importa es cuánto atenúa cada pliegue *respecto a la tela plana*. Escalar preserva esas razones; sumar una constante las comprime (aditivo daría 0.843/0.686 en vez de 0.667/0.444 — pliegues casi borrados) |
+| 12c | mapa uniforme | queda todo en `targetLevel` — multiply neutro, no hace nada |
 | 13 | `normalizeFoldMapPixels` preserva el canal alfa | byte 3 de cada píxel inalterado |
 | 14 | `normalizeFoldMapPixels` preserva el **orden** relativo | si `a<b` en la entrada, `a'<=b'` en la salida |
 | 15 | `tintPixels(base, '#D02B34')` | cada píxel === `blendColorPixel(basePixel, hexToRgb('#D02B34'))` |
@@ -509,6 +511,8 @@ export function stableStringify(v: any): string
 | 5 | cambiar `qty` de 12 a 13 | hash distinto |
 | 6 | `draftFingerprint` | siempre 16 chars hex, `/^[0-9a-f]{16}$/` |
 | 7 | `validateOrderDraft` sin `logo_path` | `{code:'REQUIRED', field:'items[0].logo_path'}` |
+| 7b | `buildOrderDraft` conserva `preview_path` | la lista blanca **debe** incluirlo: `order_items.preview_object_path` es NOT NULL (§5.1). Sin él el snapshot queda huérfano en Storage y el INSERT del pedido falla |
+| 7c | `validateOrderDraft` sin `preview_path` | `{code:'REQUIRED', field:'items[0].preview_path'}` |
 | 8 | sin email | `{code:'REQUIRED', field:'customer.email'}` |
 | 9 | email inválido | `{code:'INVALID_EMAIL', field:'customer.email'}` |
 | 10 | draft completo válido | `{valid:true, errors:[]}` |
@@ -779,7 +783,7 @@ Konva.Stage  (#es-canvas)
 1. Sólo cambia cuando cambia el color → se memoiza por `colorHex` (`Map<hex, HTMLCanvasElement>`), el drag del logo no recompone nada.
 2. Se puede leer con `getImageData` y comparar contra `compose.blendColorPixel()` → test numérico, no screenshot diff.
 3. Evita depender del orden de hijos dentro de la Layer, que es exactamente donde un modelo pequeño se equivoca.
-4. El `foldMap` normalizado (`normalizeFoldMapPixels`) también se precalcula ahí: multiplicar por el gris crudo oscurecería el logo el doble; normalizado a media 255 sólo aporta los pliegues.
+4. El `foldMap` normalizado (`normalizeFoldMapPixels`) también se precalcula ahí: multiplicar por el gris crudo oscurecería el logo el doble. Normalizado **multiplicativamente contra el nivel de tela plana** (percentil 0.9 → 255), la tela plana queda neutra y sólo los pliegues restan brillo, conservando sus razones de atenuación reales.
 
 `garment-painter.js`:
 ```js
@@ -1431,7 +1435,7 @@ Defensas adicionales:
 
 Se ve bien en pantalla por accidente en algunos navegadores y sale mal en el snapshot, o al revés. **Mitigación**: el §3.1 — una sola Layer `compose` para todo lo que mezcla, `ui` sólo para el Transformer, snapshot desde `composeLayer.toDataURL()`. El test C2 mide el píxel real y lo compara contra `blendColorPixel`; si alguien mete la gco en otra Layer, C2 se pone rojo de inmediato.
 
-Riesgo gemelo: multiplicar el foldMap sobre **toda** la prenda la oscurece el doble. Mitigado por el `Konva.Group` con `clip = printArea` + `normalizeFoldMapPixels` (media 255), ambos con test unitario.
+Riesgo gemelo: multiplicar el foldMap sobre **toda** la prenda la oscurece el doble. Mitigado por el `Konva.Group` con `clip = printArea` + `normalizeFoldMapPixels` (multiplicativo contra el percentil 0.9, no la media), ambos con test unitario.
 
 ### 7.6 `auto_return` rechazado por MP con back_urls no-HTTPS (riesgo MEDIO)
 
