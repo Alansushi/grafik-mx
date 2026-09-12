@@ -1457,6 +1457,25 @@ Incógnita real: **`attachments` de Resend con base64 no está verificado**. Se 
 - Enumeración: `public_token` es uuid v4 (122 bits). `short_code` es sólo para mostrar, nunca sirve como credencial.
 - `/api/upload-url` es el endpoint abierto más expuesto → rate limit por IP (30 / 10 min) vía `rpc_rate_limit_hit`, más el `file_size_limit` y `allowed_mime_types` del bucket.
 
+### 7.10 Deployment Protection bloquea el webhook de Mercado Pago en previews (riesgo ALTO, descubierto en el incremento 0)
+
+**Hecho verificado**, no teórico. El proyecto `publicidad` tiene Vercel Deployment Protection activa: en el preview de la rama `feat/configurador-estudio`, **todas** las rutas —incluida `/`— devuelven `302` a `https://vercel.com/sso-api`. Comprobado con `curl` y con la herramienta autenticada del MCP de Vercel; ambos rebotan.
+
+Consecuencia en el incremento 10: **los servidores de Mercado Pago no pueden entregar el webhook a una URL de preview.** Recibirían el 302 al SSO, nunca llegarían a `/api/webhook-mp`, y el pedido se quedaría en `pending_payment` para siempre. Es exactamente el fallo que ya se documentó en el proyecto Lial, donde los `walletUrl` de los correos apuntaban a un preview y rebotaban al SSO de Vercel.
+
+Aplica igual a cualquier callback entrante: el webhook de MP y las `back_urls` si el cliente aterriza en un preview.
+
+**Hay que decidir antes del incremento 10.** Opciones, de menos a más invasiva:
+
+| Opción | Qué implica |
+|---|---|
+| **Probar el webhook en local con `vercel dev` + un túnel** (ngrok/cloudflared) y apuntar `MP_WEBHOOK_URL` ahí | Cero cambios de configuración en Vercel. Es el camino recomendado para el desarrollo del incremento 10: la variable `MP_WEBHOOK_URL` existe precisamente para esto (§5 de env vars) |
+| **Desactivar la protección sólo para previews** (Project → Deployment Protection → Vercel Authentication → Standard/Disabled para preview) | Simple, pero expone todos los previews del sitio a cualquiera con la URL |
+| **Protection Bypass for Automation** (header `x-vercel-protection-bypass`) | No sirve para MP: no vamos a poder hacer que Mercado Pago mande un header propietario |
+| **Probar sólo contra producción** tras hacer merge, con `/estudio/` ya oculta por `noindex` | Funciona, pero significa depurar pagos en producción — mala idea antes de tener la idempotencia probada |
+
+**Nota para el incremento 0:** esta protección es también la razón por la que el criterio de "`/tests/...` → 404" **no** se puede verificar con `curl` anónimo. Se verifica con el **build log**, que es evidencia más fuerte: busca la línea `Found .vercelignore` seguida de `Removed N ignored files` y la lista. En el deploy `dpl_JCBjvTp7T32acCWG7qMh1ZC1QRLA` removió los 12 esperados (spec, `CLAUDE.md`, ambos configs de test, `.env.example`, `tests/unit/color.test.js`, `.md` y capturas), y `Build Completed in /vercel/output [70ms]` confirma que no corrió build ni instaló devDependencies.
+
 ### 7.9 Riesgos menores anotados
 
 | Riesgo | Mitigación |
