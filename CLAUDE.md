@@ -68,6 +68,38 @@ Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la 
 - [ ] Añadir dirección física si se quiere mejorar el schema `LocalBusiness`
 - [ ] Íconos propios en `defs.svg` para Flyers, Pósters, Boletos y Pendones — hoy reusan `i-dtf`, `i-vinil`, `i-promo` y `i-lona`
 
+## `/estudio/` — configurador de playeras y gorras (en construcción)
+
+Ruta **escondida** (sin enlazar, `noindex`, fuera de `sitemap.xml`) con un configurador
+self-service: preview del logo sobre la prenda, precio, cobro por Mercado Pago y panel
+de administración. Es un subsistema aparte del sitio de una página.
+
+**La especificación completa —contratos, tablas de casos de prueba, esquema SQL— vive en
+`docs/superpowers/specs/2026-09-11-configurador-estudio-design.md`. Léela antes de tocar
+`estudio/`, `api/` o `supabase/`.**
+
+Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rompería):
+
+1. **No crear `public/` en la raíz.** Vercel cambiaría el output directory ahí y el sitio
+   entero devolvería 404. `vercel.json` lo fija con `outputDirectory: "."`.
+2. **No tocar `index.html` ni `styles.css`.** El estudio importa `styles.css` sólo por sus
+   tokens `:root`; sus estilos propios van en `estudio/studio.css` con prefijo `.es-`.
+3. **Cero dependencias de runtime.** `package.json` sólo tiene `devDependencies` (Vitest,
+   Playwright) y **ningún** script `build`. Mercado Pago, Resend y Supabase se consumen con
+   `fetch` crudo contra sus REST APIs desde `api/*.js` en JS plano.
+4. **`.vercelignore` es la única barrera** que impide servir `tests/`, `supabase/`, `docs/`
+   y `*.md` como estáticos, porque el sitio se sirve desde la raíz. Al añadir una carpeta
+   que no deba ser pública, añadirla ahí.
+5. **`img.src` sólo recibe `blob:` o `data:`, nunca una URL remota.** Una imagen remota
+   contamina el canvas y `toDataURL()` falla — ahí muere el snapshot del pedido. Todo lo
+   remoto pasa por `fetch → blob → createObjectURL` (`estudio/canvas/image-loader.js`).
+6. **Todo lo que se mezcla vive en una sola `Konva.Layer`.** Cada Layer es un `<canvas>`
+   distinto y `globalCompositeOperation` no cruza esa frontera. El `Transformer` va en su
+   propia Layer y el snapshot sale de `composeLayer.toDataURL()`, no de `stage.toDataURL()`.
+7. **El precio lo calcula el servidor, siempre.** `/api/checkout` re-cotiza desde la base e
+   ignora cualquier cifra del cliente. `pricing_rules` no tiene política RLS para `anon`.
+8. **Dinero en centavos enteros.** Ninguna función devuelve un float de dinero.
+
 ## Sistema de diseño
 
 Ver `design-system.html` (guía visual) y `design-system.md` (referencia de tokens).

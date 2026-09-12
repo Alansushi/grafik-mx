@@ -1,0 +1,31 @@
+# El sitio se sirve desde la RAÍZ (outputDirectory: "."), así que todo lo que se
+# sube es servible públicamente. Este archivo es la ÚNICA barrera que impide que
+# tests, migraciones y documentación queden expuestos en grafik.mx.
+#
+# Verificación tras cada deploy (spec §1):
+#   curl -sI <url>/tests/unit/pricing.test.js          → 404
+#   curl -sI <url>/supabase/migrations/0001_schema.sql  → 404
+#   curl -sI <url>/                                     → 200
+#
+# package.json SÍ se sube: Vercel lo necesita para "type":"module" en api/*.js.
+# No contiene secretos.
+
+node_modules
+tests
+supabase
+docs
+.playwright-mcp
+test-results
+playwright-report
+coverage
+vitest.config.js
+playwright.config.js
+.env
+.env.*
+
+# Documentación y capturas de trabajo — no son parte del sitio
+*.md
+design-system.html
+screenshot-full.png
+screenshot-hero.png
+navbar-desktop.png
