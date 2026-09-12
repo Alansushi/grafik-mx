@@ -287,3 +287,45 @@ describe('pricing.js — formatCentsMXN (re-verificación en el contrato de pric
     expect(formatCentsMXN(50)).toBe('$0.50');
   });
 });
+
+// ── Hallazgos de la puerta de revisión (incrementos 1-4) ──────────────────
+describe('pricing.js — huecos de validación detectados en revisión', () => {
+  it('T6. validateTiers([]) NO puede ser válido', () => {
+    // Una regla de precio sin tramos pasaba la validación y sólo reventaba
+    // después, en resolveTier. Si el panel de admin (incremento 13) usa
+    // validateTiers para decidir si guarda, guardaría una regla incobrable.
+    const { valid, errors } = validateTiers([]);
+    expect(valid).toBe(false);
+    expect(errors).toContainEqual({ code: 'NO_TIERS' });
+  });
+
+  it('T7. un carrito vacío no es cobrable ni con token de producción', () => {
+    // Defensa en profundidad: buildPreferenceBody (§2.8) ya rechaza items
+    // vacíos, pero el candado no debería dejar pasar una preferencia de $0
+    // hasta allá.
+    const cart = quoteCart([]);
+    try {
+      assertChargeable(cart, { accessToken: 'APP_USR-real' });
+      throw new Error('debía lanzar');
+    } catch (err) {
+      expect(err.code).toBe('EMPTY_CART');
+    }
+  });
+
+  it('T8. un carrito con total 0 tampoco es cobrable', () => {
+    const freeRule = {
+      id: 'r', garment_type_id: 'g', technique_id: 't',
+      tiers: [{ min_qty: 1, max_qty: null, unit_price_cents: 0 }],
+      technique_surcharge_cents: 0, size_surcharges_cents: {},
+      currency: 'MXN', is_placeholder: false,
+    };
+    const cart = quoteCart([{ rule: freeRule, breakdown: { M: 12 } }]);
+    expect(cart.total_cents).toBe(0);
+    try {
+      assertChargeable(cart, { accessToken: 'APP_USR-real' });
+      throw new Error('debía lanzar');
+    } catch (err) {
+      expect(err.code).toBe('NON_POSITIVE_TOTAL');
+    }
+  });
+});

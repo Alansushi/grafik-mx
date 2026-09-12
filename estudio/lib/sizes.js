@@ -52,8 +52,35 @@ export function normalizeBreakdown(raw) {
   return ordered;
 }
 
+/**
+ * Suma las piezas de un desglose. Falla RUIDOSO ante cualquier valor que no
+ * sea un número finito, en vez de intentar coercionarlo.
+ *
+ * La versión ingenua (`reduce((s, q) => s + q, 0)`) concatenaba en cuanto las
+ * cantidades llegaban como string — y llegan así por defecto, porque un
+ * `<input type="number">` del DOM devuelve strings. `{M:'5', L:'7'}` daba
+ * `'057'`: un pedido de 12 piezas se cotizaba como 57, saltaba al tramo de
+ * 50+ y cobraba casi cuatro veces de más, sin que `Number.isInteger` del
+ * total lo detectara.
+ *
+ * Coercionar aquí en silencio sería igual de malo: escondería que alguien se
+ * saltó `normalizeBreakdown`, que es el módulo cuyo trabajo ES normalizar. El
+ * contrato es normalizar primero, sumar después.
+ */
 export function totalUnits(b) {
-  return Object.values(b).reduce((sum, qty) => sum + qty, 0);
+  let total = 0;
+  for (const size of Object.keys(b)) {
+    const qty = b[size];
+    if (typeof qty !== 'number' || !Number.isFinite(qty)) {
+      throw new ValidationError(
+        'NON_NUMERIC_QTY',
+        `La cantidad de la talla "${size}" no es un número. Normaliza el desglose con normalizeBreakdown antes de sumarlo.`,
+        { size, value: qty },
+      );
+    }
+    total += qty;
+  }
+  return total;
 }
 
 /**
@@ -72,6 +99,15 @@ export function validateBreakdown(b, opts = {}) {
 
   for (const size of Object.keys(b)) {
     const qty = b[size];
+
+    // A diferencia de totalUnits, aquí no se lanza: el trabajo de esta
+    // función es REPORTAR todos los problemas de una vez para que el
+    // formulario los muestre juntos. Pero el valor no numérico se excluye del
+    // total, para que `total` siempre sea un número y no una concatenación.
+    if (typeof qty !== 'number' || !Number.isFinite(qty)) {
+      errors.push({ code: 'NON_NUMERIC_QTY', size });
+      continue;
+    }
     total += qty;
 
     if (!allowedSizes.includes(size)) {

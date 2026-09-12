@@ -33,6 +33,16 @@ export function validateTiers(tiers) {
   const errors = [];
   const sorted = sortTiers(tiers);
 
+  // Una lista vacía pasaba como válida y sólo reventaba después, en
+  // resolveTier. El panel de admin (incremento 13) usa esta función para
+  // decidir si guarda una regla de precio: sin este chequeo guardaría una
+  // regla incobrable y el fallo aparecería recién en el checkout de un
+  // cliente real.
+  if (sorted.length === 0) {
+    errors.push({ code: 'NO_TIERS' });
+    return { valid: false, errors };
+  }
+
   for (const tier of sorted) {
     if (tier.unit_price_cents < 0) {
       errors.push({ code: 'NEGATIVE_PRICE' });
@@ -162,6 +172,20 @@ export function isTestAccessToken(token) {
 export function assertChargeable(cart, { accessToken } = {}) {
   if (!accessToken) {
     throw new MpConfigError('MISSING_ACCESS_TOKEN', 'Falta configurar el access token de Mercado Pago.', {});
+  }
+  // Defensa en profundidad: buildPreferenceBody (§2.8) ya rechaza items vacíos
+  // y precio cero, pero una preferencia de $0 no debería llegar siquiera hasta
+  // allá. Cobrar $0 no falla ruidosamente en Mercado Pago: crea un pedido
+  // fantasma que parece legítimo.
+  if (!cart.items || cart.items.length === 0) {
+    throw new PricingError('EMPTY_CART', 'No se puede cobrar un carrito vacío.', {});
+  }
+  if (!(cart.total_cents > 0)) {
+    throw new PricingError(
+      'NON_POSITIVE_TOTAL',
+      'No se puede cobrar un total de cero o negativo.',
+      { total_cents: cart.total_cents },
+    );
   }
   if (cart.is_placeholder && !isTestAccessToken(accessToken)) {
     throw new PricingError(

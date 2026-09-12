@@ -421,6 +421,9 @@ export function sortSizes(keys: string[]): string[]
 | 4 | `normalizeBreakdown({M:'3'})` | `{M:3}` (coerción numérica de strings enteros) |
 | 5 | `normalizeBreakdown({M:'abc'})` | lanza `ValidationError` `NON_NUMERIC_QTY` |
 | 6 | `totalUnits({S:2,M:4,L:6})` | `12` |
+| 6b | `totalUnits({M:'5', L:'7'})` | lanza `ValidationError` `NON_NUMERIC_QTY`. **NO concatena.** Un `<input type="number">` devuelve strings, así que éste es el camino por defecto desde la UI: la suma ingenua daba `'057'` — 12 piezas cotizadas como 57, saltando al tramo de 50+ y cobrando casi 4× de más, sin que `Number.isInteger` del total lo detectara. Normalizar es trabajo de `normalizeBreakdown`; coercionar aquí escondería que alguien se lo saltó |
+| 6c | `totalUnits` con `NaN`/`Infinity`/`null`/`undefined` | lanza `NON_NUMERIC_QTY` |
+| 6d | `validateBreakdown({M:'5'})` | error `{code:'NON_NUMERIC_QTY', size:'M'}`, y `total` sigue siendo **número** (el valor inválido se excluye, no se concatena). Aquí se reporta en vez de lanzar: su trabajo es mostrar todos los problemas juntos |
 | 7 | `validate({M:-1}, {minTotal:1,...})` | error `{code:'NEGATIVE_QTY', size:'M'}` |
 | 8 | `validate({M:2.5}, ...)` | error `{code:'NON_INTEGER', size:'M'}` |
 | 9 | `validate({XXXXL:1}, {allowedSizes:SIZE_ORDER})` | error `{code:'UNKNOWN_SIZE', size:'XXXXL'}` |
@@ -468,6 +471,7 @@ export function assertChargeable(cart, { accessToken: string }): void
 | 3 | `resolveTier(tiers, 0)` | lanza `PricingError` `QTY_ZERO` |
 | 4 | `resolveTier(tiers, -5)` | `QTY_NEGATIVE` |
 | 5 | `resolveTier([], 10)` | `NO_TIERS` |
+| 5b | `validateTiers([])` | `{valid:false, errors:[{code:'NO_TIERS'}]}`. **Una lista vacía no puede ser válida**: pasaba la validación y sólo reventaba después en `resolveTier`, así que el panel de admin (§6, incremento 13) habría guardado una regla incobrable y el fallo aparecería recién en el checkout de un cliente real |
 | 6 | `resolveTier([{1,10,x}], 50)` | `NO_TIER_FOR_QTY` con `details.qty===50` |
 | 7 | `resolveTier` funciona con tiers **desordenados** en la entrada | mismo resultado que ordenados |
 | 8 | `validateTiers([{1,10},{12,null}])` | error `{code:'GAP', at:11}` |
@@ -491,6 +495,8 @@ export function assertChargeable(cart, { accessToken: string }): void
 | 26 | `assertChargeable(cartPlaceholder, {accessToken:'TEST-1'})` | no lanza |
 | 27 | `assertChargeable(cartReal, {accessToken:'APP_USR-1'})` | no lanza |
 | 28 | `assertChargeable(cart, {accessToken:''})` | lanza `MpConfigError` `MISSING_ACCESS_TOKEN` |
+| 28b | `assertChargeable(quoteCart([]), {accessToken:'APP_USR-1'})` | lanza `PricingError` `EMPTY_CART` |
+| 28c | carrito cuyo `total_cents` es `0` | lanza `PricingError` `NON_POSITIVE_TOTAL`. Defensa en profundidad: `buildPreferenceBody` (§2.8) ya rechaza items vacíos y precio cero, pero cobrar $0 no falla ruidosamente en Mercado Pago — crea un pedido fantasma que parece legítimo |
 | 29 | `formatCentsMXN(123400)` / `(0)` / `(-500)` / `(50)` | `'$1,234.00'` / `'$0.00'` / `'-$5.00'` / `'$0.50'` |
 
 ### 2.7 `estudio/lib/order-draft.js`

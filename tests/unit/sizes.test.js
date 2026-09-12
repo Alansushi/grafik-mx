@@ -120,3 +120,59 @@ describe('sizes.js — sortSizes (soporte de las pruebas anteriores)', () => {
     expect(sortSizes(['XXL', 'S', 'M'])).toEqual(['S', 'M', 'XXL']);
   });
 });
+
+// ── Hallazgos de la puerta de revisión (incrementos 1-4) ──────────────────
+//
+// Un <input type="number"> del DOM devuelve STRINGS, así que {M:'5', L:'7'} no
+// es un caso exótico: es el camino por defecto desde la UI. Con la suma
+// ingenua, reduce arrancaba en 0 (número) y concatenaba: 0+'5' → '05',
+// '05'+'7' → '057'. Un pedido de 12 piezas se cotizaba como 57, saltaba al
+// tramo de 50+ y cobraba $1,396.50 en vez de $359.88. Y Number.isInteger('057'
+// convertido) seguía dando true, así que el guardia de "sin drift de float" no
+// lo veía.
+//
+// La decisión: totalUnits FALLA RUIDOSO ante cualquier valor que no sea número
+// finito. Normalizar es trabajo de normalizeBreakdown, y el contrato es que se
+// llama antes. Un total mal sumado no puede degradarse en silencio cuando de
+// él depende lo que se le cobra al cliente.
+describe('sizes.js — totalUnits no puede sumar basura en silencio', () => {
+  it("T1. cantidades en string lanzan NON_NUMERIC_QTY en vez de concatenar", () => {
+    try {
+      totalUnits({ M: '5', L: '7' });
+      throw new Error('debía lanzar');
+    } catch (err) {
+      expect(err).toBeInstanceOf(ValidationError);
+      expect(err.code).toBe('NON_NUMERIC_QTY');
+    }
+  });
+
+  it('T2. NaN, Infinity, null y undefined también lanzan', () => {
+    for (const bad of [NaN, Infinity, -Infinity, null, undefined]) {
+      try {
+        totalUnits({ M: bad });
+        throw new Error(`debía lanzar con ${String(bad)}`);
+      } catch (err) {
+        expect(err.code).toBe('NON_NUMERIC_QTY');
+      }
+    }
+  });
+
+  it('T3. con números sigue sumando normal, y el vacío da 0', () => {
+    expect(totalUnits({ S: 2, M: 4, L: 6 })).toBe(12);
+    expect(totalUnits({})).toBe(0);
+  });
+
+  it('T4. normalizeBreakdown → totalUnits es el camino correcto desde la UI', () => {
+    expect(totalUnits(normalizeBreakdown({ M: '5', L: '7' }))).toBe(12);
+  });
+});
+
+describe('sizes.js — validateBreakdown reporta lo no numérico y no corrompe el total', () => {
+  it('T5. strings → NON_NUMERIC_QTY por talla, y total sigue siendo número', () => {
+    const { valid, total, errors } = validateBreakdown({ M: '5', L: '7' }, { minTotal: 1 });
+    expect(valid).toBe(false);
+    expect(errors).toContainEqual({ code: 'NON_NUMERIC_QTY', size: 'M' });
+    expect(errors).toContainEqual({ code: 'NON_NUMERIC_QTY', size: 'L' });
+    expect(typeof total).toBe('number');
+  });
+});
