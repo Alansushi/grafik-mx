@@ -4,6 +4,12 @@
   "buildCommand": "",
   "installCommand": "npm install --omit=dev --no-audit --no-fund",
   "outputDirectory": ".",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 20,
+      "memory": 1024
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
