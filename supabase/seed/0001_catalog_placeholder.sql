@@ -16,6 +16,10 @@
 --          and technique_id    = (select id from public.print_techniques where slug = 'dtf');
 --
 -- Idempotente: se puede correr varias veces sin duplicar.
+--
+-- Aplicado en el proyecto grafik-estudio como migración `0005_seed_catalog_placeholder`
+-- (el catálogo es dato de arranque, no contenido editable, así que vive en el
+-- historial de migraciones igual que el esquema).
 
 -- ── Prendas ────────────────────────────────────────────────────────────────
 -- base_mockup_url usa el pseudo-esquema 'procedural:' mientras no existan las

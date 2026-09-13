@@ -44,7 +44,10 @@ begin
   return v_hits <= p_max_hits;
 end $$;
 
--- Sólo las Vercel Functions (service_role) pueden consumir cuota. Si anon
--- pudiera llamarla, cualquiera agotaría el bucket de otro.
+-- ⚠️ Estos dos revoke NO funcionan, y se conservan sólo para que el historial
+--    de migraciones sea fiel a lo que se aplicó. Postgres concede EXECUTE a
+--    PUBLIC por defecto y anon/authenticated heredan de ahí, así que revocar
+--    del rol específico no quita nada. La corrección real está en
+--    0006_fix_function_execute_grants.sql, que revoca de PUBLIC.
 revoke execute on function public.rpc_rate_limit_hit(text, int, int) from anon, authenticated;
 revoke execute on function public.gen_short_code() from anon, authenticated;

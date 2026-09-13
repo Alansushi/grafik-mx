@@ -99,28 +99,14 @@ create type public.order_status as enum (
   'in_production','ready','delivered','cancelled','refunded','expired'
 );
 
--- Código legible para humanos ('GK-4F2A9C'). Reintenta ante colisión en vez de
--- dejar que el unique reviente un pedido real: el espacio es de 16M y una
--- colisión es improbable, pero improbable no es imposible y el costo de
--- manejarla aquí es de tres líneas.
-create or replace function public.gen_short_code() returns text
-language plpgsql volatile as $$
-declare
-  v_code text;
-begin
-  loop
-    v_code := 'GK-' || upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 6));
-    exit when not exists (select 1 from public.orders where short_code = v_code);
-  end loop;
-  return v_code;
-end $$;
-
 create table public.orders (
   id                uuid primary key default gen_random_uuid(),
   -- uuid v4 (122 bits): la credencial con la que el cliente consulta su pedido
   -- en /estudio/pedido/?t=... sin necesitar cuenta. No enumerable.
   public_token      uuid not null default gen_random_uuid(),
-  short_code        text not null default public.gen_short_code(),
+  -- El default se asigna abajo, después de crear gen_short_code(): la función
+  -- consulta esta misma tabla, así que no puede definirse antes que ella.
+  short_code        text not null,
   customer_id       uuid not null references public.customers(id),
   status            public.order_status not null default 'draft',
   currency          text not null default 'MXN',
@@ -144,6 +130,26 @@ create index        orders_status_created on public.orders (status, created_at d
 -- Parcial: un pago de Mercado Pago no puede quedar asociado a dos pedidos.
 create unique index orders_mp_payment_id  on public.orders (mp_payment_id)
   where mp_payment_id is not null;
+
+-- Código legible para humanos ('GK-4F2A9C'). Reintenta ante colisión en vez de
+-- dejar que el unique reviente un pedido real: el espacio es de 16M y una
+-- colisión es improbable, pero improbable no es imposible y manejarla aquí
+-- cuesta tres líneas.
+--
+-- Va DESPUÉS de la tabla porque la consulta, y el default se asigna con ALTER.
+create or replace function public.gen_short_code() returns text
+language plpgsql volatile set search_path = public as $$
+declare
+  v_code text;
+begin
+  loop
+    v_code := 'GK-' || upper(substr(encode(gen_random_bytes(4), 'hex'), 1, 6));
+    exit when not exists (select 1 from public.orders where short_code = v_code);
+  end loop;
+  return v_code;
+end $$;
+
+alter table public.orders alter column short_code set default public.gen_short_code();
 
 create table public.order_items (
   id                  uuid primary key default gen_random_uuid(),
@@ -222,7 +228,7 @@ create table public.rate_limits (
 
 -- updated_at automático en orders
 create or replace function public.touch_updated_at() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public as $$
 begin
   new.updated_at := now();
   return new;

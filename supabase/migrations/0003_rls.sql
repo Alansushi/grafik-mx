@@ -83,3 +83,39 @@ create policy admin_self on public.admin_users
 
 -- rate_limits: sin política a propósito. Sólo service_role, vía
 -- rpc_rate_limit_hit(). Nadie debe poder leer ni resetear cuotas ajenas.
+
+-- ── Permisos de tabla (GRANT), distintos de RLS ────────────────────────────
+-- RLS decide QUÉ FILAS se ven; el GRANT decide si la tabla es alcanzable por el
+-- Data API. Son dos candados independientes y hacen falta los dos.
+--
+-- Se hacen explícitos en vez de confiar en los defaults del proyecto: los
+-- defaults han cambiado entre versiones de Supabase, y una tabla de precios
+-- alcanzable por accidente no es algo que quiera dejar a la configuración del
+-- panel. Con esto, la migración produce la misma frontera en cualquier proyecto
+-- donde se aplique.
+
+-- Punto de partida: anon no alcanza NADA.
+revoke all on all tables in schema public from anon;
+
+-- Catálogo: lo único que el navegador puede leer. Sólo SELECT, nunca escritura.
+grant select on public.garment_types    to anon, authenticated;
+grant select on public.garment_variants to anon, authenticated;
+grant select on public.print_techniques to anon, authenticated;
+
+-- Operación: alcanzable por 'authenticated' para que el panel de admin funcione,
+-- pero las políticas de arriba exigen is_admin() — un usuario autenticado que no
+-- sea admin ve cero filas. anon no las alcanza en absoluto.
+grant select         on public.orders         to authenticated;
+grant update         on public.orders         to authenticated;
+grant select         on public.order_items    to authenticated;
+grant select         on public.customers      to authenticated;
+grant select         on public.payment_events to authenticated;
+grant select         on public.email_log      to authenticated;
+grant select         on public.admin_users    to authenticated;
+grant select, update on public.pricing_rules  to authenticated;
+grant insert, update, delete on public.garment_types    to authenticated;
+grant insert, update, delete on public.garment_variants to authenticated;
+grant insert, update, delete on public.print_techniques to authenticated;
+
+-- rate_limits: ni anon ni authenticated. Sólo service_role.
+revoke all on public.rate_limits from anon, authenticated;
