@@ -609,7 +609,7 @@ export function verifySignature(opts: {
 ### 2.10 `api/_lib/order-state.js`
 
 ```js
-export const ORDER_STATES = ['draft','pending_payment','paid','payment_failed',
+export const ORDER_STATES = ['draft','quoted','pending_payment','paid','payment_failed',
                              'in_production','ready','delivered','cancelled','refunded','expired'];
 export const TRANSITIONS: Record<string, string[]>
 export const TERMINAL_STATES = ['delivered','cancelled','refunded','expired'];
@@ -631,7 +631,11 @@ export function isValidState(s: string): boolean
 | 3 | **estructural**: los terminales tienen `TRANSITIONS[s] === []` salvo `delivered`→`refunded` | según diseño |
 | 4 | `canTransition('paid','paid')` | **`false`** — sin auto-bucles. Es lo que hace idempotente el `UPDATE ... WHERE status IN (...)` |
 | 5 | `canTransition('delivered','paid')` | `false` |
-| 6 | `canTransition('draft','pending_payment')` | `true` |
+| 6 | `canTransition('draft','pending_payment')` | `true` — se conserva: pagar sin pasar por WhatsApp es un camino legítimo |
+| 6b | `canTransition('draft','quoted')` | `true` — el pedido enviado por WhatsApp en Etapa A |
+| 6c | `canTransition('quoted','pending_payment')` | `true` — en Etapa B, el botón de pagar sobre una cotización existente |
+| 6d | `canTransition('quoted','paid')` | **`false`** — no se puede saltar el cobro |
+| 6e | `sideEffectsFor('draft','quoted')` | `[]` — en Etapa A el aviso lo manda el propio cliente por WhatsApp, no el sistema |
 | 7 | `canTransition('pending_payment','paid')` | `true` |
 | 8 | `canTransition('estado_inventado','paid')` | `false`, sin lanzar |
 | 9 | `assertTransition('delivered','draft')` | lanza `OrderStateError` `INVALID_TRANSITION` con `details:{from,to}` |
@@ -922,7 +926,8 @@ import { blendColorPixel, hexToRgb } from '../../estudio/lib/compose.js';
 ```
                     ┌──────────────── cancelled ◄──────────┐
                     │                                      │
- draft ──► pending_payment ──► paid ──► in_production ──► ready ──► delivered
+ draft ──► quoted ──► pending_payment ──► paid ──► in_production ──► ready ──► delivered
+          (Etapa A)      (Etapa B)
    │              │  │  │        │                                     │
    │              │  │  └► expired                                     │
    │              │  └────► payment_failed ──┐                         │
@@ -936,7 +941,8 @@ import { blendColorPixel, hexToRgb } from '../../estudio/lib/compose.js';
 
 `TRANSITIONS`:
 ```js
-draft:            ['pending_payment','cancelled','expired']
+draft:            ['quoted','pending_payment','cancelled','expired']
+quoted:           ['pending_payment','cancelled','expired']
 pending_payment:  ['paid','payment_failed','expired','cancelled']
 payment_failed:   ['pending_payment','paid','cancelled','expired']
 paid:             ['in_production','refunded','cancelled']
@@ -1119,7 +1125,7 @@ create table public.customers (
 create unique index customers_email_lower on public.customers (lower(email));
 
 create type public.order_status as enum (
-  'draft','pending_payment','paid','payment_failed',
+  'draft','quoted','pending_payment','paid','payment_failed',
   'in_production','ready','delivered','cancelled','refunded','expired'
 );
 
@@ -1345,10 +1351,10 @@ Cada incremento es un commit. Regla TDD para el modelo ejecutor, escrita al inic
 | **3** | `compose.js` | + `tests/unit/compose.test.js` | 20 casos verdes, incluida la invariante `lum(blend(cb,cs)) ≈ lum(cb)` con 100 pares |
 | **4** | `sizes.js` + `pricing.js` + `order-draft.js` | + 3 test files | 17 + 29 + 11 casos verdes. `assertChargeable` bloquea placeholder en modo live |
 | **5** | Migraciones Supabase vía MCP + seed | `supabase/migrations/000{1..4}.sql`, `seed/0001` | `curl "$SB/rest/v1/garment_types?select=*" -H "apikey:$ANON"` → 2 filas. `curl ".../pricing_rules?select=*" -H "apikey:$ANON"` → `[]`. Mismo query con service_role → 6 filas, todas `is_placeholder=true` |
-| **6** | `api/_lib/{env,log,http,validation,supabase,storage-paths}.js` + `api/catalog.js` + `api/upload-url.js` | + 3 test files | 9+13+13 casos verdes. `curl <preview>/api/catalog` → JSON con `garment_types[].print_area`. `curl -X POST /api/upload-url -d '{"kind":"logo","filename":"x.png","size":1000,"mime":"image/png"}'` → `{signedUrl, path}`; un `PUT` a ese `signedUrl` con el PNG de fixture → 200 |
+| **6** | `api/_lib/{env,log,http,validation,supabase,storage-paths}.js` + `api/catalog.js` + `api/upload-url.js` + **`api/quote.js`** (movido desde el 9: el incremento 8 muestra el precio y `pricing_rules` no tiene política RLS para `anon`, así que el endpoint debe existir antes que la UI que lo consume) | + 3 test files | 9+13+13 casos verdes. `curl <preview>/api/catalog` → JSON con `garment_types[].print_area`. `curl -X POST /api/upload-url -d '{"kind":"logo","filename":"x.png","size":1000,"mime":"image/png"}'` → `{signedUrl, path}`; un `PUT` a ese `signedUrl` con el PNG de fixture → 200 |
 | **7** | `estudio/index.html` + `boot.js` + `studio.css` + `canvas/{mockup,image-loader,garment-painter,konva-adapter,snapshot}.js` | + `tests/e2e/canvas.spec.js` | `npx playwright test --project=canvas` → C1..C3, C8, C10..C13 verdes. Visualmente: playera gris teñida de rojo Grafik, sin logo |
 | **8** | `ui/*.js`: subida de logo, Transformer, clamping, paneles de tallas y resumen | + `tests/e2e/studio-flow.spec.js`, C4..C7, C9, C14 | Flujo completo hasta "ver precio": sube logo → arrastra → rota → escoge tallas → `/api/quote` devuelve total. Todos los `@canvas` verdes. Consola limpia |
-| **9** | `api/_lib/mp-preference.js` + `mp-client.js` + `api/quote.js` + `api/checkout.js` | + `tests/unit/mp-preference.test.js` | 20 casos verdes. `POST /api/checkout` con el draft de fixture → `{init_point}`; abrir ese `init_point` muestra el checkout de MP en modo TEST con el monto correcto. La fila de `orders` queda en `pending_payment` |
+| **9** | `api/_lib/mp-preference.js` + `mp-client.js` + `api/checkout.js` (`quoted → pending_payment`) | + `tests/unit/mp-preference.test.js` | 20 casos verdes. `POST /api/checkout` con el draft de fixture → `{init_point}`; abrir ese `init_point` muestra el checkout de MP en modo TEST con el monto correcto. La fila de `orders` queda en `pending_payment` |
 | **10** | `mp-signature.js` + `order-state.js` + `settle.js` + `api/webhook-mp.js` + `api/reconcile.js` + `api/order-status.js` | + 2 test files + `tests/helpers/mp-sign.js` | 24 + 23 casos verdes. **Prueba de idempotencia manual**: `curl` el mismo webhook firmado 3 veces → `select count(*) from payment_events` = **1**, `orders.status` = `paid`, primera respuesta `settled:true`, siguientes `reason:'DUPLICATE'`. Webhook con `ts` de hace 10 min → **401**. Con `MP_WEBHOOK_SECRET` borrado → **503** |
 | **11** | `email-templates.js` + `email.js` + adjunto del snapshot | + `tests/unit/email-templates.test.js` | 20 casos verdes. Pago TEST real → llegan 2 correos (cliente + admin) con el PNG del preview adjunto. `select count(*) from email_log where ok` = 2. Repetir el webhook → sigue en 2 |
 | **12** | `estudio/admin/` + `admin-auth.js` + `api/admin/*` | + `tests/e2e/admin.spec.js` `@live` | Login con el admin → lista de pedidos. Cambiar `paid`→`in_production` → correo al cliente. Login con un usuario **no** en `admin_users` → la tabla sale vacía (RLS, no un `if` en JS) |
