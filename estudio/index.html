@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Ruta escondida: sin enlazar desde el sitio público, fuera de sitemap.xml.
+       El header X-Robots-Tag (vercel.json) es la barrera fuerte; este meta es
+       la de respaldo para cuando el HTML se lee sin pasar por esos headers. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Configurador — GRAFIK</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Mismas fuentes que el sitio público. Se cargan aparte porque /estudio/
+       no importa styles.css (ver studio.css, comentario de cabecera). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./studio.css">
+
+  <!-- React + Babel standalone: mismas versiones/hashes SRI que index.html de
+       la raíz (se reusarán cuando estudio/ui/ añada los paneles con JSX en el
+       incremento 8). Sin build step: se sirven directo del CDN. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha384-tMH8h3BGESGckSAVGZ82T9n90ztNXxvdwvdM6UoR56cYcf+0iGXBliJ29D+wZ/x8" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha384-bm7MnzvK++ykSwVJ2tynSE5TRdN+xL418osEVF2DE/L/gfWHj91J2Sphe582B1Bh" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" integrity="sha384-1qlE7MZPM2pHD/pBZCU/yB8UCP52RYL8bge/qNdfNBCWToySp8/M+JL2waXU4hjJ" crossorigin="anonymous"></script>
+  <!-- Konva: único motor de canvas del configurador (estudio/canvas/konva-adapter.js). -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/10.3.3/konva.min.js" integrity="sha384-mx78e7xNAuhEWxGDQZNlR9oNI6vtKvQUNiPZcntBLQhJHcPXNI+AzxLdTSWqoUyX" crossorigin="anonymous"></script>
+</head>
+<body>
+  <noscript>
+    <!-- Sin JS, #es-app se queda en su skeleton para siempre: mejor ocultarlo
+         entero y mostrar sólo la salida de WhatsApp. -->
+    <style>.es-app { display: none; }</style>
+    <div class="es-noscript">
+      <p>El configurador necesita JavaScript para funcionar. Escríbenos por WhatsApp y te ayudamos directo.</p>
+      <a href="https://wa.me/525539014600">https://wa.me/525539014600</a>
+    </div>
+  </noscript>
+
+  <div id="es-app" class="es-app" data-state="loading">
+
+    <header class="es-header">
+      <a class="es-wordmark" href="/" aria-label="GRAFIK — imprenta y publicidad CDMX">
+        <svg class="es-wordmark-mark" width="26" height="26" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
+        GRAFIK
+      </a>
+      <p class="es-context">Configurador — vista previa de tu logo sobre la prenda</p>
+    </header>
+
+    <!-- Skeleton: visible mientras carga el catálogo (data-state="loading"). -->
+    <div id="es-skeleton" class="es-skeleton" aria-hidden="true">
+      <div class="es-skeleton-stage"></div>
+      <div class="es-skeleton-panel">
+        <div class="es-skeleton-line"></div>
+        <div class="es-skeleton-line"></div>
+        <div class="es-skeleton-line es-skeleton-line--short"></div>
+      </div>
+    </div>
+
+    <!-- data-state="konva-unavailable": lo activa el script inline de abajo
+         si el CDN de Konva no respondió. -->
+    <div id="es-notice-konva" class="es-banner">
+      <p><strong>El configurador no está disponible en este momento.</strong> Mándanos tu logo directo por WhatsApp y te armamos la cotización a mano.</p>
+      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
+    </div>
+
+    <!-- data-state="catalog-error": lo activa boot.js si /api/catalog falla
+         o no trae datos usables (incluido el caso normal de servir el repo
+         sin backend, donde esta ruta no existe). -->
+    <div id="es-notice-catalog" class="es-banner">
+      <p><strong>No pudimos cargar el catálogo del configurador.</strong> Puede ser una falla momentánea — intenta recargar la página, o mándanos tu logo por WhatsApp y cotizamos a mano.</p>
+      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
+    </div>
+
+    <!-- data-state="ready": lo activa boot.js cuando el stage ya está montado. -->
+    <main id="es-main" class="es-main">
+      <div class="es-stage-wrap">
+        <!-- Contenedor que recibe createStudioStage({container: this, ...}). -->
+        <div id="es-stage" class="es-stage" role="img" aria-label="Vista previa de la prenda con tu logo"></div>
+      </div>
+
+      <aside class="es-controls">
+        <section class="es-field" aria-labelledby="es-garments-label">
+          <h2 id="es-garments-label" class="es-field-label">Prenda</h2>
+          <div id="es-garments" class="es-garment-row"></div>
+        </section>
+
+        <section class="es-field" aria-labelledby="es-swatches-label">
+          <h2 id="es-swatches-label" class="es-field-label">Color</h2>
+          <div id="es-swatches" class="es-swatch-row"></div>
+        </section>
+
+        <p class="es-disclaimer">
+          Vista previa referencial — el acabado final puede variar ligeramente según la técnica.
+        </p>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // Degradación si Konva no cargó del CDN (spec §7.4): no tiene caso
+    // esperar a boot.js para descubrirlo. Corre en DOMContentLoaded, que
+    // dispara después de este script (va al final del body) y después de
+    // que el <script> de Konva ya tuvo oportunidad de ejecutar o fallar.
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof window.Konva === 'undefined') {
+        document.getElementById('es-app').dataset.state = 'konva-unavailable';
+      }
+    });
+  </script>
+  <script type="module" src="./boot.js"></script>
+</body>
+</html>

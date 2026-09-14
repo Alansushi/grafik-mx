@@ -1,0 +1,357 @@
+/* ============================================================
+   GRAFIK — /estudio/ — hoja de estilos del configurador
+   Prefijo `.es-` en toda clase propia, para que nada de esto
+   pueda chocar con `styles.css` del sitio público.
+   ============================================================
+
+   Herencia de tokens: SE REPLICAN los valores de :root de styles.css
+   (con prefijo --es-) en vez de hacer `@import url('/styles.css')`.
+
+   Por qué: styles.css trae, además de los tokens, reglas de elemento sin
+   prefijo — `body`, `a`, `img, svg`, `.wrap`, `.section`, `.btn`... (ver
+   líneas 40-90 de ese archivo). Un @import las trae completas a esta
+   página. Esta hoja SÍ necesita definir sus propios `body`/`html`/`button`
+   base (es la única hoja que carga /estudio/), así que ese @import sólo
+   sumaría reglas duplicadas y, peor, un `.btn` o `.wrap` que cambie de
+   forma en el sitio público movería el configurador sin que nadie lo haya
+   tocado aquí. Copiar los ~10 valores de paleta es más barato que cargar
+   ese acoplamiento invisible. Si la paleta de marca cambia, se actualiza
+   en los dos archivos — el mismo trade-off que ya asume email-templates.js
+   (§ Paleta de marca del spec). */
+
+:root {
+  --es-negro:       #0C0C0C;
+  --es-carbon:      #181818;
+  --es-carbon-mid:  #222222;
+  --es-carbon-hi:   #2E2E2E;
+  --es-plata-dim:   #666666;
+  --es-plata:       #B8B8B8;
+  --es-rojo:        #D02B34;
+  --es-rojo-dark:   #A0202A;
+  --es-blanco:      #F0F0EE;
+  --es-wa:          #25D366;
+
+  --es-serif: 'Barlow Condensed', sans-serif; /* display / wordmark */
+  --es-sans:  'Barlow', sans-serif;           /* body / controles */
+
+  --es-radius: 4px;
+  --es-nav-h: 64px; /* alto de la cabecera propia del estudio, no el del sitio público */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--es-negro); }
+
+body {
+  min-height: 100vh;
+  background: var(--es-negro);
+  color: var(--es-blanco);
+  font-family: var(--es-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+
+.es-app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 56px;
+}
+
+/* ---- Cabecera ---- */
+.es-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(184, 184, 184, 0.15);
+}
+
+.es-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  font-family: var(--es-serif);
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--es-blanco);
+}
+
+.es-wordmark-mark { color: var(--es-rojo); flex: none; }
+
+.es-context {
+  color: var(--es-plata);
+  font-size: 14px;
+}
+
+/* ---- Estados de la página ----
+   #es-app trae data-state: "loading" (default) | "ready" | "catalog-error"
+   | "konva-unavailable". Un único atributo decide qué bloque se ve; boot.js
+   y el script inline de index.html sólo tocan ese atributo, nunca `hidden`
+   elemento por elemento. */
+
+#es-skeleton,
+#es-notice-catalog,
+#es-notice-konva,
+#es-main { display: none; }
+
+.es-app[data-state="loading"] #es-skeleton { display: grid; }
+.es-app[data-state="ready"] #es-main { display: grid; }
+.es-app[data-state="catalog-error"] #es-notice-catalog { display: flex; }
+.es-app[data-state="konva-unavailable"] #es-notice-konva { display: flex; }
+
+/* ---- Skeleton (catálogo/Babel cargando) ---- */
+.es-skeleton {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.es-skeleton-stage {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--es-radius);
+  background: var(--es-carbon);
+}
+
+.es-skeleton-panel { display: flex; flex-direction: column; gap: 10px; }
+
+.es-skeleton-line {
+  height: 44px;
+  border-radius: var(--es-radius);
+  background: var(--es-carbon);
+}
+
+.es-skeleton-line--short { width: 60%; }
+
+.es-skeleton-stage, .es-skeleton-line {
+  animation: es-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes es-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .es-skeleton-stage, .es-skeleton-line { animation: none; }
+}
+
+/* ---- Avisos (error de catálogo / Konva no disponible) ---- */
+.es-banner {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--es-radius);
+  border: 1px solid var(--es-rojo-dark);
+  background: rgba(208, 43, 52, 0.08);
+}
+
+.es-banner p { color: var(--es-blanco); }
+.es-banner strong { color: var(--es-blanco); }
+
+.es-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--es-radius);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.es-btn-wa { background: var(--es-wa); color: var(--es-negro); }
+.es-btn-wa:hover { filter: brightness(1.08); }
+
+/* ---- Layout principal: canvas manda ---- */
+.es-main {
+  grid-template-columns: 1fr;
+  gap: 24px;
+  /* Un item de grid/flex sin min-width:0 usa el ancho mínimo de SU
+     contenido como piso, sin importar lo que digan sus propios `width`.
+     Konva mete un <div class="konvajs-content" style="width:900px"> dentro
+     de #es-stage (abajo); sin cortar esa cadena aquí y en .es-stage-wrap,
+     ese 900px se propaga hacia arriba y saca la página de su viewport en
+     móvil aunque #es-stage tenga overflow:hidden. */
+  min-width: 0;
+}
+
+.es-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.es-controls { min-width: 0; }
+
+.es-stage {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* valor por defecto; boot.js lo ajusta al canvas_size real de la prenda */
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.15);
+  background: var(--es-carbon);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Konva envuelve sus <canvas> (uno por Layer) en un <div class="konvajs-content">
+   con width/height inline fijos en píxeles de prenda (p.ej. 900×900) — ese div
+   es el que hay que forzar a 100%, no sólo los <canvas>, si no el ancho fijo
+   de 900px se propaga hacia arriba (ver min-width:0 de .es-main/.es-stage-wrap
+   más arriba) y desborda el layout en pantallas angostas. El !important gana
+   a los estilos inline que pone Konva. */
+.es-stage > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.es-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---- Controles ---- */
+.es-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.es-field { display: flex; flex-direction: column; gap: 10px; }
+
+.es-field-label {
+  font-family: var(--es-serif);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--es-plata);
+}
+
+.es-garment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.es-garment-option {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(184, 184, 184, 0.3);
+  background: transparent;
+  color: var(--es-blanco);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s;
+}
+
+.es-garment-option:hover { border-color: var(--es-plata); }
+
+.es-garment-option[aria-pressed="true"] {
+  background: var(--es-rojo);
+  border-color: var(--es-rojo-dark);
+  font-weight: 600;
+}
+
+/* ---- Swatches de color ----
+   Área táctil mínima 44×44 (WCAG 2.5.5); el estado seleccionado se marca
+   con un anillo de dos tonos + una insignia de punto en una esquina, no
+   sólo con un borde sutil. */
+.es-swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.es-swatch {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(184, 184, 184, 0.25);
+  background: var(--es-swatch-color, var(--es-carbon-hi));
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+
+.es-swatch:hover { transform: translateY(-2px); }
+
+.es-swatch[aria-pressed="true"] {
+  border-color: var(--es-blanco);
+  box-shadow: 0 0 0 3px var(--es-negro), 0 0 0 5px var(--es-rojo);
+}
+
+.es-swatch[aria-pressed="true"]::after {
+  /* Insignia de "seleccionado": punto rojo dentro de un círculo blanco fijo,
+     en la esquina. Fondo fijo (no hereda --es-swatch-color) para que se lea
+     igual de claro sobre un swatch claro que sobre uno oscuro — un check o
+     una X dibujados con bordes finos se pierden o se confunden con "no"
+     según el color de fondo; un punto no admite esa ambigüedad. */
+  content: "";
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--es-rojo) 36%, var(--es-blanco) 40%);
+  box-shadow: inset 0 0 0 1px rgba(12, 12, 12, 0.4);
+}
+
+.es-disclaimer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--es-plata);
+  padding-top: 4px;
+  border-top: 1px solid rgba(184, 184, 184, 0.12);
+}
+
+/* ---- Sin JavaScript ---- */
+.es-noscript {
+  max-width: 480px;
+  margin: 80px auto;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(184, 184, 184, 0.2);
+  border-radius: var(--es-radius);
+}
+
+.es-noscript a {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--es-wa);
+  font-weight: 600;
+}
+
+/* ---- Escritorio: canvas a la izquierda, controles a la derecha ----
+   960px para quedar alineado con el breakpoint que ya usa el sitio
+   público (ver CLAUDE.md § Responsive). */
+@media (min-width: 960px) {
+  .es-main {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  .es-skeleton {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}

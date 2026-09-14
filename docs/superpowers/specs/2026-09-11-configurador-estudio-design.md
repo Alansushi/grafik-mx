@@ -760,6 +760,50 @@ export function assertShape(obj, schema): { valid:boolean, errors:Array<{path:st
 
 ## 3. Motor de canvas
 
+> ## ⚠️ CORRECCIÓN AL §3.2 — el blend `color` NO se usa
+>
+> **Verificado mirando el render, no sólo los números.** La implementación del
+> blend `color` pasaba los tests (coincidía con la referencia W3C ±3 por canal
+> en Chromium y WebKit) y aun así el resultado era inservible:
+>
+> | color pedido | se veía |
+> |---|---|
+> | `#C1272D` rojo profundo | rosa pálido |
+> | `#1B2A4A` azul marino muy oscuro | azul cielo |
+> | `#0C0C0C` negro | gris |
+>
+> La causa no es un bug: `color` conserva la **luminosidad del fondo** por
+> definición. Con UNA sola base gris a L≈180, todos los colores salen con esa
+> misma claridad. Y eso hunde la premisa del proyecto — el cliente tiene que ver
+> el color EXACTO que va a comprar; una prenda marino que se ve celeste no
+> acelera la decisión de compra, la sabotea.
+>
+> **Técnica real, implementada en `estudio/canvas/garment-painter.js`:** la base
+> gris no es un color, es un **mapa de sombreado**. Se normaliza contra el nivel
+> de tela plana (percentil 0.9) y se MULTIPLICA por el color elegido:
+>
+> ```
+> salida = (sombreado / 255) × color
+>   tela plana → sombreado 255 → exactamente el color elegido
+>   pliegue    → sombreado 198 → el mismo color, 22% más oscuro
+>   arruga     → sombreado 140 → 45% más oscuro
+> ```
+>
+> Es el mismo razonamiento que ya corrigió `normalizeFoldMapPixels`: multiply es
+> multiplicativo, así que lo que importa es cuánto atenúa cada zona **respecto a
+> la tela plana**, y escalar preserva esas razones.
+>
+> Se hace en un solo paso de `getImageData`/`putImageData` en vez de con
+> `globalCompositeOperation`: el resultado es idéntico en todos los navegadores
+> (no depende de cómo cada motor implemente los blend modes) y es comparable
+> contra una referencia en JS puro.
+>
+> Los casos C2 y C3 de `tests/e2e/canvas.spec.js` cambiaron de contrato en
+> consecuencia: ahora verifican que **la tela plana se vea exactamente del color
+> elegido** y que **la estructura de pliegues no dependa del color** — que es la
+> promesa que le importa al cliente. `blendColorPixel` sigue en `compose.js`
+> como referencia W3C, pero ya no está en el camino de la prenda.
+
 ### 3.1 Reparto Konva / canvas 2D crudo
 
 **El hecho que manda:** Konva expone `globalCompositeOperation` como atributo de nodo ([docs](https://konvajs.org/docs/styling/Blend_Mode.html)), y se aplica sobre **el canvas de su propia Layer**. Cada `Konva.Layer` es un `<canvas>` distinto apilado por CSS, y `stage.toDataURL()` los compone con `drawImage` — así que **una gco no cruza fronteras de Layer**, ni en pantalla ni en el snapshot.
