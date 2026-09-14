@@ -57,9 +57,7 @@ export function buildPostgrestUrl(baseUrl, table, params = {}) {
   if (!baseUrl) {
     throw new AppError('INVALID_BASE_URL', 'baseUrl es requerido para construir la URL de PostgREST', { baseUrl });
   }
-  if (!table) {
-    throw new AppError('INVALID_TABLE', 'table es requerido para construir la URL de PostgREST', { table });
-  }
+  assertIdentifier('nombre de tabla', table, 'INVALID_TABLE');
 
   const trimmedBase = baseUrl.replace(/\/+$/, '');
   const qs = [];
@@ -73,6 +71,7 @@ export function buildPostgrestUrl(baseUrl, table, params = {}) {
       // undefined significa "este filtro no aplica" — se omite en vez de
       // mandar la cadena literal "undefined" a PostgREST.
       if (rawValue === undefined) continue;
+      assertIdentifier('nombre de columna', column, 'INVALID_COLUMN');
       const quoted = quoteIfNeeded(String(rawValue));
       qs.push(`${column}=eq.${encodeFilterValue(quoted)}`);
     }
@@ -80,6 +79,7 @@ export function buildPostgrestUrl(baseUrl, table, params = {}) {
 
   if (params.in) {
     for (const [column, values] of Object.entries(params.in)) {
+      assertIdentifier('nombre de columna', column, 'INVALID_COLUMN');
       const inner = values.map((v) => quoteIfNeeded(String(v))).join(',');
       qs.push(`${column}=in.${encodeFilterValue(`(${inner})`)}`);
     }
@@ -106,7 +106,27 @@ export function buildPostgrestUrl(baseUrl, table, params = {}) {
  * sesión del usuario (su jwt) mientras sigue identificándose como el
  * proyecto con la anon key, y RLS aplica las políticas de ese usuario.
  */
+// Un CR o LF dentro del valor de una cabecera parte la petición y deja inyectar
+// cabeceras arbitrarias. El runtime de Node suele rechazarlo, pero depender de
+// eso es depender de un detalle del runtime: aquí falla ruidoso y con un code
+// propio, que además señala el bug en vez de dar un error opaco de undici.
+function assertHeaderValue(name, value) {
+  // CR, LF y NUL. NO el espacio: un Prefer legitimo como
+  // 'return=representation, count=exact' lleva espacios y debe pasar.
+  if (/[\r\n\0]/.test(String(value))) {
+    throw new AppError(
+      'INVALID_HEADER_VALUE',
+      `El valor de la cabecera ${name} contiene saltos de línea o bytes nulos`,
+      { header: name },
+    );
+  }
+}
+
 export function sbHeaders({ key, jwt, prefer } = {}) {
+  assertHeaderValue('apikey', key ?? '');
+  if (jwt !== undefined) assertHeaderValue('Authorization', jwt);
+  if (prefer) assertHeaderValue('Prefer', prefer);
+
   const headers = {
     apikey: key,
     Authorization: `Bearer ${jwt || key}`,
@@ -114,4 +134,21 @@ export function sbHeaders({ key, jwt, prefer } = {}) {
   };
   if (prefer) headers.Prefer = prefer;
   return headers;
+}
+
+// Los identificadores (tabla y columna) se VALIDAN, no se encodean.
+//
+// Un nombre de tabla o columna legítimo nunca necesita escapado, así que
+// cualquiera que lo necesite es un error de programación o un intento de
+// inyección — en los dos casos lo correcto es fallar ruidoso, no encodear y
+// seguir con una consulta que no es la que se pretendía.
+//
+// Sin esto, {eq:{'id=eq.1&role':'admin'}} producía `id=eq.1&role=eq.admin`: un
+// filtro extra completo sobre la consulta.
+const IDENTIFIER_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+function assertIdentifier(kind, value, code) {
+  if (typeof value !== 'string' || !IDENTIFIER_RE.test(value)) {
+    throw new AppError(code, `${kind} inválido para PostgREST: ${JSON.stringify(value)}`, { value });
+  }
 }

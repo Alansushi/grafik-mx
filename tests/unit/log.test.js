@@ -26,9 +26,16 @@ describe('log.js — redact (por prefijo de valor)', () => {
     expect(redact('eyJhbGciOiJIUzI1NiJ9.payload.sig')).toBe('[REDACTED]');
   });
 
-  it('5. redacta strings que empiezan por "sbp_" o "sbs_" (claves nuevas de Supabase)', () => {
-    expect(redact('sbp_publishable_abc')).toBe('[REDACTED]');
-    expect(redact('sbs_secret_abc')).toBe('[REDACTED]');
+  // Los formatos que este caso probaba ('sbp_'/'sbs_') NO EXISTEN: vinieron de
+  // una redacción equivocada del spec, que yo escribí. Las claves reales de
+  // Supabase son sb_publishable_... y sb_secret_..., verificado contra la key
+  // real del proyecto grafik-estudio. Con la regex anterior, una key de
+  // Supabase jamás se habría redactado.
+  it('5. redacta las claves de Supabase en su formato REAL', () => {
+    expect(redact('sb_publishable_RlAaun0LluOAAsUek90OaQ')).toBe('[REDACTED]');
+    expect(redact('sb_secret_abc123def')).toBe('[REDACTED]');
+    // y embebidas en un mensaje mas largo
+    expect(redact('usando sb_secret_abc123 para firmar')).toBe('usando [REDACTED] para firmar');
   });
 
   it('6. NO redacta un string normal que no matchea ningún prefijo', () => {
@@ -36,8 +43,13 @@ describe('log.js — redact (por prefijo de valor)', () => {
     expect(redact('recibo-123')).toBe('recibo-123'); // contiene "re" pero no empieza por "re_"
   });
 
-  it('7. el match es por prefijo (empieza por), no por contención en cualquier posición', () => {
-    expect(redact('el token es TEST-1234 según el log')).toBe('el token es TEST-1234 según el log');
+  // CONTRATO CAMBIADO A PROPÓSITO. Este caso afirmaba que un secreto embebido
+  // a media cadena NO se redactaba — o sea, documentaba como requisito el
+  // agujero que la revisión de seguridad encontró. Un test que fija un
+  // comportamiento inseguro no se "arregla" haciéndolo pasar: se cambia el
+  // contrato, a conciencia y dejando dicho por qué.
+  it('7. un secreto embebido a media cadena SÍ se redacta, y el contexto sobrevive', () => {
+    expect(redact('el token es TEST-1234 según el log')).toBe('el token es [REDACTED] según el log');
   });
 });
 
@@ -146,5 +158,48 @@ describe('log.js — logError', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => logError('scope', undefined)).not.toThrow();
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── Hallazgo de la revisión de seguridad ─────────────────────────────────
+//
+// redact() sólo miraba el PREFIJO de la cadena, así que un secreto embebido a
+// media cadena sobrevivía intacto. No es hipotético: los mensajes de error de
+// fetch traen la URL, y api/catalog.js mete el cuerpo de la respuesta de
+// PostgREST dentro del mensaje de Error. Cualquiera de los dos puede arrastrar
+// una key hasta los logs de Vercel.
+describe('log.js — redact encuentra secretos embebidos, no sólo al inicio', () => {
+  it('R1. un JWT a media cadena se redacta', () => {
+    const msg = 'fetch fallo: https://x.supabase.co/rest/v1/orders?apikey=eyJhbGciOiJIUzI1NiSECRETO';
+    const out = redact(msg);
+    expect(out).not.toContain('eyJhbGciOiJIUzI1NiSECRETO');
+    expect(out).toContain('[REDACTED]');
+    // el contexto útil sobrevive: si se borrara todo, el log no serviría
+    expect(out).toContain('fetch fallo');
+  });
+
+  it('R2. cada prefijo conocido se detecta embebido', () => {
+    const casos = [
+      ['token=TEST-123456 fin', 'TEST-123456'],
+      ['usa APP_USR-9988 aqui', 'APP_USR-9988'],
+      ['key re_abc123def y mas', 're_abc123def'],
+      ['sb_secret_xyz789 al medio', 'sb_secret_xyz789'],
+      ['bearer eyJhbGciOiJI.abc', 'eyJhbGciOiJI.abc'],
+    ];
+    for (const [texto, secreto] of casos) {
+      expect(redact(texto)).not.toContain(secreto);
+    }
+  });
+
+  it('R3. no redacta de más: texto normal queda intacto', () => {
+    const normal = 'pedido GK-4F2A9C con 12 piezas, total 1800 MXN';
+    expect(redact(normal)).toBe(normal);
+  });
+
+  it('R4. funciona dentro de objetos y arrays anidados', () => {
+    const o = { a: ['x eyJabc.def y'], b: { c: 'pre APP_USR-77 post' } };
+    const s = JSON.stringify(redact(o));
+    expect(s).not.toContain('eyJabc.def');
+    expect(s).not.toContain('APP_USR-77');
   });
 });

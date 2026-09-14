@@ -217,3 +217,61 @@ describe('supabase.js — escapado dentro de valores entrecomillados', () => {
     expect(filtro('hola')).toBe('hola');
   });
 });
+
+// ── Hallazgos de la revisión de seguridad ────────────────────────────────
+//
+// buildPostgrestUrl encodeaba los VALORES de los filtros pero no los
+// IDENTIFICADORES: ni el nombre de la tabla ni el de la columna. Ninguno de los
+// endpoints actuales los toma del cliente, pero este módulo es genérico y el
+// día que alguien pase un identificador dinámico la inyección es total, no
+// parcial: {eq:{'id=eq.1&role':'admin'}} producía `id=eq.1&role=eq.admin`, un
+// filtro extra completo sobre la consulta.
+//
+// Se validan como identificadores SQL en vez de encodearlos: un nombre de tabla
+// o columna legítimo nunca necesita escapado, así que cualquier cosa que lo
+// necesite es un error de programación o un ataque. Fallar ruidoso es correcto.
+describe('supabase.js — identificadores validados, no encodeados', () => {
+  it('S1. nombre de tabla con parámetros inyectados lanza INVALID_TABLE', () => {
+    for (const t of ['orders?select=*&x', 'orders/../secrets', 'orders&x=1', 'ord ers', '']) {
+      let code = null;
+      try { buildPostgrestUrl('https://x.co', t, { select: 'id' }); } catch (e) { code = e.code; }
+      expect(code).toBe('INVALID_TABLE');
+    }
+  });
+
+  it('S2. nombre de columna con filtro inyectado lanza INVALID_COLUMN', () => {
+    let code = null;
+    try {
+      buildPostgrestUrl('https://x.co', 'orders', { eq: { 'id=eq.1&role': 'admin' } });
+    } catch (e) { code = e.code; }
+    expect(code).toBe('INVALID_COLUMN');
+  });
+
+  it('S3. lo mismo para las columnas de in.()', () => {
+    let code = null;
+    try {
+      buildPostgrestUrl('https://x.co', 'orders', { in: { 'status&x=1': ['paid'] } });
+    } catch (e) { code = e.code; }
+    expect(code).toBe('INVALID_COLUMN');
+  });
+
+  it('S4. los identificadores legítimos siguen funcionando', () => {
+    const url = buildPostgrestUrl('https://x.co', 'order_items', {
+      select: 'id,qty', eq: { order_id: 'abc' }, in: { item_index: ['1', '2'] },
+    });
+    expect(url).toContain('/rest/v1/order_items?');
+    expect(url).toContain('order_id=eq.abc');
+  });
+
+  it('S5. sbHeaders rechaza valores con CR o LF (inyección de cabeceras)', () => {
+    const CR = String.fromCharCode(13), LF = String.fromCharCode(10);
+    for (const bad of ['tok' + CR + LF + 'X-Admin: true', 'tok' + LF, 'tok' + CR]) {
+      let code = null;
+      try { sbHeaders({ key: 'k', jwt: bad }); } catch (e) { code = e.code; }
+      expect(code).toBe('INVALID_HEADER_VALUE');
+    }
+    let code2 = null;
+    try { sbHeaders({ key: 'k', prefer: 'return=x' + LF + 'evil: 1' }); } catch (e) { code2 = e.code; }
+    expect(code2).toBe('INVALID_HEADER_VALUE');
+  });
+});

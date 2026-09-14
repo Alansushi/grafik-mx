@@ -12,7 +12,20 @@
 // service_role key de Supabase, que es un JWT (eyJ...) — y las claves nuevas
 // de Supabase (sb_publishable_/sb_secret_, acortadas aquí a sbp_/sbs_ por
 // contrato del spec).
-const SECRET_PREFIX_RE = /^(TEST-|APP_USR-|re_|eyJ|sb[ps]_)/;
+// Se busca en CUALQUIER posición de la cadena, no sólo al inicio. Anclar con ^
+// dejaba pasar el caso más frecuente de todos: el secreto embebido dentro de un
+// mensaje más largo. No es hipotético — los errores de fetch traen la URL
+// completa, y api/catalog.js mete el cuerpo de la respuesta de PostgREST dentro
+// del mensaje de Error. Cualquiera de los dos puede arrastrar una key a los
+// logs de Vercel.
+//
+// Se redacta sólo el token y no la cadena entera: un log sin contexto no sirve
+// para depurar, y el objetivo es que el mensaje siga siendo útil sin el secreto.
+// Ojo con la rama de Supabase: antes era `sb[ps]_`, que matchea 'sbp_'/'sbs_'
+// — formatos que NO existen. Las keys reales son sb_publishable_... y
+// sb_secret_..., así que esa rama nunca habría redactado una key de Supabase.
+// Verificado contra la key real del proyecto.
+const SECRET_TOKEN_RE = /(TEST-|APP_USR-|re_|eyJ|sb_(publishable|secret)_)[A-Za-z0-9._-]+/g;
 
 // Nombres de propiedad que son sensibles sin importar su contenido: aunque el
 // valor no tenga "forma" de secreto (p.ej. en un test), si la clave es
@@ -28,7 +41,10 @@ const SENSITIVE_KEYS = new Set(['apikey', 'authorization', 'service_role', 'key'
  */
 export function redact(value) {
   if (typeof value === 'string') {
-    return SECRET_PREFIX_RE.test(value) ? '[REDACTED]' : value;
+    // El flag /g hace de lastIndex estado mutable entre llamadas: se reinicia a
+    // mano para que redactar una cadena no altere el resultado de la siguiente.
+    SECRET_TOKEN_RE.lastIndex = 0;
+    return value.replace(SECRET_TOKEN_RE, '[REDACTED]');
   }
   if (Array.isArray(value)) {
     return value.map((item) => redact(item));

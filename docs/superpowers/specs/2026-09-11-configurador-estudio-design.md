@@ -1468,7 +1468,7 @@ Incógnita real: **`attachments` de Resend con base64 no está verificado**. Se 
 ### 7.8 Secretos y superficie de ataque (riesgo MEDIO)
 
 - `SUPABASE_SERVICE_ROLE_KEY`, `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `RESEND_API_KEY` **sólo** en Vercel env, scope Production+Preview, nunca en `.env` versionado. `.env*` en `.gitignore` y en `.vercelignore`.
-- `log.js` redacta: cualquier valor que coincida con `/^(TEST-|APP_USR-|re_|eyJ|sb[ps]_)/` se sustituye por `'[REDACTED]'` antes de imprimir. Test unitario que lo verifica con las 5 formas de clave.
+- `log.js` redacta: cualquier valor que coincida con `/(TEST-|APP_USR-|re_|eyJ|sb_(publishable|secret)_)[A-Za-z0-9._-]+/g` — **sin anclar a `^`**: un secreto embebido a media cadena (mensajes de error de `fetch`, cuerpos de PostgREST) es el caso más frecuente. Y ojo con la rama de Supabase: `sb[ps]_` matchea `sbp_`/`sbs_`, formatos que **no existen** — las claves reales son `sb_publishable_` y `sb_secret_`` se sustituye por `'[REDACTED]'` antes de imprimir. Test unitario que lo verifica con las 5 formas de clave.
 - `api/admin/*` verifica el JWT contra `GET /auth/v1/user` con el anon key y comprueba `admin_users`. Doble control: RLS en la BD **y** chequeo en la function.
 - Enumeración: `public_token` es uuid v4 (122 bits). `short_code` es sólo para mostrar, nunca sirve como credencial.
 - `/api/upload-url` es el endpoint abierto más expuesto → rate limit por IP (30 / 10 min) vía `rpc_rate_limit_hit`, más el `file_size_limit` y `allowed_mime_types` del bucket.
