@@ -63,7 +63,7 @@ export function logoObjectPath({ draftId, filename, nowMs, rand }) {
   const { base, ext } = splitExtension(filename);
   const slug = sanitizeFilename(base);
   const { year, month } = yearMonthUTC(nowMs);
-  return `logos/${year}/${month}/${draftId}/${slug}-${rand}.${ext}`;
+  return `${year}/${month}/${draftId}/${slug}-${rand}.${ext}`;
 }
 
 /**
@@ -77,7 +77,7 @@ export function logoObjectPath({ draftId, filename, nowMs, rand }) {
  */
 export function previewObjectPath({ draftId, itemIndex, nowMs, rand }) {
   const { year, month } = yearMonthUTC(nowMs);
-  return `previews/${year}/${month}/${draftId}/item-${itemIndex}-${rand}.png`;
+  return `${year}/${month}/${draftId}/item-${itemIndex}-${rand}.png`;
 }
 
 export function isAllowedLogoMime(m) {
