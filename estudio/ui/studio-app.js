@@ -39,6 +39,12 @@ export function StudioApp({ catalog, stageContainer }) {
   const [quoteError, setQuoteError] = useState(null);
   const [logoError, setLogoError] = useState(null);
   const [stageBusy, setStageBusy] = useState(true);
+  // Si el stage no monta, la página se veía NORMAL: controles activos, canvas
+  // vacío, y el logo "adjunto" sin posición real. Peor, canSubmit lo dejaba
+  // pasar. Lo encontró la puerta de revisión del incremento 8.
+  const [stageError, setStageError] = useState(null);
+  // Valores que normalizeBreakdown rechazó, por talla.
+  const [sizeErrors, setSizeErrors] = useState({});
 
   const stageRef = useRef(null);
   const logoImageRef = useRef(null);
@@ -65,6 +71,7 @@ export function StudioApp({ catalog, stageContainer }) {
 
     (async () => {
       setStageBusy(true);
+      setStageError(null);
       const size = garment.canvas_size || DEFAULT_CANVAS_SIZE;
       const printArea = resolvePrintArea(garment.print_area, size);
 
@@ -91,7 +98,16 @@ export function StudioApp({ catalog, stageContainer }) {
       stageRef.current = created;
       setStageBusy(false);
     })().catch((err) => {
+      // El chequeo de `cancelled` aquí NO es de adorno: si el usuario cambia de
+      // prenda dos veces rápido y la primera carga falla tarde, sin esto su
+      // catch apagaría `stageBusy` mientras la SEGUNDA prenda sigue montándose
+      // — reactivando los controles sobre un stage que todavía no existe.
+      if (cancelled) return;
       console.error('[estudio] no se pudo montar el stage', err);
+      setStageError({
+        code: err?.code ?? 'STAGE_FAILED',
+        message: 'No pudimos cargar la vista previa de esta prenda. Recarga la página o escríbenos por WhatsApp.',
+      });
       setStageBusy(false);
     });
 
@@ -100,6 +116,13 @@ export function StudioApp({ catalog, stageContainer }) {
     // reconstruir el stage, sólo repintar la prenda (efecto de abajo).
     // eslint-disable-next-line
   }, [garment, stageContainer]);
+
+  // Liberar el stage al DESMONTAR. Va en su propio efecto con dependencias
+  // vacías porque el cleanup del efecto de arriba corre también en cada cambio
+  // de prenda, y ahí el destroy NO debe pasar: el stage vigente se reemplaza al
+  // inicio del run siguiente. Sin esto quedarían vivos los canvas y sus
+  // listeners si el componente se desmontara de verdad.
+  useEffect(() => () => { stageRef.current?.destroy(); }, []);
 
   // ── Cambiar de color: sólo repinta ──────────────────────────────────────
   useEffect(() => {
@@ -122,7 +145,13 @@ export function StudioApp({ catalog, stageContainer }) {
   // deliberado.
   useEffect(() => {
     const qty = Object.values(breakdown).reduce((s, n) => s + n, 0);
-    if (qty === 0) { setQuote(null); setQuoteError(null); return; }
+    if (qty === 0) {
+      // setQuoting(false) hace falta aquí: si el cliente borra las tallas
+      // mientras una cotización va en vuelo, su `finally` ve cancelled=true y
+      // se salta el apagado — y el panel se queda en "Cotizando…" para siempre.
+      setQuote(null); setQuoteError(null); setQuoting(false);
+      return;
+    }
 
     let cancelled = false;
     setQuoting(true);
@@ -179,8 +208,19 @@ export function StudioApp({ catalog, stageContainer }) {
       pctx.drawImage(image, 0, 0, probe.width, probe.height);
       const px = pctx.getImageData(0, 0, probe.width, probe.height).data;
 
+      // dominantColorFromPixels lanza NO_OPAQUE_PIXELS cuando ningún píxel
+      // supera el umbral de alfa — o sea, cuando el archivo NO TIENE NADA
+      // VISIBLE. Antes se tragaba en silencio y el logo se aceptaba como
+      // válido: el cliente subía un PNG vacío y nada se lo decía, aunque no se
+      // fuera a imprimir absolutamente nada.
       let dominantHex = null;
-      try { dominantHex = dominantColorFromPixels(px); } catch { /* logo totalmente transparente */ }
+      let emptyLogo = false;
+      try {
+        dominantHex = dominantColorFromPixels(px);
+      } catch (err) {
+        if (err?.code === 'NO_OPAQUE_PIXELS') emptyLogo = true;
+        else throw err;
+      }
 
       logoImageRef.current = { image, naturalSize };
       setLogo({
@@ -189,7 +229,14 @@ export function StudioApp({ catalog, stageContainer }) {
         naturalSize,
         hasAlpha: pixelsHaveAlpha(px),
         dominantHex,
+        isEmpty: emptyLogo,
       });
+      if (emptyLogo) {
+        setLogoError({
+          code: 'NO_OPAQUE_PIXELS',
+          message: 'Ese archivo parece estar vacío o totalmente transparente: no se imprimiría nada. Revisa que exportaste el logo con su contenido.',
+        });
+      }
       stageRef.current?.setLogo({ image, naturalSize });
     } catch (err) {
       console.error('[estudio] no se pudo cargar el logo', err);
@@ -222,16 +269,38 @@ export function StudioApp({ catalog, stageContainer }) {
       const next = { ...prev, [size]: rawValue };
       try {
         setBreakdown(normalizeBreakdown(next));
-      } catch {
-        // Valor no numérico a medio teclear: se conserva lo crudo para que el
-        // panel muestre el error, y el desglose válido no se toca.
+        setSizeErrors((errs) => {
+          if (errs[size] === undefined) return errs;
+          const { [size]: _, ...resto } = errs;
+          return resto;
+        });
+      } catch (err) {
+        // ANTES esto era un catch vacío, y era un fallo silencioso de verdad:
+        // pegar "1,000" desde Excel hacía que el campo revirtiera al valor
+        // anterior sin ningún aviso. El cliente no tenía forma de saber por qué
+        // su cantidad "no se guardó" — y en un pedido por volumen eso termina
+        // en la cantidad equivocada. Ahora el rechazo se muestra junto al campo.
+        setSizeErrors((errs) => ({
+          ...errs,
+          [size]: err?.code === 'NON_NUMERIC_QTY'
+            ? 'Escribe sólo números, sin comas ni puntos.'
+            : 'Esa cantidad no es válida.',
+        }));
       }
       return next;
     });
   }, []);
 
+  // canSubmit exige además que el stage esté VIVO y que el logo tenga posición
+  // real. Sin eso, un fallo al montar la vista previa dejaba el botón activo
+  // con un logo "adjunto" pero sin transform: el pedido habría salido con el
+  // logo sin colocar. Es el mismo bug de "el logo queda donde no se imprime",
+  // pero a nivel de pedido.
   const canSubmit = Boolean(
-    quote && !quoting && !quoteError && logo && customer.email.includes('@'),
+    quote && !quoting && !quoteError
+    && logo && !logo.isEmpty && transform
+    && !stageBusy && !stageError && stageRef.current
+    && customer.email.includes('@'),
   );
 
   // Puente para el gancho de depuración de boot.js. Se publica SIEMPRE (es sólo
@@ -249,6 +318,11 @@ export function StudioApp({ catalog, stageContainer }) {
   };
 
   return h(Fragment, null,
+    stageError
+      ? h('p', { className: 'es-logo-alert', role: 'alert' },
+          stageError.message, ' ',
+          h('a', { href: 'https://wa.me/525539014600', target: '_blank', rel: 'noopener' }, 'Escríbenos'))
+      : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
       onGarment: setGarmentSlug, onColor: setColorHex, onTechnique: setTechniqueSlug,
@@ -262,7 +336,7 @@ export function StudioApp({ catalog, stageContainer }) {
     }),
     h(PanelTallas, {
       allowedSizes: garment.allowed_sizes,
-      breakdown, rawSizes,
+      breakdown, rawSizes, rawErrors: sizeErrors,
       minQty: garment.min_qty, maxQty: garment.max_qty,
       onChange: onSize,
     }),

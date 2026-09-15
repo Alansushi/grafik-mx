@@ -173,4 +173,40 @@ test.describe('flujo del configurador', () => {
     expect(bd.L).toBe(7);
     expect(Object.values(bd).reduce((a, b) => a + b, 0)).toBe(12); // no 57
   });
+
+  // ── Hallazgos de la puerta de revisión del incremento 8 ──────────────────
+
+  test('F7. una cantidad no numérica AVISA, no revierte en silencio', async ({ page }) => {
+    // Era un catch vacío: pegar "1,000" desde Excel hacía que el campo
+    // revirtiera al valor anterior sin ningún mensaje. En un pedido por
+    // volumen eso termina en la cantidad equivocada y nadie se entera.
+    await abrir(page);
+    await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
+    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+
+    await page.evaluate(() => window.__studioBridge.setSize('M', '1,000'));
+
+    // El aviso aparece...
+    await expect(page.getByText(/sólo números/i).first()).toBeVisible();
+    // ...y el campo muestra lo que el cliente tecleó, no el valor anterior:
+    // un mensaje sobre algo que no se ve sería igual de confuso.
+    await expect(page.locator('#es-talla-M')).toHaveValue('1,000');
+  });
+
+  test('F8. sin logo colocado no se puede enviar el pedido', async ({ page }) => {
+    // canSubmit exige transform además de logo. Si el stage fallara al montar,
+    // el logo quedaría "adjunto" pero sin posición real, y el pedido habría
+    // salido con el logo sin colocar.
+    await abrir(page);
+    await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
+    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await page.locator('#es-customer-email').fill('cliente@ejemplo.mx');
+
+    // Con cotización y correo pero SIN logo, el botón sigue bloqueado.
+    await expect(page.locator('.es-resumen-submit')).toBeDisabled();
+
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+    await expect(page.locator('.es-resumen-submit')).toBeEnabled();
+  });
 });

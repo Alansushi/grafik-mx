@@ -57,7 +57,15 @@ function StepButton({ label, onClick, children }) {
   );
 }
 
-export function PanelTallas({ allowedSizes, breakdown, minQty, maxQty, onChange }) {
+export function PanelTallas({
+  allowedSizes, breakdown, minQty, maxQty, onChange,
+  // `rawSizes` es lo que el cliente tecleó y `rawErrors` los valores que
+  // normalizeBreakdown rechazó. Sin estos dos, un valor no numérico —pegar
+  // "1,000" desde Excel, por ejemplo— revertía el campo al valor anterior sin
+  // ningún aviso: el cliente no tenía forma de saber por qué su cantidad "no
+  // se guardó". Lo encontró la puerta de revisión del incremento 8.
+  rawSizes = {}, rawErrors = {},
+}) {
   const isSingleSize = allowedSizes.length === 1 && allowedSizes[0] === 'U';
   const sizesToRender = isSingleSize ? ['U'] : allowedSizes;
 
@@ -81,6 +89,12 @@ export function PanelTallas({ allowedSizes, breakdown, minQty, maxQty, onChange 
 
   const fieldErrors = {};
   const generalErrors = [];
+  // Los rechazos de normalizeBreakdown van primero: si el valor ni siquiera es
+  // numérico, decirlo es más útil que los errores de rango sobre el desglose
+  // anterior, que ya no es lo que el cliente ve en el campo.
+  for (const [size, message] of Object.entries(rawErrors)) {
+    fieldErrors[size] = [message];
+  }
   for (const err of validation.errors) {
     const message = translateError(err);
     if (err.size) {
@@ -101,7 +115,12 @@ export function PanelTallas({ allowedSizes, breakdown, minQty, maxQty, onChange 
     const inputId = `es-talla-${size}`;
     const errorId = `es-talla-error-${size}`;
     const errors = fieldErrors[size];
-    const value = typeof breakdown[size] === 'number' ? breakdown[size] : '';
+    // Con un valor rechazado se muestra lo CRUDO, no el desglose válido
+    // anterior: el campo debe reflejar lo que el cliente tiene delante, o el
+    // mensaje de error hablaría de algo que no se ve.
+    const value = rawErrors[size] !== undefined
+      ? (rawSizes[size] ?? '')
+      : (typeof breakdown[size] === 'number' ? breakdown[size] : '');
 
     return h(
       'div',
@@ -117,12 +136,23 @@ export function PanelTallas({ allowedSizes, breakdown, minQty, maxQty, onChange 
               { key: 'minus', label: `Restar una pieza — ${label}`, onClick: () => step(size, -1) },
               '−',
             ),
+            // type="text" + inputMode="numeric", NO type="number".
+            //
+            // Un input numérico RECHAZA lo que no parsea: pegar "1,000" desde
+            // una hoja de cálculo deja el campo vacío, el onChange recibe "",
+            // Number("") es 0 y la cantidad se vuelve cero sin que nada lo
+            // diga. Es el mismo fallo silencioso que se quería evitar, sólo
+            // que escondido en el navegador en vez de en el código.
+            //
+            // Con texto, el valor pegado se queda a la vista, normalizeBreakdown
+            // lo rechaza y el cliente ve el porqué junto al campo. inputMode
+            // conserva el teclado numérico en móvil, que es lo único que se
+            // perdía al soltar type="number".
             h('input', {
               key: 'input',
-              type: 'number',
+              type: 'text',
               inputMode: 'numeric',
-              min: 0,
-              step: 1,
+              autoComplete: 'off',
               id: inputId,
               className: 'es-talla-input',
               value,
