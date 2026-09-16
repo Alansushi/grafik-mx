@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedido · GRAFIK</title>
+  <!-- Ruta escondida: fuera de buscadores, igual que el resto de /estudio/. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="../studio.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="es-app" class="es-app" data-state="loading">
+    <header class="es-header">
+      <a class="es-wordmark" href="/">
+        <svg class="es-wordmark-mark" width="28" height="28" aria-hidden="true"><use href="/defs.svg#mark"></use></svg>
+        GRAFIK
+      </a>
+      <p class="es-context">Pedido del configurador</p>
+    </header>
+
+    <main class="es-pedido">
+      <div id="es-pedido-loading" class="es-skeleton">
+        <div class="es-skeleton-line"></div>
+        <div class="es-skeleton-line es-skeleton-line--short"></div>
+      </div>
+
+      <div id="es-pedido-error" class="es-banner" hidden>
+        <p id="es-pedido-error-msg"></p>
+        <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+      </div>
+
+      <article id="es-pedido-contenido" hidden></article>
+    </main>
+  </div>
+
+  <script type="module">
+    // Página de sólo lectura: no hay estado que administrar, así que no carga
+    // React ni Konva. Es JS plano — la única hoja de estilo es la del estudio,
+    // para que se vea del mismo sistema sin duplicar tokens.
+
+    import { formatCentsMXN } from '../lib/format.js';
+    import { breakdownToLabel } from '../lib/sizes.js';
+
+    const WA = 'https://wa.me/525539014600';
+    const app = document.getElementById('es-app');
+    const elError = document.getElementById('es-pedido-error');
+    const elErrorMsg = document.getElementById('es-pedido-error-msg');
+    const elContenido = document.getElementById('es-pedido-contenido');
+    const elLoading = document.getElementById('es-pedido-loading');
+
+    const ESTADOS = {
+      draft: 'Borrador',
+      quoted: 'Cotizado — pendiente de confirmar',
+      pending_payment: 'Pendiente de pago',
+      paid: 'Pagado',
+      payment_failed: 'Pago rechazado',
+      in_production: 'En producción',
+      ready: 'Listo para entrega',
+      delivered: 'Entregado',
+      cancelled: 'Cancelado',
+      refunded: 'Reembolsado',
+      expired: 'Expirado',
+    };
+
+    function fallar(mensaje) {
+      elLoading.hidden = true;
+      elErrorMsg.textContent = mensaje;
+      elError.hidden = false;
+      app.dataset.state = 'error';
+    }
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    async function cargar() {
+      const token = new URLSearchParams(location.search).get('t');
+      if (!token) {
+        fallar('Esta liga no trae el identificador del pedido. Pide de nuevo el enlace a quien te lo compartió.');
+        return;
+      }
+
+      let res;
+      try {
+        res = await fetch(`/api/order-status?t=${encodeURIComponent(token)}`);
+      } catch (err) {
+        console.error('[pedido] fallo de red', err);
+        fallar('No pudimos conectarnos. Revisa tu conexión y recarga la página.');
+        return;
+      }
+
+      if (res.status === 400) return fallar('Esta liga no es válida. Revisa que la hayas copiado completa.');
+      if (res.status === 404) return fallar('No encontramos ese pedido. Puede que la liga esté incompleta o que el pedido ya no exista.');
+      if (res.status === 429) return fallar('Demasiadas consultas seguidas. Espera un minuto y recarga.');
+      if (!res.ok) {
+        console.error('[pedido] respuesta', res.status);
+        return fallar('No pudimos cargar el pedido en este momento. Intenta de nuevo en unos minutos.');
+      }
+
+      pintar(await res.json());
+    }
+
+    function pintar(p) {
+      const referencia = p.priced_with_placeholder
+        ? '<p class="es-warning">Precio de referencia, sujeto a confirmación por parte de GRAFIK.</p>'
+        : '';
+
+      const items = p.items.map((it) => `
+        <section class="es-pedido-item">
+          ${it.preview_url
+            ? `<img class="es-pedido-preview" src="${esc(it.preview_url)}" alt="Vista previa aprobada por el cliente" />`
+            : '<p class="es-hint">La vista previa no está disponible.</p>'}
+          <dl class="es-pedido-datos">
+            <dt>Prenda</dt><dd>${esc(it.garment)}</dd>
+            <dt>Color</dt><dd>
+              <span class="es-pedido-chip-color" style="background:${esc(it.color_hex)}"></span>
+              ${esc(it.color_name)}
+            </dd>
+            <dt>Técnica</dt><dd>${esc(it.technique)}</dd>
+            <dt>Tallas</dt><dd>${esc(breakdownToLabel(it.size_breakdown))}</dd>
+            <dt>Precio unitario</dt><dd>${esc(formatCentsMXN(it.unit_price_cents))}</dd>
+            <dt>Subtotal</dt><dd>${esc(formatCentsMXN(it.subtotal_cents))}</dd>
+          </dl>
+          ${it.logo_url
+            ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar el logo original</a>`
+            : ''}
+        </section>
+      `).join('');
+
+      elContenido.innerHTML = `
+        <header class="es-pedido-head">
+          <p class="es-label-sm">Folio</p>
+          <h1 class="es-pedido-folio">${esc(p.short_code)}</h1>
+          <p class="es-pedido-estado">${esc(ESTADOS[p.status] ?? p.status)}</p>
+          ${p.customer_name ? `<p class="es-hint">Cliente: ${esc(p.customer_name)}</p>` : ''}
+        </header>
+        ${referencia}
+        ${items}
+        <footer class="es-pedido-total">
+          <span>Total</span>
+          <strong>${esc(formatCentsMXN(p.total_cents))} ${esc(p.currency)}</strong>
+        </footer>
+        <p class="es-disclaimer">
+          El archivo que se manda a producción es el logo original, no la vista previa.
+          El acabado final puede variar ligeramente según la técnica.
+        </p>
+      `;
+      elLoading.hidden = true;
+      elContenido.hidden = false;
+      app.dataset.state = 'ready';
+      document.title = `Pedido ${p.short_code} · GRAFIK`;
+    }
+
+    cargar().catch((err) => {
+      console.error('[pedido] fallo inesperado', err);
+      fallar('Algo salió mal al cargar el pedido. Escríbenos y lo revisamos.');
+    });
+  </script>
+</body>
+</html>

@@ -209,4 +209,84 @@ test.describe('flujo del configurador', () => {
     await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await expect(page.locator('.es-resumen-submit')).toBeEnabled();
   });
+
+  test('F9. enviar el pedido: sube archivos, crea la orden y abre WhatsApp', async ({ page }) => {
+    const subidas = [];
+    let cuerpoPedido = null;
+
+    await page.route('**/api/catalog', (r) =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
+    await page.route('**/api/quote', (r) =>
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(QUOTE_12) }));
+
+    await page.route('**/api/upload-url', async (r) => {
+      const b = JSON.parse(r.request().postData() ?? '{}');
+      subidas.push(b);
+      await r.fulfill({
+        status: 200, contentType: 'application/json',
+        body: JSON.stringify({
+          bucket: b.kind === 'logo' ? 'logos' : 'previews',
+          path: `2026/09/${b.draftId}/archivo-abc123.png`,
+          upload_url: 'https://supabase.test/storage/v1/object/upload/sign/x?token=t',
+          token: 'tok', max_bytes: 8388608,
+        }),
+      });
+    });
+    await page.route('https://supabase.test/**', (r) => r.fulfill({ status: 200, body: '{}' }));
+
+    await page.route('**/api/submit-quote', async (r) => {
+      cuerpoPedido = JSON.parse(r.request().postData() ?? '{}');
+      await r.fulfill({
+        status: 201, contentType: 'application/json',
+        body: JSON.stringify({
+          short_code: 'GK-7A3F1C',
+          public_token: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+          total_cents: 180000, currency: 'MXN', is_placeholder: true,
+        }),
+      });
+    });
+
+    await page.goto('/estudio/?debug=1');
+    await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
+
+    // window.open abriría una pestaña real; se intercepta para leer la URL.
+    await page.evaluate(() => {
+      window.__abierto = null;
+      window.open = (url) => { window.__abierto = url; return null; };
+    });
+
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+    await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
+    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
+    await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+
+    await page.locator('.es-resumen-submit').click();
+    await page.waitForFunction(() => window.__abierto !== null, null, { timeout: 15000 });
+
+    // Se subieron los dos binarios, y ninguno cruzó api/*.
+    expect(subidas.map((u) => u.kind).sort()).toEqual(['logo', 'preview']);
+
+    // El cuerpo del pedido NO lleva precios: el servidor re-cotiza.
+    expect(JSON.stringify(cuerpoPedido)).not.toMatch(/cents|unit_price|total/i);
+
+    // Y todas las rutas pertenecen al MISMO borrador. Sin esto, un cliente
+    // podría adjuntar a su pedido el archivo de otro y leerlo después con su
+    // propia liga de order-status.
+    const draftId = cuerpoPedido.draftId;
+    expect(draftId).toMatch(/^[0-9a-f-]{36}$/);
+    for (const it of cuerpoPedido.items) {
+      expect(it.logo_path).toContain(`/${draftId}/`);
+      expect(it.preview_path).toContain(`/${draftId}/`);
+    }
+
+    // El mensaje usa el folio que devolvió el SERVIDOR, no uno inventado aquí.
+    const url = await page.evaluate(() => window.__abierto);
+    expect(url).toContain('wa.me/525539014600');
+    const texto = decodeURIComponent(url.split('text=')[1]);
+    expect(texto).toContain('GK-7A3F1C');
+    expect(texto).toContain('/estudio/pedido/?t=9b1deb4d');
+    expect(texto).toContain('$1,800.00');
+  });
 });

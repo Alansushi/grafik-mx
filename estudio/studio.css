@@ -732,3 +732,59 @@ a { color: inherit; }
 .es-tallas-general-errors { margin: 10px 0 0; padding: 0; list-style: none; }
 .es-resumen-quote { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--es-carbon-hi); }
 .es-resumen-line-label { color: var(--es-plata); }
+
+/* ── Página de pedido (estudio/pedido/) ───────────────────────────────────
+   Vista de sólo lectura que se abre desde la liga del mensaje de WhatsApp.
+   El preview manda: es el punto de la página. */
+
+.es-pedido { max-width: 760px; margin: 0 auto; padding: 24px var(--es-gut, 20px) 64px; }
+.es-pedido-head { margin-bottom: 20px; }
+.es-pedido-folio {
+  font-family: var(--es-serif);
+  font-size: 40px; font-weight: 900; letter-spacing: 0.02em;
+  color: var(--es-blanco); margin: 2px 0 6px;
+}
+.es-pedido-estado {
+  display: inline-block; padding: 5px 12px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 2px;
+  font-size: 13px; font-weight: 600; color: var(--es-plata);
+}
+.es-pedido-item {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 3px;
+  background: var(--es-carbon);
+}
+.es-pedido-preview {
+  display: block; width: 100%; height: auto;
+  max-width: 100%;
+  border-radius: 2px; background: var(--es-negro);
+  margin-bottom: 16px;
+}
+.es-pedido-datos {
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+  margin: 0 0 16px; font-size: 14px;
+}
+.es-pedido-datos dt { color: var(--es-plata-dim); }
+.es-pedido-datos dd { margin: 0; color: var(--es-blanco); }
+.es-pedido-chip-color {
+  display: inline-block; width: 13px; height: 13px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 50%;
+  vertical-align: -2px; margin-right: 5px;
+}
+.es-pedido-total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; padding-top: 16px;
+  border-top: 1px solid var(--es-carbon-hi);
+  font-size: 15px; color: var(--es-plata);
+}
+.es-pedido-total strong {
+  font-family: var(--es-serif); font-size: 30px; font-weight: 900;
+  color: var(--es-blanco);
+}
+
+@media (max-width: 640px) {
+  .es-pedido-folio { font-size: 32px; }
+  .es-pedido-datos { grid-template-columns: 1fr; gap: 2px 0; }
+  .es-pedido-datos dd { margin-bottom: 8px; }
+}

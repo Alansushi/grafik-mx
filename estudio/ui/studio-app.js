@@ -17,6 +17,8 @@ import { renderProceduralBase, resolvePrintArea } from '../canvas/mockup.js';
 import { loadImageFromUrl, loadImageFromFile } from '../canvas/image-loader.js';
 import { normalizeBreakdown } from '../lib/sizes.js';
 import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
+import { breakdownToLabel } from '../lib/sizes.js';
+import { formatCentsMXN } from '../lib/format.js';
 
 const PROCEDURAL_PREFIX = 'procedural:';
 const DEFAULT_CANVAS_SIZE = { width: 900, height: 900 };
@@ -45,9 +47,17 @@ export function StudioApp({ catalog, stageContainer }) {
   const [stageError, setStageError] = useState(null);
   // Valores que normalizeBreakdown rechazó, por talla.
   const [sizeErrors, setSizeErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitted, setSubmitted] = useState(null);
 
   const stageRef = useRef(null);
   const logoImageRef = useRef(null);
+  // Identificador del borrador. Agrupa en Storage el logo y el preview de ESTA
+  // sesión, y api/submit-quote exige que toda ruta enviada lo contenga — así un
+  // cliente no puede adjuntar a su pedido el archivo de otro.
+  const draftIdRef = useRef(null);
+  if (draftIdRef.current === null) draftIdRef.current = crypto.randomUUID();
 
   const garment = useMemo(
     () => garments.find((g) => g.slug === garmentSlug) ?? garments[0],
@@ -222,7 +232,7 @@ export function StudioApp({ catalog, stageContainer }) {
         else throw err;
       }
 
-      logoImageRef.current = { image, naturalSize };
+      logoImageRef.current = { image, naturalSize, file };
       setLogo({
         name: file.name,
         sizeBytes: file.size,
@@ -291,6 +301,75 @@ export function StudioApp({ catalog, stageContainer }) {
     });
   }, []);
 
+  // ── Envío del pedido ────────────────────────────────────────────────────
+  //
+  // Orden: logo → snapshot → pedido → WhatsApp. Los binarios NUNCA pasan por
+  // api/*: se piden URLs firmadas y el PUT va directo a Storage (spec §7.2).
+  //
+  // El snapshot se genera AQUÍ y no en el servidor porque es literalmente lo
+  // que el cliente tiene delante: el mismo canvas que aprobó, no una
+  // reconstrucción que podría diferir.
+  const onSubmit = useCallback(async () => {
+    const stage = stageRef.current;
+    if (!stage || !logoImageRef.current?.file) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const draftId = draftIdRef.current;
+
+      const logoFile = logoImageRef.current.file;
+      const logoPath = await subirArchivo({
+        kind: 'logo', draftId, blob: logoFile,
+        filename: logoFile.name, mime: logoFile.type || 'image/png',
+      });
+
+      // pixelRatio 2 para que el equipo pueda ampliar el preview sin que se
+      // deshaga; el tope real de tamaño lo impone el bucket.
+      const snapshot = await stage.snapshot({ pixelRatio: 2 });
+      const previewPath = await subirArchivo({
+        kind: 'preview', draftId, blob: snapshot,
+        itemIndex: 0, mime: 'image/png',
+      });
+
+      const variant = garment.variants.find((v) => v.color_hex === colorHex);
+      const res = await fetch('/api/submit-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          draftId,
+          customer,
+          items: [{
+            garment_type_id: garment.id,
+            garment_variant_id: variant.id,
+            technique_id: technique.id,
+            size_breakdown: breakdown,
+            logo_path: logoPath,
+            preview_path: previewPath,
+            logo_transform: stage.getTransform(),
+          }],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw Object.assign(new Error(data.error), { code: data.error });
+
+      setSubmitted(data);
+      // El mensaje se arma con los datos que DEVOLVIÓ el servidor (short_code y
+      // total), no con los del cliente: es la cifra que quedó guardada.
+      window.open(construirMensajeWhatsApp({
+        data, garment, variant, technique, breakdown, customer,
+      }), '_blank', 'noopener');
+    } catch (err) {
+      console.error('[estudio] no se pudo enviar el pedido', err);
+      setSubmitError({
+        code: err?.code ?? 'SUBMIT_FAILED',
+        message: 'No pudimos enviar tu pedido. Vuelve a intentarlo o escríbenos por WhatsApp.',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }, [garment, colorHex, technique, breakdown, customer]);
+
   // canSubmit exige además que el stage esté VIVO y que el logo tenga posición
   // real. Sin eso, un fallo al montar la vista previa dejaba el botón activo
   // con un logo "adjunto" pero sin transform: el pedido habría salido con el
@@ -343,8 +422,8 @@ export function StudioApp({ catalog, stageContainer }) {
     h(PanelResumen, {
       quote, loading: quoting, error: quoteError,
       customer, onCustomer: (k, v) => setCustomer((c) => ({ ...c, [k]: v })),
-      onSubmit: () => { /* incremento 8b: crea el pedido y abre WhatsApp */ },
-      canSubmit, submitting: false,
+      onSubmit, canSubmit, submitting, error: quoteError ?? submitError,
+      submitted,
     }),
   );
 }
@@ -357,4 +436,49 @@ function mensajeDeCotizacion(data, garment) {
   if (primero === 'UNKNOWN_SIZE') return 'Hay una talla que no aplica para esta prenda.';
   if (data.error === 'PRICING_RULE_NOT_FOUND') return 'Esa combinación de prenda y técnica no está disponible por ahora.';
   return 'No pudimos calcular el precio con esos datos.';
+}
+
+/**
+ * Pide una URL firmada y hace el PUT directo a Storage. Devuelve la ruta del
+ * objeto, que es lo único que viaja después a /api/submit-quote.
+ */
+async function subirArchivo({ kind, draftId, blob, filename, itemIndex, mime }) {
+  const firma = await fetch('/api/upload-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind, draftId, filename, itemIndex, size: blob.size, mime }),
+  });
+  const datos = await firma.json();
+  if (!firma.ok) throw Object.assign(new Error(datos.error), { code: datos.error });
+
+  const put = await fetch(datos.upload_url, {
+    method: 'PUT',
+    headers: { 'Content-Type': mime, authorization: `Bearer ${datos.token}` },
+    body: blob,
+  });
+  if (!put.ok) {
+    throw Object.assign(new Error(`Storage ${put.status}`), { code: 'UPLOAD_FAILED' });
+  }
+  return datos.path;
+}
+
+/**
+ * wa.me no admite adjuntos, así que el mensaje lleva el resumen en texto y una
+ * liga a /estudio/pedido/?t=..., donde se ve el preview que el cliente aprobó.
+ */
+function construirMensajeWhatsApp({ data, garment, variant, technique, breakdown, customer }) {
+  const liga = `${location.origin}/estudio/pedido/?t=${data.public_token}`;
+  const lineas = [
+    `Hola, acabo de armar un pedido en el configurador. Folio ${data.short_code}.`,
+    '',
+    `Prenda: ${garment.name}`,
+    `Color: ${variant?.color_name ?? ''}`,
+    `Técnica: ${technique.name}`,
+    `Tallas: ${breakdownToLabel(breakdown)}`,
+    `Total${data.is_placeholder ? ' de referencia' : ''}: ${formatCentsMXN(data.total_cents)}`,
+    '',
+    `Mi diseño: ${liga}`,
+  ];
+  if (customer.name) lineas.push('', `Soy ${customer.name}.`);
+  return `https://wa.me/525539014600?text=${encodeURIComponent(lineas.join('\n'))}`;
 }
