@@ -1,0 +1,790 @@
+/* ============================================================
+   GRAFIK — /estudio/ — hoja de estilos del configurador
+   Prefijo `.es-` en toda clase propia, para que nada de esto
+   pueda chocar con `styles.css` del sitio público.
+   ============================================================
+
+   Herencia de tokens: SE REPLICAN los valores de :root de styles.css
+   (con prefijo --es-) en vez de hacer `@import url('/styles.css')`.
+
+   Por qué: styles.css trae, además de los tokens, reglas de elemento sin
+   prefijo — `body`, `a`, `img, svg`, `.wrap`, `.section`, `.btn`... (ver
+   líneas 40-90 de ese archivo). Un @import las trae completas a esta
+   página. Esta hoja SÍ necesita definir sus propios `body`/`html`/`button`
+   base (es la única hoja que carga /estudio/), así que ese @import sólo
+   sumaría reglas duplicadas y, peor, un `.btn` o `.wrap` que cambie de
+   forma en el sitio público movería el configurador sin que nadie lo haya
+   tocado aquí. Copiar los ~10 valores de paleta es más barato que cargar
+   ese acoplamiento invisible. Si la paleta de marca cambia, se actualiza
+   en los dos archivos — el mismo trade-off que ya asume email-templates.js
+   (§ Paleta de marca del spec). */
+
+:root {
+  --es-negro:       #0C0C0C;
+  --es-carbon:      #181818;
+  --es-carbon-mid:  #222222;
+  --es-carbon-hi:   #2E2E2E;
+  --es-plata-dim:   #666666;
+  --es-plata:       #B8B8B8;
+  --es-rojo:        #D02B34;
+  --es-rojo-dark:   #A0202A;
+  --es-blanco:      #F0F0EE;
+  --es-wa:          #25D366;
+
+  --es-serif: 'Barlow Condensed', sans-serif; /* display / wordmark */
+  --es-sans:  'Barlow', sans-serif;           /* body / controles */
+
+  --es-radius: 4px;
+  --es-nav-h: 64px; /* alto de la cabecera propia del estudio, no el del sitio público */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--es-negro); }
+
+body {
+  min-height: 100vh;
+  background: var(--es-negro);
+  color: var(--es-blanco);
+  font-family: var(--es-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+
+.es-app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 56px;
+}
+
+/* ---- Cabecera ---- */
+.es-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(184, 184, 184, 0.15);
+}
+
+.es-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  font-family: var(--es-serif);
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--es-blanco);
+}
+
+.es-wordmark-mark { color: var(--es-rojo); flex: none; }
+
+.es-context {
+  color: var(--es-plata);
+  font-size: 14px;
+}
+
+/* ---- Estados de la página ----
+   #es-app trae data-state: "loading" (default) | "ready" | "catalog-error"
+   | "konva-unavailable". Un único atributo decide qué bloque se ve; boot.js
+   y el script inline de index.html sólo tocan ese atributo, nunca `hidden`
+   elemento por elemento. */
+
+#es-skeleton,
+#es-notice-catalog,
+#es-notice-konva,
+#es-main { display: none; }
+
+.es-app[data-state="loading"] #es-skeleton { display: grid; }
+.es-app[data-state="ready"] #es-main { display: grid; }
+.es-app[data-state="catalog-error"] #es-notice-catalog { display: flex; }
+.es-app[data-state="konva-unavailable"] #es-notice-konva { display: flex; }
+
+/* ---- Skeleton (catálogo/Babel cargando) ---- */
+.es-skeleton {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.es-skeleton-stage {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--es-radius);
+  background: var(--es-carbon);
+}
+
+.es-skeleton-panel { display: flex; flex-direction: column; gap: 10px; }
+
+.es-skeleton-line {
+  height: 44px;
+  border-radius: var(--es-radius);
+  background: var(--es-carbon);
+}
+
+.es-skeleton-line--short { width: 60%; }
+
+.es-skeleton-stage, .es-skeleton-line {
+  animation: es-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes es-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .es-skeleton-stage, .es-skeleton-line { animation: none; }
+}
+
+/* ---- Avisos (error de catálogo / Konva no disponible) ---- */
+.es-banner {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--es-radius);
+  border: 1px solid var(--es-rojo-dark);
+  background: rgba(208, 43, 52, 0.08);
+}
+
+.es-banner p { color: var(--es-blanco); }
+.es-banner strong { color: var(--es-blanco); }
+
+.es-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--es-radius);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.es-btn-wa { background: var(--es-wa); color: var(--es-negro); }
+.es-btn-wa:hover { filter: brightness(1.08); }
+
+/* ---- Layout principal: canvas manda ---- */
+.es-main {
+  grid-template-columns: 1fr;
+  gap: 24px;
+  /* Un item de grid/flex sin min-width:0 usa el ancho mínimo de SU
+     contenido como piso, sin importar lo que digan sus propios `width`.
+     Konva mete un <div class="konvajs-content" style="width:900px"> dentro
+     de #es-stage (abajo); sin cortar esa cadena aquí y en .es-stage-wrap,
+     ese 900px se propaga hacia arriba y saca la página de su viewport en
+     móvil aunque #es-stage tenga overflow:hidden. */
+  min-width: 0;
+}
+
+.es-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.es-controls { min-width: 0; }
+
+.es-stage {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* valor por defecto; boot.js lo ajusta al canvas_size real de la prenda */
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.15);
+  background: var(--es-carbon);
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Konva envuelve sus <canvas> (uno por Layer) en un <div class="konvajs-content">
+   con width/height inline fijos en píxeles de prenda (p.ej. 900×900) — ese div
+   es el que hay que forzar a 100%, no sólo los <canvas>, si no el ancho fijo
+   de 900px se propaga hacia arriba (ver min-width:0 de .es-main/.es-stage-wrap
+   más arriba) y desborda el layout en pantallas angostas. El !important gana
+   a los estilos inline que pone Konva. */
+.es-stage > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.es-stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ---- Controles ---- */
+.es-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.es-field { display: flex; flex-direction: column; gap: 10px; }
+
+.es-field-label {
+  font-family: var(--es-serif);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--es-plata);
+}
+
+.es-garment-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.es-garment-option {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(184, 184, 184, 0.3);
+  background: transparent;
+  color: var(--es-blanco);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color .12s, border-color .12s;
+}
+
+.es-garment-option:hover { border-color: var(--es-plata); }
+
+.es-garment-option[aria-pressed="true"] {
+  background: var(--es-rojo);
+  border-color: var(--es-rojo-dark);
+  font-weight: 600;
+}
+
+/* ---- Swatches de color ----
+   Área táctil mínima 44×44 (WCAG 2.5.5); el estado seleccionado se marca
+   con un anillo de dos tonos + una insignia de punto en una esquina, no
+   sólo con un borde sutil. */
+.es-swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.es-swatch {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 2px solid rgba(184, 184, 184, 0.25);
+  background: var(--es-swatch-color, var(--es-carbon-hi));
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+
+.es-swatch:hover { transform: translateY(-2px); }
+
+.es-swatch[aria-pressed="true"] {
+  border-color: var(--es-blanco);
+  box-shadow: 0 0 0 3px var(--es-negro), 0 0 0 5px var(--es-rojo);
+}
+
+.es-swatch[aria-pressed="true"]::after {
+  /* Insignia de "seleccionado": punto rojo dentro de un círculo blanco fijo,
+     en la esquina. Fondo fijo (no hereda --es-swatch-color) para que se lea
+     igual de claro sobre un swatch claro que sobre uno oscuro — un check o
+     una X dibujados con bordes finos se pierden o se confunden con "no"
+     según el color de fondo; un punto no admite esa ambigüedad. */
+  content: "";
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--es-rojo) 36%, var(--es-blanco) 40%);
+  box-shadow: inset 0 0 0 1px rgba(12, 12, 12, 0.4);
+}
+
+.es-disclaimer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--es-plata);
+  padding-top: 4px;
+  border-top: 1px solid rgba(184, 184, 184, 0.12);
+}
+
+/* ---- Sin JavaScript ---- */
+.es-noscript {
+  max-width: 480px;
+  margin: 80px auto;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid rgba(184, 184, 184, 0.2);
+  border-radius: var(--es-radius);
+}
+
+.es-noscript a {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--es-wa);
+  font-weight: 600;
+}
+
+/* ---- Escritorio: canvas a la izquierda, controles a la derecha ----
+   960px para quedar alineado con el breakpoint que ya usa el sitio
+   público (ver CLAUDE.md § Responsive). */
+@media (min-width: 960px) {
+  .es-main {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  .es-skeleton {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+/* ============================================================
+   estudio/ui/panel-tallas.js + estudio/ui/panel-resumen.js
+   ============================================================ */
+
+/* ---- Panel genérico: tarjeta con borde sutil sobre --es-carbon ----
+   Lo comparten el <fieldset> de tallas y el <section> de resumen. Un
+   <fieldset> trae borde/relleno propios del navegador; se pisan aquí en vez
+   de "resetearlos" aparte porque las reglas explícitas del autor ya ganan a
+   la hoja de estilos por defecto sin necesitar mayor especificidad. */
+.es-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(184, 184, 184, 0.15);
+  border-radius: var(--es-radius);
+  background: var(--es-carbon);
+}
+
+.es-panel > legend {
+  padding: 0 4px;
+  margin-left: -4px; /* compensa el padding del panel para que el texto de la leyenda quede alineado con el resto del contenido */
+}
+
+/* Etiqueta pequeña reusada por los steppers de talla y los campos de
+   contacto — no es --es-field-label (esa es para títulos de sección). */
+.es-label-sm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--es-plata);
+}
+
+/* Mensaje de error de un campo puntual, enlazado vía aria-describedby. */
+.es-error-text {
+  font-size: 12px;
+  color: var(--es-rojo);
+}
+
+/* ---- Tallas ---- */
+.es-tallas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+
+.es-tallas-grid--single {
+  grid-template-columns: minmax(160px, 240px);
+}
+
+.es-talla-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.es-talla-stepper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid rgba(184, 184, 184, 0.25);
+  border-radius: var(--es-radius);
+  overflow: hidden;
+}
+
+/* Botones +/− con área táctil de 44px (WCAG 2.5.5), igual que .es-swatch. */
+.es-talla-btn {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: var(--es-carbon-hi);
+  color: var(--es-blanco);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .12s;
+}
+
+.es-talla-btn:hover { background: var(--es-carbon-mid); }
+.es-talla-btn:active { background: var(--es-rojo-dark); }
+
+.es-talla-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  border-left: 1px solid rgba(184, 184, 184, 0.25);
+  border-right: 1px solid rgba(184, 184, 184, 0.25);
+  background: var(--es-carbon-mid);
+  color: var(--es-blanco);
+  text-align: center;
+  font: inherit;
+  font-size: 16px; /* 16px en iOS evita el auto-zoom del input al enfocar */
+}
+
+/* Se ocultan las flechas nativas del input number: el stepper propio (+/−)
+   ya cubre esa interacción y las flechas nativas son más difíciles de
+   tocar en móvil que los 44px de .es-talla-btn. */
+.es-talla-input::-webkit-outer-spin-button,
+.es-talla-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.es-talla-input { appearance: textfield; }
+
+.es-tallas-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(184, 184, 184, 0.12);
+  font-weight: 600;
+}
+
+.es-tallas-errors {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--es-radius);
+  border: 1px solid var(--es-rojo-dark);
+  background: rgba(208, 43, 52, 0.08);
+  font-size: 13px;
+}
+
+/* ---- Resumen + contacto ---- */
+.es-resumen-status {
+  color: var(--es-plata);
+  font-size: 14px;
+}
+
+.es-resumen-error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: var(--es-radius);
+  border: 1px solid var(--es-rojo-dark);
+  background: rgba(208, 43, 52, 0.08);
+}
+
+.es-resumen-error-hint {
+  font-size: 12.5px;
+  color: var(--es-plata);
+}
+
+/* Aviso de precios de referencia — discreto pero legible, nunca se calla:
+   ver PanelResumen y el encargo (is_placeholder). */
+.es-resumen-placeholder {
+  padding: 8px 10px;
+  border: 1px dashed rgba(184, 184, 184, 0.3);
+  border-radius: var(--es-radius);
+  font-size: 12.5px;
+  color: var(--es-plata);
+}
+
+.es-resumen-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.es-resumen-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(184, 184, 184, 0.1);
+}
+
+.es-resumen-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.es-resumen-item-heading {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.es-resumen-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--es-plata);
+}
+
+.es-resumen-line-value { color: var(--es-blanco); }
+
+.es-resumen-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(184, 184, 184, 0.15);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.es-resumen-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.es-input {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.25);
+  background: var(--es-carbon-mid);
+  color: var(--es-blanco);
+  font: inherit;
+  font-size: 16px; /* evita auto-zoom de iOS al enfocar, igual que .es-talla-input */
+}
+
+.es-input:focus {
+  outline: 2px solid var(--es-rojo);
+  outline-offset: 1px;
+}
+
+.es-resumen-submit {
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+}
+
+.es-resumen-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* ═══ Incremento 8 ════════════════════════════════════════════════════════
+   Los dos agentes que construyeron los paneles se interrumpieron justo antes
+   de añadir su CSS, así que estas reglas completan lo que faltaba siguiendo
+   las convenciones ya establecidas arriba: prefijo .es-, tokens --es-*, y
+   44px de área táctil mínima en todo lo interactivo (WCAG 2.5, igual que el
+   resto del sitio). */
+
+/* ── Utilidad ── */
+.es-sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Panel de prenda ── */
+.es-panel-title {
+  font-family: var(--es-serif);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--es-blanco);
+  margin: 0 0 14px;
+}
+
+.es-label-note { color: var(--es-plata); font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+.es-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.es-chip {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--es-carbon-hi);
+  border-radius: 2px;
+  background: var(--es-carbon);
+  color: var(--es-plata);
+  font-family: var(--es-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.es-chip:hover:not(:disabled) { border-color: var(--es-plata-dim); color: var(--es-blanco); }
+.es-chip.is-selected { border-color: var(--es-rojo); background: var(--es-rojo); color: var(--es-blanco); }
+.es-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+.es-chip:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+.es-hint { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--es-plata); }
+
+/* Advertencia de contraste: informa, NO bloquea. El equipo revisa el arte
+   antes de producción de todos modos, y el cliente puede tener una razón. */
+.es-warning {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--es-plata-dim);
+  background: rgba(184, 184, 184, 0.08);
+  font-size: 13px; line-height: 1.5;
+  color: var(--es-plata);
+}
+.es-warning.is-strong {
+  border-left-color: var(--es-rojo);
+  background: rgba(208, 43, 52, 0.10);
+  color: var(--es-blanco);
+}
+
+/* ── Panel de logo ── */
+.es-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 132px;
+  padding: 20px 16px;
+  border: 1px dashed var(--es-carbon-hi);
+  border-radius: 3px;
+  background: var(--es-carbon);
+  color: var(--es-plata);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.es-dropzone:hover, .es-dropzone.is-dragover {
+  border-color: var(--es-rojo);
+  background: rgba(208, 43, 52, 0.06);
+}
+.es-dropzone:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+.es-dropzone-title { font-weight: 600; color: var(--es-blanco); font-size: 15px; }
+.es-dropzone-formats { font-size: 12px; color: var(--es-plata-dim); }
+.es-file-input, .es-logo-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.es-logo-hint { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--es-plata-dim); }
+
+/* Aviso de "sin transparencia": es AVISO y no error a propósito. El §6 del
+   spec decidió no remover fondos automáticamente y apoyarse en el soporte
+   humano que el sitio ya ofrece, así que bloquear aquí sería cortar una venta
+   que el equipo puede rescatar por WhatsApp. */
+.es-logo-alert {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--es-rojo);
+  background: rgba(208, 43, 52, 0.10);
+  font-size: 13px; line-height: 1.55;
+  color: var(--es-blanco);
+}
+.es-logo-alert a { color: var(--es-wa); font-weight: 600; }
+
+.es-logo-card {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 12px; padding: 12px 14px;
+  border: 1px solid var(--es-carbon-hi);
+  border-radius: 3px;
+  background: var(--es-carbon);
+}
+.es-logo-card-info { min-width: 0; flex: 1; }
+.es-logo-card-name {
+  display: block; font-weight: 600; color: var(--es-blanco); font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.es-logo-card-meta { display: block; font-size: 12px; color: var(--es-plata-dim); margin-top: 2px; }
+
+.es-logo-controls { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+.es-logo-range-row { display: flex; flex-direction: column; gap: 6px; }
+.es-logo-range-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.es-logo-range-value { font-variant-numeric: tabular-nums; color: var(--es-plata); font-size: 13px; }
+
+.es-logo-scale, .es-logo-rotation {
+  width: 100%;
+  min-height: 44px; /* el pulgar del range es chico; el alto da el área táctil */
+  accent-color: var(--es-rojo);
+  cursor: pointer;
+}
+.es-logo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* ── Huecos de tallas y resumen ── */
+.es-tallas-general-errors { margin: 10px 0 0; padding: 0; list-style: none; }
+.es-resumen-quote { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--es-carbon-hi); }
+.es-resumen-line-label { color: var(--es-plata); }
+
+/* ── Página de pedido (estudio/pedido/) ───────────────────────────────────
+   Vista de sólo lectura que se abre desde la liga del mensaje de WhatsApp.
+   El preview manda: es el punto de la página. */
+
+.es-pedido { max-width: 760px; margin: 0 auto; padding: 24px var(--es-gut, 20px) 64px; }
+.es-pedido-head { margin-bottom: 20px; }
+.es-pedido-folio {
+  font-family: var(--es-serif);
+  font-size: 40px; font-weight: 900; letter-spacing: 0.02em;
+  color: var(--es-blanco); margin: 2px 0 6px;
+}
+.es-pedido-estado {
+  display: inline-block; padding: 5px 12px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 2px;
+  font-size: 13px; font-weight: 600; color: var(--es-plata);
+}
+.es-pedido-item {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 3px;
+  background: var(--es-carbon);
+}
+.es-pedido-preview {
+  display: block; width: 100%; height: auto;
+  max-width: 100%;
+  border-radius: 2px; background: var(--es-negro);
+  margin-bottom: 16px;
+}
+.es-pedido-datos {
+  display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+  margin: 0 0 16px; font-size: 14px;
+}
+.es-pedido-datos dt { color: var(--es-plata-dim); }
+.es-pedido-datos dd { margin: 0; color: var(--es-blanco); }
+.es-pedido-chip-color {
+  display: inline-block; width: 13px; height: 13px;
+  border: 1px solid var(--es-carbon-hi); border-radius: 50%;
+  vertical-align: -2px; margin-right: 5px;
+}
+.es-pedido-total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; padding-top: 16px;
+  border-top: 1px solid var(--es-carbon-hi);
+  font-size: 15px; color: var(--es-plata);
+}
+.es-pedido-total strong {
+  font-family: var(--es-serif); font-size: 30px; font-weight: 900;
+  color: var(--es-blanco);
+}
+
+@media (max-width: 640px) {
+  .es-pedido-folio { font-size: 32px; }
+  .es-pedido-datos { grid-template-columns: 1fr; gap: 2px 0; }
+  .es-pedido-datos dd { margin-bottom: 8px; }
+}

@@ -2,3 +2,12 @@
 .playwright-mcp/
 *.log
 .vercel
+
+# Configurador /estudio/ — herramientas de desarrollo
+node_modules/
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example

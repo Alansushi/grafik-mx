@@ -1,0 +1,22 @@
+{
+  "name": "grafik-estudio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Herramientas de desarrollo del configurador /estudio/. El sitio y las Vercel Functions NO tienen dependencias de runtime — Mercado Pago, Resend y Supabase se consumen con fetch crudo.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:canvas": "playwright test --project=canvas",
+    "test:live": "playwright test --project=live",
+    "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "vitest": "~4.1.11"
+  }
+}
