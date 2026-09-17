@@ -720,12 +720,26 @@ a { color: inherit; }
 .es-logo-range-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .es-logo-range-value { font-variant-numeric: tabular-nums; color: var(--es-plata); font-size: 13px; }
 
-.es-logo-scale, .es-logo-rotation {
+/* Los sliders NO llevan clase propia en el marcado: son <input type="range">
+   pelados dentro de .es-logo-range-row. Las reglas anteriores apuntaban a
+   .es-logo-scale/.es-logo-rotation, que no existen, así que nunca aplicaron y
+   los controles salían con el azul por defecto del navegador en vez del rojo de
+   marca. Es el caso inverso al que cubre css-classes.test.js: CSS definido que
+   nadie usa — inofensivo salvo porque el estilo que creías puesto no lo está. */
+.es-logo-range-row input[type="range"] {
   width: 100%;
   min-height: 44px; /* el pulgar del range es chico; el alto da el área táctil */
   accent-color: var(--es-rojo);
   cursor: pointer;
 }
+.es-logo-range-row input[type="range"]:focus-visible {
+  outline: 2px solid var(--es-rojo);
+  outline-offset: 3px;
+}
+/* El botón de reinicio de rotación no debe ocupar todo el ancho: se lee como un
+   campo de texto y no como una acción. */
+.es-logo-range-row .es-btn-sm { flex: 0 0 auto; width: auto; }
+.es-logo-range-row { display: flex; align-items: center; gap: 10px; }
 .es-logo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
 /* ── Huecos de tallas y resumen ── */
