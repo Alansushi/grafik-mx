@@ -4,7 +4,6 @@
 // avisa hacia arriba. El estado vive en studio-app.js.
 
 import { h, cx } from './react.js';
-import { legibility } from '../lib/color.js';
 
 /**
  * @param {{
@@ -93,17 +92,9 @@ export function PanelPrenda({
   );
 }
 
-/**
- * Aviso de contraste logo/prenda. Vive aquí y no en el panel de logo porque
- * depende del color de la PRENDA tanto como del logo, y se lee mejor junto al
- * selector de color — que es donde el cliente puede arreglarlo.
- */
-export function AvisoContraste({ garmentHex, logoHex }) {
-  if (!garmentHex || !logoHex) return null;
-  const { level, message } = legibility(garmentHex, logoHex);
-  if (level === 'ok') return null;
-  return h('p', {
-    className: cx('es-warning', level === 'fail' && 'is-strong'),
-    role: 'status',
-  }, message);
-}
+// El aviso de contraste logo/prenda vivía aquí y se renderizaba desde
+// studio-app, pero panel-logo.js ya tenía el suyo: el mismo mensaje aparecía
+// DOS VECES en pantalla. Se detectó mirando la captura de producción, no con
+// una aserción. Se conserva el de panel-logo porque está integrado con el
+// estado y los estilos de ese panel; éste se elimina en vez de dejarlo
+// exportado sin uso.

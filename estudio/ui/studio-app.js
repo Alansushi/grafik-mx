@@ -7,7 +7,7 @@
 // mantener sincronizados y ése es el camino a los bugs difíciles.
 
 import { h, useState, useEffect, useMemo, useRef, useCallback, Fragment } from './react.js';
-import { PanelPrenda, AvisoContraste } from './panel-prenda.js';
+import { PanelPrenda } from './panel-prenda.js';
 import { PanelLogo } from './panel-logo.js';
 import { PanelTallas } from './panel-tallas.js';
 import { PanelResumen } from './panel-resumen.js';
@@ -407,7 +407,6 @@ export function StudioApp({ catalog, stageContainer }) {
       onGarment: setGarmentSlug, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),
-    h(AvisoContraste, { garmentHex: colorHex, logoHex: logo?.dominantHex }),
     h(PanelLogo, {
       logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,

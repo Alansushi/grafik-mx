@@ -788,3 +788,59 @@ a { color: inherit; }
   .es-pedido-datos { grid-template-columns: 1fr; gap: 2px 0; }
   .es-pedido-datos dd { margin-bottom: 8px; }
 }
+
+/* ── Variantes de botón ───────────────────────────────────────────────────
+   Faltaban y el efecto era grave aunque invisible para los tests: sin regla
+   propia, .es-btn-outline y .es-btn-danger caían al fondo por defecto del
+   navegador (ButtonFace, ~#EFEFEF) conservando el color de texto de .es-btn
+   (#F0F0EE). Texto blanco sobre fondo blanco: los botones "Ajustar al área",
+   "Quitar logo" y "Cambiar" se veían como rectángulos vacíos.
+   Se detectó mirando la captura de producción, no con una aserción. */
+
+.es-btn-outline {
+  background: transparent;
+  border: 1px solid var(--es-carbon-hi);
+  color: var(--es-plata);
+}
+.es-btn-outline:hover:not(:disabled) {
+  border-color: var(--es-plata-dim);
+  color: var(--es-blanco);
+  background: rgba(240, 240, 238, 0.04);
+}
+
+.es-btn-danger {
+  background: transparent;
+  border: 1px solid var(--es-rojo-dark);
+  color: var(--es-rojo);
+}
+.es-btn-danger:hover:not(:disabled) {
+  background: var(--es-rojo);
+  border-color: var(--es-rojo);
+  color: var(--es-blanco);
+}
+
+/* Compacto, pero sin bajar de 44px de alto: el área táctil no se negocia
+   (WCAG 2.5, igual que el resto del sitio). Lo que se reduce es el ancho. */
+.es-btn-sm {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+/* Modificadores de panel: separan visualmente y existen para que tallas y
+   resumen puedan divergir sin tocar .es-panel. */
+.es-panel-tallas,
+.es-panel-resumen { margin-top: 4px; }
+
+/* Etiqueta de campo del panel de prenda. La encontró el test de clases
+   huérfanas en su primera ejecución: mi comprobación manual anterior la dio por
+   existente porque `.es-label-sm` la contiene como substring. */
+.es-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--es-plata);
+}
