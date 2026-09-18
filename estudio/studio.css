@@ -24,9 +24,21 @@
   --es-carbon:      #181818;
   --es-carbon-mid:  #222222;
   --es-carbon-hi:   #2E2E2E;
-  --es-plata-dim:   #666666;
+  /* #666666 daba 3.09:1 sobre --es-carbon: por debajo del 4.5:1 de WCAG AA.
+     #8A8A8A da 5.14:1 sobre carbon y 5.67:1 sobre negro, y sigue siendo
+     claramente más apagado que --es-plata, así que la jerarquía se conserva.
+     OJO: este token también se usa como color de BORDE (.es-chip:hover,
+     .es-btn-outline:hover, el borde izquierdo de .es-callout). Ahí el umbral
+     es 3:1 (WCAG 1.4.11, componentes no textuales) y #666666 ya lo cumplía —
+     subirlo no rompe nada, pero tampoco era lo que estaba mal. */
+  --es-plata-dim:   #8A8A8A;
   --es-plata:       #B8B8B8;
   --es-rojo:        #D02B34;
+  /* El rojo de marca como TEXTO da 3.45:1 sobre --es-carbon, que no pasa AA.
+     Como relleno (fondos, bordes, el punto del logo) es correcto y no se
+     toca — por eso esto es un token aparte y no un cambio a --es-rojo. Mismo
+     tono (H≈356°), aclarado: 4.79:1 sobre carbon, 5.27:1 sobre negro. */
+  --es-rojo-texto:  #E2545D;
   --es-rojo-dark:   #A0202A;
   --es-blanco:      #F0F0EE;
   --es-wa:          #25D366;
@@ -79,6 +91,10 @@ a { color: inherit; }
   align-items: center;
   gap: 8px;
   width: fit-content;
+  /* Es un enlace de vuelta al inicio, o sea un objetivo táctil como cualquier
+     otro: medía 33 px de alto. No cambia nada visualmente (el contenido ya va
+     centrado), sólo reserva el alto mínimo. */
+  min-height: 44px;
   font-family: var(--es-serif);
   font-weight: 900;
   font-size: 22px;
@@ -392,13 +408,21 @@ a { color: inherit; }
 /* Mensaje de error de un campo puntual, enlazado vía aria-describedby. */
 .es-error-text {
   font-size: 12px;
-  color: var(--es-rojo);
+  /* A 12px y en rojo de marca esto daba 3.45:1 — el peor sitio posible para un
+     contraste flojo, porque es justo el texto que explica por qué un dato no
+     se aceptó. Con --es-rojo-texto sube a 4.79:1. */
+  color: var(--es-rojo-texto);
 }
 
 /* ---- Tallas ---- */
 .es-tallas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  /* 134px = 44 (botón −) + 44 (input) + 44 (botón +) + 2 de bordes. Con el
+     mínimo anterior de 96px la celda se quedaba en ~133 y el input caía a
+     43 px de ancho: los dos botones sí cumplían 44, pero el campo donde se
+     teclea la cantidad —el control más usado de todo el embudo— no. Lo
+     encontró a11y.spec.js (A3). */
+  grid-template-columns: repeat(auto-fill, minmax(134px, 1fr));
   gap: 12px;
 }
 
@@ -570,6 +594,18 @@ a { color: inherit; }
   color: var(--es-blanco);
   font: inherit;
   font-size: 16px; /* evita auto-zoom de iOS al enfocar, igual que .es-talla-input */
+}
+
+/* El placeholder nunca se estilizó, así que caía al gris por defecto del
+   navegador (#757575 en Chromium): 3.45:1 sobre --es-carbon-mid, por debajo
+   de AA. Es texto que el cliente tiene que leer para saber qué formato se
+   espera en el campo del teléfono. --es-plata-dim da 4.61:1 y sigue siendo
+   claramente más apagado que --es-blanco, así que un placeholder no se
+   confunde con un valor ya escrito. Lo encontró a11y.spec.js (A1). */
+.es-input::placeholder,
+.es-talla-input::placeholder {
+  color: var(--es-plata-dim);
+  opacity: 1; /* Firefox le aplica opacity .54 por defecto */
 }
 
 .es-input:focus {
@@ -825,7 +861,9 @@ a { color: inherit; }
 .es-btn-danger {
   background: transparent;
   border: 1px solid var(--es-rojo-dark);
-  color: var(--es-rojo);
+  /* --es-rojo-texto, no --es-rojo: aquí el rojo es texto sobre el fondo de la
+     tarjeta del logo (--es-carbon), donde el rojo de marca sólo llega a 3.45:1. */
+  color: var(--es-rojo-texto);
 }
 .es-btn-danger:hover:not(:disabled) {
   background: var(--es-rojo);

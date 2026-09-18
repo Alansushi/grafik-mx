@@ -39,9 +39,13 @@ export default defineConfig({
     // El motor de canvas debe funcionar con touch en móvil (módulo 9 del
     // análisis), y Safari es donde los blend modes se portan distinto — por eso
     // webkit no es opcional.
+    // a11y corre en escritorio y en móvil, pero NO en webkit: el contraste sale
+    // del mismo CSS en los tres, así que webkit no aportaría señal nueva. Lo
+    // que sí cambia entre proyectos es el viewport, y de ahí dependen el área
+    // táctil y el desbordamiento — por eso va en los dos tamaños.
     {
       name: 'canvas',
-      testMatch: /(canvas|studio-flow)\.spec\.js/,
+      testMatch: /(canvas|studio-flow|a11y)\.spec\.js/,
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {
@@ -51,7 +55,7 @@ export default defineConfig({
     },
     {
       name: 'canvas-mobile',
-      testMatch: /(canvas|studio-flow)\.spec\.js/,
+      testMatch: /(canvas|studio-flow|a11y)\.spec\.js/,
       use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     ...(LIVE_BASE_URL
