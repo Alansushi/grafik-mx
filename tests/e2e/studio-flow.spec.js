@@ -289,4 +289,33 @@ test.describe('flujo del configurador', () => {
     expect(texto).toContain('/estudio/pedido/?t=9b1deb4d');
     expect(texto).toContain('$1,800.00');
   });
+
+  test('F10. la guía del área imprimible se adapta al color de la prenda', async ({ page }) => {
+    // El trazo era fijo, casi blanco. Con el mockup procedural (gris medio)
+    // siempre contrastaba, así que nadie lo notó; con la foto real de una
+    // playera BLANCA la guía desaparece y el cliente deja de ver dónde puede
+    // colocar su logo. Se comprueba la DECISIÓN, no el píxel: el trazo es una
+    // línea punteada de 1 px y muestrearla sería frágil.
+    await abrir(page);
+
+    await page.evaluate(() => window.__studioBridge.setColor('#0C0C0C'));
+    await page.waitForFunction(
+      () => window.__studio.stage?.debugInfo().printAreaGuideStroke?.includes('240'),
+      null,
+      { timeout: 10000 },
+    );
+    const sobreOscura = await page.evaluate(() => window.__studio.stage.debugInfo().printAreaGuideStroke);
+
+    await page.evaluate(() => window.__studioBridge.setColor('#FFFFFF'));
+    await page.waitForFunction(
+      () => window.__studio.stage?.debugInfo().printAreaGuideStroke?.includes('12,12,12'),
+      null,
+      { timeout: 10000 },
+    );
+    const sobreClara = await page.evaluate(() => window.__studio.stage.debugInfo().printAreaGuideStroke);
+
+    expect(sobreOscura).not.toBe(sobreClara);
+    expect(sobreOscura).toContain('240');      // trazo claro sobre prenda oscura
+    expect(sobreClara).toContain('12,12,12');  // trazo oscuro sobre prenda clara
+  });
 });

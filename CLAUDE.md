@@ -100,6 +100,43 @@ Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rom
    ignora cualquier cifra del cliente. `pricing_rules` no tiene política RLS para `anon`.
 8. **Dinero en centavos enteros.** Ninguna función devuelve un float de dinero.
 
+### Mockups de prenda
+
+`garment_types.base_mockup_url` acepta dos formas y `estudio/ui/studio-app.js` ramifica sola:
+`procedural:tee` / `procedural:cap` (silueta calculada en `estudio/canvas/mockup.js`) o una
+URL real, que pasa por `loadImageFromUrl`. Hoy la **playera usa foto real** (bucket público
+`mockups`) y la **gorra sigue procedural** — no hay fotos utilizables de gorras lisas en
+stock libre; la mejor fuente sería una foto de inventario propio.
+
+La foto base es un **mapa de sombreado**, no una imagen de color: `paintGarment` la normaliza
+contra el nivel de tela plana (percentil 0.9) y la **multiplica** por el color elegido. De ahí
+dos requisitos duros:
+
+- **Alfa recortando la silueta.** Sin él la prenda sale dentro de un rectángulo de color.
+- **Escala de grises EXACTA (`r === g === b`).** `paintGarment` lee sólo el canal rojo como
+  valor de sombreado. Un canal desviado sesga el teñido sin lanzar ningún error.
+
+Por eso el recorte y el paso a grises van en `tools/mockup-cutout.swift` (Vision, el mismo
+motor que "Eliminar fondo" de Vista Previa), y **el redimensionado va dentro de esa misma
+herramienta, nunca con `sips` después**: el remuestreo de `sips` interpola cada canal por
+separado y dejó 24 173 píxeles con `r != g != b` en la primera prueba.
+
+Al cambiar una foto hay que tocar **tres** columnas, no una:
+
+| Columna | Por qué |
+|---|---|
+| `base_mockup_url` | Nombre **versionado** (`-v2`): el bucket sirve `Cache-Control: immutable` |
+| `canvas_size` | `paintGarment` hace `drawImage` estirando al canvas. Si la proporción no coincide con la foto, la prenda sale deformada |
+| `print_area` | Va en fracciones (0..1) y está calibrada a la silueta anterior. El pecho de otra foto no cae en el mismo sitio |
+
+El coste de teñir es `O(n log n)` sobre `canvas_size` y se paga **en cada clic de color**:
+medido, 51 ms a 955×900 contra 129 ms a 1595×1504. Por eso `canvas_size` se mantiene en el
+presupuesto de ~0.86 MP aunque la foto tenga más resolución.
+
+Verificar siempre **mirando el render**, no sólo los números: así se encontró que la guía
+punteada del área imprimible (`konva-adapter.js`) era de un trazo fijo casi blanco y
+desaparecía sobre una playera blanca.
+
 ## Sistema de diseño
 
 Ver `design-system.html` (guía visual) y `design-system.md` (referencia de tokens).

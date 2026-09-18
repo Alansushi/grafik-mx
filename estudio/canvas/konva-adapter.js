@@ -37,6 +37,7 @@ import {
 import { paintGarment, paintFoldMap } from './garment-painter.js';
 import { assertNotTainted } from './image-loader.js';
 import { AppError } from '../lib/errors.js';
+import { isDarkColor } from '../lib/color.js';
 
 const DEFAULT_FOLD_OPACITY = 0.35;
 
@@ -82,9 +83,17 @@ export function createStudioStage(opts) {
   });
   foldGroup.add(foldNode);
 
+  // La guía se pinta SOBRE la prenda, así que su color tiene que depender del
+  // color de la prenda. Con un trazo fijo casi blanco, sobre una playera blanca
+  // o amarilla desaparecía por completo y el cliente dejaba de ver dónde puede
+  // colocar su logo. No se notaba con el mockup procedural (gris medio, donde
+  // un trazo claro siempre contrastaba); saltó al poner la foto real, que es de
+  // una playera blanca. isDarkColor ya existe y está probada en color.test.js.
+  const trazoGuia = (hex) => (isDarkColor(hex) ? 'rgba(240,240,238,0.45)' : 'rgba(12,12,12,0.45)');
+
   const printAreaGuide = new Konva.Rect({
     ...printArea,
-    stroke: 'rgba(240,240,238,0.35)',
+    stroke: trazoGuia('#0C0C0C'), // provisional: setGarment lo fija al color real
     strokeWidth: 1,
     dash: [6, 4],
     listening: false,
@@ -161,6 +170,7 @@ export function createStudioStage(opts) {
       if (!baseImage) throw new AppError('NO_BASE_IMAGE', 'Falta la imagen base de la prenda.', {});
 
       garmentNode.image(paintGarment(baseImage, colorHex, { width, height }));
+      printAreaGuide.stroke(trazoGuia(colorHex));
 
       const foldSource = foldImage ?? baseImage;
       if (foldSource) {
@@ -255,6 +265,10 @@ export function createStudioStage(opts) {
         stageWidth: stage.width(),
         stageHeight: stage.height(),
         printArea: { ...printArea },
+        // Lo expone para que un test pueda comprobar que la guía se adapta al
+        // color de la prenda. Muestrear el píxel del trazo sería frágil: es una
+        // línea punteada de 1 px.
+        printAreaGuideStroke: printAreaGuide.stroke(),
       };
     },
 
