@@ -46,7 +46,7 @@ export default async function handler(req, res) {
   try {
     const [types, variants, techniques] = await Promise.all([
       fetchAll(supabaseUrl, headers, 'garment_types',
-        'id,slug,name,base_mockup_url,print_area,canvas_size,allowed_sizes,min_qty,max_qty,sort_order'),
+        'id,slug,name,base_mockup_url,print_area,canvas_size,print_area_width_cm,allowed_sizes,min_qty,max_qty,sort_order'),
       fetchAll(supabaseUrl, headers, 'garment_variants',
         'id,garment_type_id,color_hex,color_name,sort_order'),
       fetchAll(supabaseUrl, headers, 'print_techniques',

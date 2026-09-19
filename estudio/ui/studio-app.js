@@ -240,6 +240,11 @@ export function StudioApp({ catalog, stageContainer }) {
         hasAlpha: pixelsHaveAlpha(px),
         dominantHex,
         isEmpty: emptyLogo,
+        // Un SVG se rasteriza en el RIP de impresión al tamaño que haga falta,
+        // así que no tiene resolución fija y el aviso de dpi no le aplica.
+        // Avisar de "baja resolución" sobre un vector sería un falso positivo,
+        // y los falsos positivos enseñan al cliente a ignorar los avisos.
+        isVector: file.type === 'image/svg+xml' || /\.svg$/i.test(file.name),
       });
       if (emptyLogo) {
         setLogoError({
@@ -410,6 +415,11 @@ export function StudioApp({ catalog, stageContainer }) {
     h(PanelLogo, {
       logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,
+      // El área en PÍXELES del canvas (no la fracción) y su ancho real en cm:
+      // con esas dos cosas, printQuality traduce la escala del Transformer a
+      // los dpi con los que la prenda va a salir de la impresora.
+      printArea: resolvePrintArea(garment.print_area, garment.canvas_size || DEFAULT_CANVAS_SIZE),
+      printAreaWidthCm: garment.print_area_width_cm,
       onFile, onTransform, onFit, onRemove: onRemoveLogo,
     }),
     h(PanelTallas, {

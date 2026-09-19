@@ -73,8 +73,26 @@ test.describe('motor de canvas', () => {
     });
 
     for (const hex of ['#C1272D', '#1B2A4A', '#1E6B3A', '#F2C200', '#FFFFFF']) {
+      // Antes había aquí un waitForTimeout(60) fijo, y fallaba de forma
+      // intermitente: con varios workers en paralelo, teñir (~51 ms medidos, y
+      // más en el proyecto móvil, que va emulado) más el repintado de Konva se
+      // pasan de 60 ms. El test muestreaba el píxel ANTES de que el color
+      // llegara al canvas, y reportaba el color anterior como si fuera el fallo.
+      //
+      // Ahora se espera a una señal real: que el píxel CAMBIE respecto al que
+      // había. No es circular —no se espera al color correcto, sólo a que deje
+      // de ser el viejo—, así que un tinte equivocado sigue fallando en la
+      // aserción de abajo en vez de esconderse tras un timeout.
+      const sonda = [Math.round(size.width * 0.5), Math.round(size.height * 0.5)];
+      const antes = await page.evaluate(
+        ([x, y]) => JSON.stringify(window.__studio.stage.sampleComposePixel(x, y)), sonda,
+      );
       await page.evaluate((h) => window.__studio.setColor(h), hex);
-      await page.waitForTimeout(60);
+      await page.waitForFunction(
+        ([x, y, prev]) => JSON.stringify(window.__studio.stage.sampleComposePixel(x, y)) !== prev,
+        [...sonda, antes],
+        { timeout: 10000 },
+      );
 
       // El punto más claro de la prenda: la normalización lleva la tela plana a
       // 255, así que multiplicar deja ahí el color tal cual.

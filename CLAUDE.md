@@ -128,6 +128,7 @@ Al cambiar una foto hay que tocar **tres** columnas, no una:
 | `base_mockup_url` | Nombre **versionado** (`-v2`): el bucket sirve `Cache-Control: immutable` |
 | `canvas_size` | `paintGarment` hace `drawImage` estirando al canvas. Si la proporción no coincide con la foto, la prenda sale deformada |
 | `print_area` | Va en fracciones (0..1) y está calibrada a la silueta anterior. El pecho de otra foto no cae en el mismo sitio |
+| `print_area_width_cm` | Ancho REAL del área en centímetros. Es lo único que traduce píxeles a mundo físico, y de ahí sale el aviso de resolución (`estudio/lib/print-quality.js`). Es dato de la prenda, no constante: una gorra imprime a ~11 cm y una playera a ~31.6. Sin medirlo, la migración lo bloquea con `NOT NULL` en vez de inventar un valor |
 
 El coste de teñir es `O(n log n)` sobre `canvas_size` y se paga **en cada clic de color**:
 medido, 51 ms a 955×900 contra 129 ms a 1595×1504. Por eso `canvas_size` se mantiene en el

@@ -694,6 +694,21 @@ a { color: inherit; }
   color: var(--es-blanco);
 }
 
+/* Resolución de impresión. En el caso bueno NO es un aviso —es sólo el dato de
+   a qué tamaño sale la estampa, que el cliente no puede deducir de una
+   pantalla—, así que se presenta neutro y discreto. Cuando la resolución no da,
+   el componente le añade .es-warning (y .is-strong si es grave) y entonces sí
+   toma el tratamiento de aviso, sin que esta regla tenga que saber nada. */
+.es-print-quality {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--es-plata);
+}
+/* Con .es-warning encima, gana el padding/borde de aquélla: se repite el
+   margen para que no quede pegado al bloque anterior. */
+.es-print-quality.es-warning { margin-top: 12px; }
+
 /* ── Panel de logo ── */
 .es-dropzone {
   display: flex;

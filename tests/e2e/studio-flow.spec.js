@@ -318,4 +318,61 @@ test.describe('flujo del configurador', () => {
     expect(sobreOscura).toContain('240');      // trazo claro sobre prenda oscura
     expect(sobreClara).toContain('12,12,12');  // trazo oscuro sobre prenda clara
   });
+
+  test('F11. el aviso de resolución reacciona al tamaño al que se pone el logo', async ({ page }) => {
+    // En pantalla TODO se ve nítido porque el canvas escala el logo a lo que
+    // haga falta. El dpi real depende del tamaño al que se imprime, así que el
+    // aviso tiene que recalcularse mientras el cliente escala — no una sola vez
+    // al subir el archivo.
+    await abrir(page);
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+
+    const aviso = page.locator('.es-print-quality');
+
+    // El fixture mide 200×80 px y por defecto se encaja a todo el ancho del
+    // área (31.6 cm): 16 dpi. Es justo el caso que llegaba a producción sin
+    // que nada se lo dijera al cliente.
+    await expect(aviso).toHaveAttribute('data-dpi-level', 'fail');
+    await expect(aviso).toContainText('16 dpi');
+    await expect(aviso).toContainText('31.6');
+
+    // Al achicarlo, el mismo archivo pasa a ser suficiente.
+    await page.evaluate(() => {
+      const s = window.__studio.stage;
+      s.setTransform({ ...s.getTransform(), scaleX: 0.15, scaleY: 0.15 });
+    });
+    await expect(aviso).toHaveAttribute('data-dpi-level', 'ok');
+    await expect(aviso).toContainText('suficiente');
+
+    // Y en el tramo intermedio avisa sin alarmar.
+    await page.evaluate(() => {
+      const s = window.__studio.stage;
+      s.setTransform({ ...s.getTransform(), scaleX: 0.2, scaleY: 0.2 });
+    });
+    await expect(aviso).toHaveAttribute('data-dpi-level', 'warn');
+  });
+
+  test('F12. un SVG no dispara el aviso de resolución', async ({ page }) => {
+    // Un vector se rasteriza en el RIP al tamaño que haga falta. Avisarle de
+    // "baja resolución" sería un falso positivo, y los falsos positivos enseñan
+    // al cliente a ignorar los avisos que sí importan.
+    await abrir(page);
+    await page.locator('input[type="file"]').first().setInputFiles({
+      name: 'logo.svg',
+      mimeType: 'image/svg+xml',
+      buffer: Buffer.from(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80">' +
+        '<circle cx="100" cy="40" r="30" fill="#D02B34"/></svg>',
+      ),
+    });
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+
+    const aviso = page.locator('.es-print-quality');
+    await expect(aviso).toHaveAttribute('data-dpi-level', 'ok');
+    // Sigue diciendo a qué tamaño sale, que es útil igual...
+    await expect(aviso).toContainText('cm');
+    // ...pero sin hablar de dpi, que en un vector no significa nada.
+    await expect(aviso).not.toContainText('dpi');
+  });
 });

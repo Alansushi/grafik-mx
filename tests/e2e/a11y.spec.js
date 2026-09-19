@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
 import { contrastRatio, rgbToHex } from '../../estudio/lib/color.js';
 import { CATALOG_FIXTURE } from '../fixtures/catalog.js';
+
+const LOGO_PNG = fileURLToPath(new URL('../fixtures/logo-transparente.png', import.meta.url));
 
 // Tres defectos VISUALES llegaron a producción con la suite en verde:
 // botones invisibles (texto blanco sobre fondo blanco), sliders azules del
@@ -224,14 +227,30 @@ test.describe('accesibilidad del configurador', () => {
   test('A1. todo texto visible de /estudio/ cumple contraste AA', async ({ page }) => {
     await montarEstudio(page);
 
-    // El panel de resumen sólo existe cuando hay cotización, y el aviso de
-    // "precios de referencia" vive dentro de él. Sin llenar tallas primero, la
-    // pantalla donde el cliente lee el PRECIO se quedaría sin auditar.
+    // Buena parte del texto del estudio sólo EXISTE tras interactuar, y lo que
+    // no se pinta no se audita. Hay que llevar la pantalla a su estado completo
+    // antes de recolectar:
+    //
+    //   · Sin tallas no hay cotización, y el aviso de "precios de referencia"
+    //     vive dentro del resumen — justo donde el cliente lee el PRECIO.
+    //   · Sin logo no existen la tarjeta del archivo, los controles de escala
+    //     ni el aviso de resolución de impresión.
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
     await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
 
     const { textos } = await page.evaluate(RECOLECTOR);
     expect(textos.length, 'no se recolectó ningún texto: el recolector está roto').toBeGreaterThan(15);
+
+    // Guardia explícita: si un cambio deja de pintar estos bloques, el test
+    // seguiría en verde auditando una pantalla a medias.
+    for (const marca of ['es-print-quality', 'es-resumen-placeholder', 'es-logo-card-meta']) {
+      expect(
+        textos.some((t) => t.etiqueta.includes(marca)),
+        `.${marca} no llegó al recolector: la pantalla no está en su estado completo`,
+      ).toBe(true);
+    }
 
     const fallos = fallosDeContraste(textos);
     expect(fallos, `Textos por debajo de WCAG AA:\n  - ${fallos.join('\n  - ')}`).toEqual([]);

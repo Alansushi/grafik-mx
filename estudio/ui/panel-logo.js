@@ -7,6 +7,7 @@
 
 import { h, useState, useRef, useCallback, cx } from './react.js';
 import { legibility } from '../lib/color.js';
+import { printQuality } from '../lib/print-quality.js';
 
 const ACCEPT_ATTR = 'image/png,image/jpeg,image/webp,image/svg+xml';
 const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
@@ -115,6 +116,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  */
 export function PanelLogo({
   logo, transform, garmentHex, logoDominantHex, busy, error,
+  printArea, printAreaWidthCm,
   onFile, onTransform, onFit, onRemove,
 }) {
   const inputRef = useRef(null);
@@ -191,6 +193,30 @@ export function PanelLogo({
 
   const contrast = garmentHex && logoDominantHex ? legibility(garmentHex, logoDominantHex) : null;
   const showContrastWarning = Boolean(contrast) && contrast.level !== 'ok';
+
+  // ── Resolución de impresión ───────────────────────────────────────────
+  //
+  // Se recalcula en CADA render, o sea cada vez que el cliente escala el logo:
+  // el dpi depende del tamaño al que lo ponga, no del archivo. Calcularlo una
+  // sola vez al subirlo daría un número que deja de ser cierto en cuanto
+  // arrastra un tirador.
+  //
+  // Si falta cualquier ingrediente (no hay logo, el stage aún no montó, o la
+  // prenda no tiene medida física registrada) no se inventa nada: simplemente
+  // no se muestra el aviso. printQuality lanza con entradas inválidas, así que
+  // la guarda va aquí y no se traga la excepción con un try/catch mudo.
+  const puedeMedir = Boolean(logo?.naturalSize) && Boolean(transform)
+    && Number(printArea?.width) > 0 && Number(printAreaWidthCm) > 0;
+
+  const calidad = puedeMedir
+    ? printQuality({
+        naturalSize: logo.naturalSize,
+        transform,
+        printArea,
+        printAreaWidthCm,
+        vector: logo.isVector === true,
+      })
+    : null;
 
   const fileInput = h('input', {
     ref: inputRef,
@@ -282,6 +308,22 @@ export function PanelLogo({
           className: cx('es-warning', contrast.level === 'fail' && 'is-strong'),
           role: 'status',
         }, contrast.message)
+      : null,
+
+    // El tamaño impreso se enseña SIEMPRE que se pueda medir, no sólo cuando
+    // hay problema: "se imprimirá a 12 × 5 cm" es justo el dato que el cliente
+    // no tiene forma de deducir de una pantalla, y verlo cambiar mientras
+    // escala es lo que convierte el aviso en algo que entiende.
+    calidad?.message
+      ? h('p', {
+          className: cx(
+            'es-print-quality',
+            calidad.level === 'warn' && 'es-warning',
+            calidad.level === 'fail' && 'es-warning is-strong',
+          ),
+          role: 'status',
+          'data-dpi-level': calidad.level,
+        }, calidad.message)
       : null,
 
     error ? h('p', { className: 'es-error-text', role: 'alert' }, error.message) : null,
