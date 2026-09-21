@@ -28,9 +28,12 @@ import {
 } from './_lib/events.js';
 
 // Un visitante activo manda un lote cada pocos segundos como mucho (cola de
-// 2 s + envío inmediato en cada clic de CTA). 30 por minuto por IP deja mucho
-// margen a una oficina entera detrás de la misma IP y frena a un script.
-const RATE = { window: 60, max: 30 };
+// 2 s + envío inmediato en cada clic de CTA). El tope es por IP y las IP se
+// comparten: una oficina entera, y sobre todo los operadores móviles con CGNAT,
+// que meten a muchos visitantes detrás de la misma. 120 por minuto deja margen
+// a eso (y a la Fase 2, que emite más eventos por visita) y sigue frenando a un
+// script, que necesita mucho más para inflar algo.
+const RATE = { window: 60, max: 120 };
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, 'POST')) return;

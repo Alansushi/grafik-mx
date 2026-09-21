@@ -772,7 +772,7 @@
             </div>
             <div className="faq-list" role="list">
               {faqs.map(f => (
-                <details key={f.q} className="faq-item">
+                <details key={f.q} className="faq-item" data-faq>
                   <summary>{f.q}</summary>
                   <div className="faq-body">{f.a}</div>
                 </details>
@@ -843,14 +843,17 @@
                 </div>
               </div>
               <div className="contacto-right">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} data-track-form>
                   <div className="seg-wrap">
                     <label className="field-label">¿Qué servicio necesitas?</label>
                     <div className="seg-chips">
                       {chips.map(s => (
                         <button key={s} type="button"
                           className={`chip-btn${servicio === s ? ' chip-sel' : ''}`}
-                          onClick={() => setServicio(prev => prev === s ? '' : s)}>
+                          onClick={() => {
+                            if (window.grafikTrack) window.grafikTrack('service_chip', { servicio: s, selected: servicio !== s });
+                            setServicio(prev => prev === s ? '' : s);
+                          }}>
                           {s}
                         </button>
                       ))}
@@ -881,7 +884,7 @@
 
     /* ── CTA Final ──────────────────────────── */
     const CtaFinal = () => (
-      <section className="section">
+      <section className="section" data-section="cta-final">
         <div className="wrap">
           <div className="cta-block">
             <h2>¿Listo para <em>cotizar</em> tu proyecto?</h2>
@@ -900,7 +903,7 @@
 
     /* ── Footer ─────────────────────────────── */
     const Footer = () => (
-      <footer className="site-footer">
+      <footer className="site-footer" data-section="footer">
         <div className="footer-main">
           <div className="footer-brand">
             <div className="footer-logo-row">
@@ -1015,7 +1018,7 @@
                 const idx = i % works.length;
                 const dup = i >= works.length;
                 return (
-                  <button key={i} type="button" className="work-card"
+                  <button key={i} type="button" className="work-card" data-work={w.slug} data-work-cat={w.cat}
                     aria-label={`Ampliar imagen: ${w.alt}`}
                     aria-hidden={dup ? 'true' : undefined}
                     tabIndex={dup ? -1 : 0}

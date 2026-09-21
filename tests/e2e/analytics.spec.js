@@ -237,3 +237,177 @@ test.describe('analytics.js — privacidad y datos limpios', () => {
     expect(errores).toEqual([]);
   });
 });
+
+// ── Fase 2 ────────────────────────────────────────────────────────────────
+// El servidor sólo acepta lo que declara api/_lib/events.js; aquí se comprueba
+// que el cliente emite el evento correcto en el momento correcto.
+
+// expect.poll NO sondea de forma continua: usa intervalos crecientes (100, 250,
+// 500, 1000 ms). Con un plazo de 2500 ms las lecturas caen ~0/100/350/850/1850 y
+// la siguiente en 2850, ya fuera de plazo: un lote que llega a los ~1940 ms se
+// cuela en el hueco y la prueba falla sin que el cliente tenga ningún defecto.
+// Los eventos con cola de 2 s se esperan con intervalo fijo y plazo holgado.
+const ESPERA = { timeout: 5000, intervals: [150] };
+const irA = (page, id) => page.evaluate((i) => document.getElementById(i).scrollIntoView(), id);
+const de = (t, nombre) => () => t.eventos().filter((e) => e.name === nombre);
+
+test.describe('analytics.js — interacciones secundarias', () => {
+  test('19. nav_click distingue la barra de un botón de la página, e ignora el ancla vacía', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#nav-servicios');
+    await page.waitForTimeout(900); // supera el antirrebote entre clics del mismo destino
+    await page.click('#pagina-contacto');
+    await page.click('#ancla-vacia');
+    await expect.poll(() => de(t, 'nav_click')().length, ESPERA).toBe(2);
+    expect(de(t, 'nav_click')().map((e) => e.props)).toEqual([
+      { target: 'servicios', from: 'nav' },
+      { target: 'contacto', from: 'page' },
+    ]);
+    expect(t.clics()).toHaveLength(0); // un ancla no es un CTA
+  });
+
+  test('20. work_open lleva slug y categoría (opcional); el doble clic cuenta una vez', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.dblclick('#work1');
+    await page.waitForTimeout(900);
+    await page.click('#work2');
+    await expect.poll(() => de(t, 'work_open')().length, ESPERA).toBe(2);
+    expect(de(t, 'work_open')().map((e) => e.props)).toEqual([
+      { slug: 'boletos-arrolladora', cat: 'Boletos' },
+      { slug: 'poster-papantla' },
+    ]);
+  });
+
+  test('21. faq_open: slug sin acentos ni signos, una vez por pregunta, y sólo si tiene data-faq', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#faq1 summary'); // abre
+    await page.click('#faq1 summary'); // cierra
+    await page.click('#faq1 summary'); // reabre: no cuenta otra vez
+    await page.click('#faq2 summary');
+    await page.click('#faq-sin-marca summary');
+    await expect.poll(() => de(t, 'faq_open')().length, ESPERA).toBe(2);
+    await page.waitForTimeout(300);
+    expect(de(t, 'faq_open')().map((e) => e.props.q)).toEqual([
+      'cuanto-tarda-una-impresion',
+      'hacen-envios-a-otros-estados',
+    ]);
+  });
+
+  test('21b. faq_open con una pregunta larguísima: <= 60, sin cortar palabras y sin guion final', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#faq-larga summary');
+    await expect.poll(() => de(t, 'faq_open')().length, ESPERA).toBe(1);
+    const q = de(t, 'faq_open')()[0].props.q;
+    expect(q).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    expect(q.length).toBeLessThanOrEqual(60);
+    // Se corta en un guion: el resto de la pregunta empieza por una palabra entera.
+    expect('cuanto-tiempo-tarda-la-produccion-de-lonas-e-impresion-en-gran-formato-para-eventos-y-ferias')
+      .toMatch(new RegExp('^' + q + '-'));
+  });
+
+  test('22. form_start: sólo dentro del formulario, una vez, y NUNCA transporta lo escrito', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#fuera');
+    await page.fill('#fuera', 'no es del formulario');
+    await page.waitForTimeout(300);
+    expect(de(t, 'form_start')()).toHaveLength(0);
+
+    await page.click('#nombre');
+    await page.fill('#nombre', 'Juanito Prueba');
+    await page.click('#detalle');
+    await page.fill('#detalle', 'texto secreto del pedido');
+    await page.click('#chip'); // clic dentro del formulario: no es un segundo inicio
+    await expect.poll(() => de(t, 'form_start')().length, ESPERA).toBe(1);
+    await page.waitForTimeout(MAS_QUE_LA_COLA);
+
+    expect(de(t, 'form_start')()).toHaveLength(1);
+    expect(de(t, 'form_start')()[0].props).toEqual({});
+    const todo = JSON.stringify(t.lotes);
+    expect(todo).not.toContain('Juanito');
+    expect(todo).not.toContain('secreto');
+    expect(todo).not.toContain('no es del formulario');
+  });
+
+  test('23. form_start también se dispara con un clic en el formulario (Safari no enfoca los botones)', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#chip');
+    await expect.poll(() => de(t, 'form_start')().length, ESPERA).toBe(1);
+  });
+});
+
+test.describe('analytics.js — secciones vistas', () => {
+  test('24. una sección cuenta tras 800 ms visible, una sola vez por sesión', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await irA(page, 'servicios');
+    await page.waitForTimeout(400);
+    expect(de(t, 'section_view')()).toHaveLength(0); // aún no cumple el tiempo
+    await expect.poll(() => de(t, 'section_view')().length, ESPERA).toBe(1);
+    expect(de(t, 'section_view')()[0].props).toEqual({ section: 'servicios' });
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await irA(page, 'servicios'); // volver a verla no la cuenta de nuevo
+    await page.waitForTimeout(MAS_QUE_LA_COLA);
+    expect(de(t, 'section_view')().filter((e) => e.props.section === 'servicios')).toHaveLength(1);
+  });
+
+  test('25. una sección que sólo se cruza de paso no cuenta', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await irA(page, 'trabajos');
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(1500);
+    expect(de(t, 'section_view')().filter((e) => e.props.section === 'trabajos')).toHaveLength(0);
+  });
+
+  test('26. el hero (#top) y el .ssr-fallback nunca emiten section_view, aunque estén visibles', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.waitForTimeout(MAS_QUE_LA_COLA);
+    expect(de(t, 'section_view')()).toHaveLength(0);
+    expect(t.eventos().some((e) => e.name === 'page_view')).toBe(true);
+  });
+
+  test('27. data-section (bloques sin id) y varias secciones seguidas', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    for (const id of ['faqs', 'contacto']) {
+      await irA(page, id);
+      await page.waitForTimeout(1000);
+    }
+    await page.evaluate(() => document.querySelector('footer').scrollIntoView());
+    await expect.poll(() => de(t, 'section_view')().map((e) => e.props.section).sort(), ESPERA)
+      .toEqual(['contacto', 'faqs', 'footer']);
+  });
+
+  test('29. la sección anterior que sólo asoma bajo el menú fijo (~100 px) no cuenta como vista', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    // Saltar a #faqs dejando 100 px de margen arriba, como hace scroll-padding-top
+    // con el menú pegajoso: #servicios queda con sus últimos 100 px a la vista.
+    await page.evaluate(() => window.scrollTo(0, document.getElementById('faqs').offsetTop - 100));
+    await expect.poll(() => de(t, 'section_view')().map((e) => e.props.section), ESPERA).toContain('faqs');
+    await page.waitForTimeout(1200);
+    expect(de(t, 'section_view')().map((e) => e.props.section)).not.toContain('servicios');
+  });
+
+  test('28. secciones que React añade DESPUÉS de cargar analytics.js también se observan', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.evaluate(() => {
+      const s = document.createElement('section');
+      s.id = 'proceso';
+      s.style.height = '600px';
+      document.body.appendChild(s);
+    });
+    await irA(page, 'proceso');
+    await expect.poll(() => de(t, 'section_view')().map((e) => e.props.section), ESPERA).toContain('proceso');
+  });
+});

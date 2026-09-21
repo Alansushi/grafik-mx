@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  CTA_IDS, MAX_EVENTS, validateBatch, cleanGeo, parseAllowedHosts,
+  CTA_IDS, SECTIONS, MAX_EVENTS, validateBatch, cleanGeo, parseAllowedHosts,
   requestHostname, isBotUserAgent,
 } from '../../api/_lib/events.js';
 
@@ -187,6 +187,126 @@ describe('events.js — sincronía con index.html', () => {
     expect(enlaces.length).toBe(marcados.length);
     for (const [tag, id] of enlaces) {
       expect(tag, `data-cta="${id}"`).toMatch(/waLink\(|href=\{`tel:/);
+    }
+  });
+});
+
+describe('events.js — Fase 2: interacciones secundarias', () => {
+  const ev = (name, props, extra = {}) => ({ name, t_ms: 1000, path: '/', props, ...extra });
+  const filas = (e) => validateBatch(batch([e])).rows;
+
+  it.each([
+    ['section_view', { section: 'contacto' }],
+    ['nav_click', { target: 'servicios', from: 'nav' }],
+    ['service_chip', { servicio: 'Artículos Promocionales', selected: true }],
+    ['service_chip', { servicio: 'Lonas', selected: false }],
+    ['form_start', {}],
+    ['faq_open', { q: 'cuanto-tarda-una-impresion' }],
+    ['work_open', { slug: 'boletos-arrolladora', cat: 'Boletos' }],
+  ])('21. %s válido se guarda tal cual', (name, props) => {
+    const rows = filas(ev(name, props));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].props).toEqual(props);
+  });
+
+  it('22. section_view: sólo las secciones declaradas (el hero "top" y cualquier otra se descartan)', () => {
+    for (const section of SECTIONS) expect(filas(ev('section_view', { section }))).toHaveLength(1);
+    for (const section of ['top', 'hackeo', '', undefined, 'Contacto']) {
+      expect(filas(ev('section_view', { section }))).toHaveLength(0);
+    }
+  });
+
+  it('23. nav_click: el target debe ser un slug; un `from` desconocido se anula sin perder el evento', () => {
+    expect(filas(ev('nav_click', { target: '#faqs' }))).toHaveLength(0);
+    expect(filas(ev('nav_click', { target: 'Servicios' }))).toHaveLength(0);
+    expect(filas(ev('nav_click', { target: 'x'.repeat(31) }))).toHaveLength(0);
+    expect(filas(ev('nav_click', { from: 'nav' }))).toHaveLength(0); // sin target
+    expect(filas(ev('nav_click', { target: 'faqs', from: 'otro' }))[0].props).toEqual({ target: 'faqs' });
+  });
+
+  it('24. service_chip: selected debe ser booleano de verdad, no el texto "true"', () => {
+    expect(filas(ev('service_chip', { servicio: 'Lonas', selected: 'true' }))).toHaveLength(0);
+    expect(filas(ev('service_chip', { servicio: 'Lonas', selected: 1 }))).toHaveLength(0);
+    expect(filas(ev('service_chip', { selected: true }))).toHaveLength(0);
+    expect(filas(ev('service_chip', { servicio: '<b>x</b>', selected: true }))).toHaveLength(0);
+  });
+
+  it('25. faq_open: el cliente manda un slug; texto libre o demasiado largo se descarta', () => {
+    expect(filas(ev('faq_open', { q: '¿Cuánto tarda?' }))).toHaveLength(0);
+    expect(filas(ev('faq_open', { q: 'cuanto tarda' }))).toHaveLength(0);
+    expect(filas(ev('faq_open', { q: 'a'.repeat(61) }))).toHaveLength(0);
+    expect(filas(ev('faq_open', {}))).toHaveLength(0);
+  });
+
+  it('26. work_open: slug obligatorio; la categoría es opcional', () => {
+    expect(filas(ev('work_open', { cat: 'Boletos' }))).toHaveLength(0);
+    expect(filas(ev('work_open', { slug: 'poster-papantla' }))[0].props).toEqual({ slug: 'poster-papantla' });
+  });
+
+  it('27. PRIVACIDAD: form_start no puede transportar lo escrito en el formulario', () => {
+    const [row] = filas(ev('form_start', { nombre: 'Juanito', detalle: 'texto secreto', email: 'a@b.com', value: 'x' }));
+    expect(row.props).toEqual({});
+    expect(JSON.stringify(row)).not.toMatch(/Juanito|secreto|a@b\.com/);
+  });
+
+  it('28. un lote mezcla eventos de todas las fases sin perder ninguno', () => {
+    const r = validateBatch(batch([
+      { name: 'page_view' },
+      ev('section_view', { section: 'servicios' }),
+      ev('nav_click', { target: 'contacto', from: 'page' }),
+      ev('form_start', {}),
+      ev('service_chip', { servicio: 'Lonas', selected: true }),
+      cta({ props: { cta_id: 'contacto-form', kind: 'form', servicio: 'Lonas' } }),
+    ]));
+    expect(r.rows.map((x) => x.event)).toEqual(
+      ['page_view', 'section_view', 'nav_click', 'form_start', 'service_chip', 'cta_click']);
+    expect(r.dropped).toBe(0);
+  });
+});
+
+// Igual que con CTA_IDS: el servidor descarta sin error lo que no reconoce, así
+// que un data-section mal escrito o un atributo que alguien borre del HTML
+// dejaría una métrica en cero sin que nada falle. Estos tests lo hacen ruidoso.
+describe('events.js — sincronía de la Fase 2 con index.html', () => {
+  const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
+  const HTML = readFileSync(`${RAIZ}index.html`, 'utf8');
+
+  it('29. las secciones del HTML (ids + data-section, sin el hero) son exactamente SECTIONS', () => {
+    // Sólo el bloque React: el .ssr-fallback (HTML plano para crawlers, que React
+    // reemplaza al montar) declara sus propias <section id=…>, y hasta con otro
+    // nombre (`por-que` allí, `ventajas` en React).
+    const REACT = HTML.slice(HTML.indexOf('type="text/babel"'));
+    const ids = [...REACT.matchAll(/<section id="([a-z-]+)"/g)].map((m) => m[1]).filter((id) => id !== 'top');
+    const marcadas = [...REACT.matchAll(/data-section="([a-z-]+)"/g)].map((m) => m[1]);
+    const todas = [...ids, ...marcadas];
+    expect(new Set(todas).size).toBe(todas.length);
+    expect([...todas].sort()).toEqual([...SECTIONS].sort());
+  });
+
+  it('30. los hooks de las interacciones secundarias siguen presentes en el marcado', () => {
+    expect(HTML, 'las FAQ necesitan data-faq').toMatch(/<details[^>]*\bdata-faq\b/);
+    expect(HTML, 'las tarjetas del marquee necesitan data-work').toMatch(/className="work-card"[^>]*data-work=\{w\.slug\}|data-work=\{w\.slug\}[^>]*className="work-card"/);
+    expect(HTML, 'el formulario necesita data-track-form').toMatch(/<form[^>]*\bdata-track-form\b/);
+    expect(HTML, 'los chips emiten service_chip').toMatch(/grafikTrack\('service_chip'/);
+  });
+});
+
+// v_cta_exposure lleva una tabla "CTA → sección" escrita a mano en SQL. Si se
+// añade un CTA y se olvida ahí, la vista simplemente no lo lista y su tasa
+// desaparece del reporte sin ningún error.
+describe('events.js — sincronía con la migración 0011', () => {
+  const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
+  const SQL = readFileSync(`${RAIZ}supabase/migrations/0011_site_events_funnel.sql`, 'utf8');
+  const mapa = [...SQL.matchAll(/\('([a-z-]+)',\s*(null|'[a-z-]+'),\s*(?:true|false)\)/g)]
+    .map((m) => ({ cta: m[1], seccion: m[2] === 'null' ? null : m[2].slice(1, -1) }));
+
+  it('31. el `mapa` de v_cta_exposure contiene exactamente los CTA_IDS', () => {
+    expect(mapa.map((m) => m.cta).sort()).toEqual([...CTA_IDS].sort());
+  });
+
+  it('32. toda sección del `mapa` existe en SECTIONS (si no, su exposición sería 0 %)', () => {
+    for (const { cta, seccion } of mapa) {
+      if (seccion !== null) expect(SECTIONS, `cta ${cta}`).toContain(seccion);
     }
   });
 });

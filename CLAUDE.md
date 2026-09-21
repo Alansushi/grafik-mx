@@ -77,16 +77,35 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
   `api/_lib/events.js`, (3) `npm test`. El servidor **descarta sin error** un `cta_id`
   desconocido; `tests/unit/events.test.js` cruza `CTA_IDS` con los `data-cta` reales de
   `index.html` para que ese descarte no pase inadvertido.
+- **Interacciones secundarias** (además de `page_view` y `cta_click`): `section_view` (una vez por
+  sesión, tras 800 ms con ≥160 px a la vista; el hero `top` no cuenta), `nav_click` (cualquier
+  `a[href^="#"]`; `from` = `nav` o `page`), `service_chip`, `form_start`, `faq_open`, `work_open`.
+  Se activan con atributos en el marcado: `data-faq` en cada `<details>` de FAQ, `data-work` y
+  `data-work-cat` en las tarjetas del marquee, `data-track-form` en el `<form>`, y
+  `data-section="…"` en los bloques sin `id` (CTA final, footer). Los chips llaman a `grafikTrack`
+  desde React porque sólo el componente sabe si el clic selecciona o deselecciona.
+- **Añadir una sección medible**: `id` (o `data-section`) en el HTML **y** en `SECTIONS`
+  (`api/_lib/events.js`); si tiene un CTA, también en el `mapa` de `v_cta_exposure` (migración
+  0011; un test lo cruza con `CTA_IDS`). Ojo: el `.ssr-fallback` declara sus propias
+  `<section id>` (a veces con otro nombre, `por-que` vs `ventajas`) y se ignora a propósito.
 - **Privacidad**: sin cookies, sin ID persistente (`sid` en `sessionStorage`, por pestaña), la IP
   no se guarda (sólo entra como HMAC al límite de tasa) y **nunca** viaja texto que el usuario
   escribió: nombre y detalle del formulario no están en la lista blanca. Se respeta Do Not Track
   y Global Privacy Control.
 - **Excluir tus pruebas**: abre `/?notrack` en cada navegador que uses para revisar el sitio
   (`/?notrack=0` lo revierte). `/?debug` imprime los eventos en consola.
-- **Reportes**: vistas `v_intent_daily`, `v_cta_performance`, `v_source_intent` y `v_sessions`
+- **Reportes**: vistas `v_intent_daily`, `v_cta_performance`, `v_source_intent`, `v_sessions`,
+  `v_form_funnel`, `v_section_reach` y `v_cta_exposure`
   (`security_invoker`, sólo lectura para admin). Consultas listas en `docs/analytics/queries.sql`.
 - **Probar con `curl`**: el filtro anti-bot descarta `curl`; hay que mandar un `User-Agent` de
   navegador y `Host: www.grafik.mx` (o poner el host de un preview en `TRACK_ALLOWED_HOSTS`).
+  Con Playwright contra producción, fija el UA en el **navegador** (`chromium.launch({ args:
+  ['--user-agent=…'] })`), no en el contexto: el `userAgent` de `newContext` no llega a los beacons
+  de `pagehide`, que salen con `HeadlessChrome`; el filtro los descarta y responde `204` sin
+  guardar nada (verificado 2026-09-21; parece un fallo del cliente y no lo es).
+- **Un `204` no prueba que se guardó**: el filtro de bots/hosts también responde `204`. La prueba
+  real es consultar `site_events`. Y el `SELECT` de una consulta con un `DELETE` en un CTE ve la
+  tabla *antes* del borrado: verificar el borrado con una consulta aparte.
 - Tests: `npx vitest run tests/unit/events.test.js tests/unit/track-handler.test.js` y
   `npx playwright test --project=analytics` (fixture hermético, sin CDN).
 - **Límite honesto**: un clic en `wa.me` es *intención* de cotizar, no un mensaje enviado.

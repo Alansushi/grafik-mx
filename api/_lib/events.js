@@ -25,6 +25,15 @@ export const CTA_IDS = [
 
 export const CTA_KINDS = ['whatsapp', 'tel', 'form'];
 
+/**
+ * Secciones que analytics.js reporta al hacerse visibles. `top` (el hero) no
+ * está: es lo primero que se ve, así que equivaldría a page_view. Las que no
+ * llevan id en el HTML (CTA final, footer) se marcan con data-section.
+ */
+export const SECTIONS = [
+  'servicios', 'ventajas', 'proceso', 'faqs', 'trabajos', 'contacto', 'cta-final', 'footer',
+];
+
 const DEVICES = ['mobile', 'tablet', 'desktop'];
 
 // Tope por lote. El cliente vacía la cola a los 20 y un lote normal trae 1–5.
@@ -40,6 +49,12 @@ const LABEL_RE = /^[\p{L}\p{N} _.\-]{1,40}$/u;
 
 const enumOf = (list) => (v) => (list.includes(v) ? v : undefined);
 const label = (v) => (typeof v === 'string' && LABEL_RE.test(v) ? v : undefined);
+const bool = (v) => (typeof v === 'boolean' ? v : undefined);
+// Identificadores que arma el cliente (id de ancla, slug de pregunta o de foto).
+// Se aceptan por FORMA y no por lista: las FAQs y las fotos de Trabajos cambian
+// seguido y CLAUDE.md ya obliga a tocar tres sitios al hacerlo; un cuarto sería
+// una trampa.
+const slug = (max) => (v) => (typeof v === 'string' && v.length <= max && /^[a-z0-9-]+$/.test(v) ? v : undefined);
 
 // `fields` decide QUÉ propiedades sobreviven; `required`, sin cuáles el evento
 // no significa nada y se descarta entero.
@@ -49,6 +64,19 @@ const EVENTS = {
     fields: { cta_id: enumOf(CTA_IDS), kind: enumOf(CTA_KINDS), work_cat: label, servicio: label },
     required: ['cta_id', 'kind'],
   },
+  // ── Fase 2: interacciones secundarias ──
+  // Una vez por sesión y sección, tras 800 ms visible (ver analytics.js).
+  section_view: { fields: { section: enumOf(SECTIONS) }, required: ['section'] },
+  // Cualquier enlace a un ancla. `from` distingue la barra de navegación de los
+  // botones dentro de la página ("Ver servicios", "Ver preguntas frecuentes").
+  nav_click: { fields: { target: slug(30), from: enumOf(['nav', 'page']) }, required: ['target'] },
+  service_chip: { fields: { servicio: label, selected: bool }, required: ['servicio', 'selected'] },
+  // Primer foco o clic dentro del formulario de contacto. Sin props: no se
+  // registra NADA de lo escrito.
+  form_start: { fields: {}, required: [] },
+  // `q` = texto de la pregunta convertido a slug, no su posición: las FAQs se reordenan.
+  faq_open: { fields: { q: slug(60) }, required: ['q'] },
+  work_open: { fields: { slug: slug(40), cat: label }, required: ['slug'] },
 };
 
 export const EVENT_NAMES = Object.keys(EVENTS);

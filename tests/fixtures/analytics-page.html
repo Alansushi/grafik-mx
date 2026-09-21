@@ -17,6 +17,38 @@
   <a id="href-raro" data-cta="hero" href="/otra-pagina">data-cta sin wa.me ni tel:</a>
   <button id="form" type="button">Enviar por WhatsApp</button>
 
+  <!-- ── Fase 2: interacciones secundarias ── -->
+  <header id="cabecera"><nav><a id="nav-servicios" href="#servicios">Servicios</a></nav></header>
+  <a id="pagina-contacto" href="#contacto">Botón de la página hacia contacto</a>
+  <a id="ancla-vacia" href="#">Ancla sin destino</a>
+
+  <section id="top" style="height:300px">Hero: no debe emitir section_view.</section>
+  <!-- HTML plano para crawlers: visible al cargar, pero NO cuenta como sección. -->
+  <div class="ssr-fallback"><section id="ventajas" style="height:200px">Copia SSR</section></div>
+  <!-- Empuja el resto por debajo del 75 % de la pantalla: al cargar no debe verse ninguna. -->
+  <div style="height:1500px"></div>
+
+  <section id="servicios" style="height:1000px">Servicios</section>
+  <section id="faqs" style="height:800px">
+    <details id="faq1" data-faq><summary>¿Cuánto tarda una impresión?</summary><p>Depende.</p></details>
+    <details id="faq2" data-faq><summary>¿Hacen envíos a otros estados?</summary><p>Sí.</p></details>
+    <details id="faq-larga" data-faq><summary>¿Cuánto tiempo tarda la producción de lonas e impresión en gran formato para eventos y ferias?</summary><p>Depende.</p></details>
+    <details id="faq-sin-marca"><summary>Sin data-faq</summary><p>No se mide.</p></details>
+  </section>
+  <section id="trabajos" style="height:600px">
+    <button id="work1" type="button" data-work="boletos-arrolladora" data-work-cat="Boletos">Foto</button>
+    <button id="work2" type="button" data-work="poster-papantla">Foto sin categoría</button>
+  </section>
+  <section id="contacto" style="height:900px">
+    <form id="frm" data-track-form onsubmit="return false">
+      <input id="nombre" type="text">
+      <textarea id="detalle"></textarea>
+      <button id="chip" type="button">Lonas</button>
+    </form>
+    <input id="fuera" type="text">
+  </section>
+  <footer data-section="footer" style="height:300px">Footer</footer>
+
   <script>
     // El clic sale de la fase de burbuja (analytics.js escucha en captura, antes),
     // así que se puede cancelar la navegación sin afectar a lo que se mide.
