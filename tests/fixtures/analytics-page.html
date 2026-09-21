@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Fixture de analytics.js</title>
+</head>
+<body>
+  <!-- Réplica mínima de los tipos de elemento que analytics.js debe distinguir.
+       No carga React ni ningún CDN: la prueba es hermética. -->
+  <a id="wa" data-cta="hero" href="https://wa.me/525539014600?text=hola">
+    <svg id="ico" width="20" height="20"><circle cx="10" cy="10" r="9"/></svg>
+    <span id="wa-texto">Pide tu cotización</span>
+  </a>
+  <a id="tel" data-cta="contacto-tel" href="tel:+525539014600">Llamar</a>
+  <a id="lightbox" data-cta="lightbox" data-cta-work="Pósters" href="https://wa.me/525539014600?text=x">Cotizar algo así</a>
+  <a id="sin-cta" href="https://wa.me/525539014600">Enlace sin data-cta</a>
+  <a id="href-raro" data-cta="hero" href="/otra-pagina">data-cta sin wa.me ni tel:</a>
+  <button id="form" type="button">Enviar por WhatsApp</button>
+
+  <script>
+    // El clic sale de la fase de burbuja (analytics.js escucha en captura, antes),
+    // así que se puede cancelar la navegación sin afectar a lo que se mide.
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('a')) e.preventDefault();
+    });
+    document.getElementById('form').addEventListener('click', function () {
+      window.grafikTrack('cta_click', { cta_id: 'contacto-form', kind: 'form', servicio: 'Lonas' });
+    });
+  </script>
+  <script defer src="/analytics.js"></script>
+</body>
+</html>

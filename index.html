@@ -413,7 +413,7 @@
               {links.map(([label, href]) => (
                 <a key={href} href={href} className="nav-link">{label}</a>
               ))}
-              <a href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-primary nav-cta">
+              <a data-cta="nav" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-primary nav-cta">
                 Cotizar ahora
               </a>
             </nav>
@@ -505,7 +505,7 @@
             <li><b>Cotizaciones sin compromiso.</b></li>
           </ul>
           <div className="hero-ctas">
-            <a href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
+            <a data-cta="hero" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
               <Ico id="i-wa" w={20} h={20}/>
               Pide tu cotización
             </a>
@@ -619,7 +619,7 @@
               ))}
             </div>
             <div style={{marginTop:"32px",textAlign:"center"}}>
-              <a href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
+              <a data-cta="servicios-bottom" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
                 <Ico id="i-wa" w={18} h={18}/>
                 Cotiza tu proyecto ahora
               </a>
@@ -807,6 +807,7 @@
         if (servicio) partes.push(`Me interesa cotizar: ${servicio}.`);
         if (detalle) partes.push(detalle);
         if (!partes.length) partes.push(CONFIG.waMsg);
+        if (window.grafikTrack) window.grafikTrack('cta_click', { cta_id: 'contacto-form', kind: 'form', servicio: servicio || undefined });
         window.open(waLink(partes.join(' ')), '_blank', 'noopener,noreferrer');
       };
 
@@ -825,14 +826,14 @@
                 <h3 className="contacto-title">Escríbenos <em>ahora</em></h3>
                 <p className="contacto-sub">Respuesta inmediata. Lunes a viernes de 9am a 6pm. CDMX.</p>
                 <div className="contact-links">
-                  <a href={waLink()} target="_blank" rel="noopener noreferrer" className="contact-link">
+                  <a data-cta="contacto-card" href={waLink()} target="_blank" rel="noopener noreferrer" className="contact-link">
                     <div className="contact-link-ico"><Ico id="i-wa" w={22} h={22}/></div>
                     <div>
                       <div className="contact-link-title">WhatsApp directo</div>
                       <div className="contact-link-sub">55 3901 4600</div>
                     </div>
                   </a>
-                  <a href={`tel:+52${CONFIG.tel}`} className="contact-link">
+                  <a data-cta="contacto-tel" href={`tel:+52${CONFIG.tel}`} className="contact-link">
                     <div className="contact-link-ico"><Ico id="i-chat" w={20} h={20}/></div>
                     <div>
                       <div className="contact-link-title">Llamada directa</div>
@@ -886,7 +887,7 @@
             <h2>¿Listo para <em>cotizar</em> tu proyecto?</h2>
             <p>Escríbenos por WhatsApp con los detalles de tu pedido — material, medidas, cantidad — y te respondemos en minutos con precio y tiempo de entrega.</p>
             <div className="ctas">
-              <a href={waLink()} target="_blank" rel="noopener noreferrer" className="btn">
+              <a data-cta="cta-final" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn">
                 <Ico id="i-wa" w={20} h={20}/>
                 Pide tu cotización
               </a>
@@ -909,7 +910,7 @@
             <p className="footer-tagline">{CONFIG.tagline} · CDMX</p>
           </div>
           <div className="footer-contact">
-            <a href={`tel:+52${CONFIG.tel}`}>+52 55 3901 4600</a>
+            <a data-cta="footer-tel" href={`tel:+52${CONFIG.tel}`}>+52 55 3901 4600</a>
             <span>grafik.mx</span>
           </div>
         </div>
@@ -923,7 +924,7 @@
 
     /* ── FloatingWA ─────────────────────────── */
     const FloatingWA = () => (
-      <a href={waLink()} target="_blank" rel="noopener noreferrer"
+      <a data-cta="floating" href={waLink()} target="_blank" rel="noopener noreferrer"
         aria-label="Cotizar por WhatsApp" className="floating-wa">
         <Ico id="i-wa" w={22} h={22}/>
         <span className="floating-wa-text">Cotizar</span>
@@ -983,7 +984,7 @@
             <img className="lightbox-img" src={w.src} width={w.w} height={w.h} alt={w.alt} />
             <figcaption className="lightbox-cap">
               <span className="lightbox-cat">{w.cat}</span>
-              <a href={waLink(`Hola, vi su trabajo de ${w.cat} y me interesa cotizar algo similar. ¿Me pueden ayudar?`)}
+              <a data-cta="lightbox" data-cta-work={w.cat} href={waLink(`Hola, vi su trabajo de ${w.cat} y me interesa cotizar algo similar. ¿Me pueden ayudar?`)}
                 target="_blank" rel="noopener noreferrer" className="btn btn-green">
                 <Ico id="i-wa" w={16} h={16}/>
                 Cotizar algo así
@@ -1032,7 +1033,7 @@
             </div>
           </div>
           <div className="wrap" style={{marginTop:"32px",textAlign:"center"}}>
-            <a href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
+            <a data-cta="trabajos-bottom" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
               <Ico id="i-wa" w={18} h={18}/>
               Quiero algo así — cotizar
             </a>
@@ -1072,5 +1073,6 @@
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/analytics.js"></script>
 </body>
 </html>

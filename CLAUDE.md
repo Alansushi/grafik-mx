@@ -60,6 +60,39 @@ Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la 
 - `robots.txt` permite explícitamente crawlers IA (ClaudeBot, GPTBot, PerplexityBot, etc.)
 - `sitemap.xml` — actualizar `lastmod` después de cambios de contenido
 
+## Analítica
+
+Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel Web Analytics**
+(visitas, fuentes, dispositivos; se ve en el dashboard) y **eventos propios** en la tabla
+`site_events` de Supabase (clics en CTA), que se conservan sin límite de retención.
+
+- `analytics.js` (raíz, JS plano) expone `window.grafikTrack(nombre, props)`. **Un único listener
+  delegado** detecta el clic en cualquier `[data-cta]`; el formulario no es un enlace, así que
+  `handleSubmit` llama a `grafikTrack` a mano. Cola de 2 s, envío inmediato en clics de CTA,
+  `sendBeacon` en `pagehide`. Falla en silencio: medir no puede romper el sitio.
+- `POST /api/track` (`api/track.js`) valida con **lista blanca** (`api/_lib/events.js`), filtra
+  bots y hosts que no son de producción, limita por IP con `rpc_rate_limit_hit` y guarda con
+  `service_role`.
+- **Añadir un CTA**: (1) `data-cta="<id>"` en el enlace, (2) añadir `<id>` a `CTA_IDS` en
+  `api/_lib/events.js`, (3) `npm test`. El servidor **descarta sin error** un `cta_id`
+  desconocido; `tests/unit/events.test.js` cruza `CTA_IDS` con los `data-cta` reales de
+  `index.html` para que ese descarte no pase inadvertido.
+- **Privacidad**: sin cookies, sin ID persistente (`sid` en `sessionStorage`, por pestaña), la IP
+  no se guarda (sólo entra como HMAC al límite de tasa) y **nunca** viaja texto que el usuario
+  escribió: nombre y detalle del formulario no están en la lista blanca. Se respeta Do Not Track
+  y Global Privacy Control.
+- **Excluir tus pruebas**: abre `/?notrack` en cada navegador que uses para revisar el sitio
+  (`/?notrack=0` lo revierte). `/?debug` imprime los eventos en consola.
+- **Reportes**: vistas `v_intent_daily`, `v_cta_performance`, `v_source_intent` y `v_sessions`
+  (`security_invoker`, sólo lectura para admin). Consultas listas en `docs/analytics/queries.sql`.
+- **Probar con `curl`**: el filtro anti-bot descarta `curl`; hay que mandar un `User-Agent` de
+  navegador y `Host: www.grafik.mx` (o poner el host de un preview en `TRACK_ALLOWED_HOSTS`).
+- Tests: `npx vitest run tests/unit/events.test.js tests/unit/track-handler.test.js` y
+  `npx playwright test --project=analytics` (fixture hermético, sin CDN).
+- **Límite honesto**: un clic en `wa.me` es *intención* de cotizar, no un mensaje enviado.
+  "Visitantes únicos" ≈ sesiones. Los bloqueadores de anuncios ocultan una fracción: la tasa es
+  una cota, no un valor exacto.
+
 ## Pendientes
 
 - [x] Nombre de marca: **GRAFIK** — ya aplicado en `CONFIG.brand`, JSON-LD y SSR fallback
@@ -84,6 +117,9 @@ Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rom
    entero devolvería 404. `vercel.json` lo fija con `outputDirectory: "."`.
 2. **No tocar `index.html` ni `styles.css`.** El estudio importa `styles.css` sólo por sus
    tokens `:root`; sus estilos propios van en `estudio/studio.css` con prefijo `.es-`.
+   *Excepción autorizada (2026-09-21): el trabajo de analítica añade a `index.html` los
+   `data-cta`, una llamada en `handleSubmit` y `<script src="/analytics.js">`. `styles.css`
+   sigue intocable.*
 3. **Cero dependencias de runtime.** `package.json` sólo tiene `devDependencies` (Vitest,
    Playwright) y **ningún** script `build`. Mercado Pago, Resend y Supabase se consumen con
    `fetch` crudo contra sus REST APIs desde `api/*.js` en JS plano.

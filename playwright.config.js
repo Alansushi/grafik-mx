@@ -1,10 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Dos proyectos con propósitos distintos:
+// Proyectos con propósitos distintos:
 //
 //   canvas → hermético. Sirve el repo con python3 http.server y falsea toda la
 //            red con page.route(). No necesita Supabase, ni Mercado Pago, ni
 //            cuentas. Es el que corre en cada incremento.
+//
+//   analytics → analytics.js del sitio contra una página fixture, con /api/track
+//            interceptado. Hermético, sólo Chromium.
 //
 //   live   → contra un deploy real (preview de Vercel). Sólo corre si existe
 //            E2E_BASE_URL; sin esa variable el proyecto queda vacío en vez de
@@ -57,6 +60,14 @@ export default defineConfig({
       name: 'canvas-mobile',
       testMatch: /(canvas|studio-flow|a11y)\.spec\.js/,
       use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    // analytics.js contra una página fixture, con /api/track interceptado.
+    // Hermético como canvas: sin Supabase ni CDN. En Chromium basta: la lógica
+    // es DOM estándar y no hay nada que se porte distinto entre motores.
+    {
+      name: 'analytics',
+      testMatch: /analytics\.spec\.js/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     ...(LIVE_BASE_URL
       ? [
