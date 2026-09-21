@@ -88,6 +88,28 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
   (`api/_lib/events.js`); si tiene un CTA, también en el `mapa` de `v_cta_exposure` (migración
   0011; un test lo cruza con `CTA_IDS`). Ojo: el `.ssr-fallback` declara sus propias
   `<section id>` (a veces con otro nombre, `por-que` vs `ventajas`) y se ignora a propósito.
+- **Embudo de `/estudio/`** (Fase 3): `analytics.js` se carga también en `estudio/index.html`, antes
+  de `boot.js`; el `page_view` de `/estudio/` ya es "abrió el configurador". Eventos:
+  `studio_ready`, `studio_garment`, `studio_logo`, `studio_placed`, `studio_sizes`, `studio_quote`,
+  `studio_submit` (lleva el `short_code`, que une con `orders`), `studio_lowres`,
+  `studio_logo_rejected`, `studio_error{where,code}` y `studio_fallback{where}`. Se emiten con
+  `track`/`trackOnce` (`estudio/ui/track.js`, no-op si `analytics.js` no está) y los valores cerrados
+  salen de `estudio/lib/track-props.js` (PURA), que el servidor **también importa**: una sola fuente
+  de verdad. `/estudio/pedido/` NO se mide (lo abre el dueño y lleva un token en la URL).
+- **Añadir un evento del estudio**: (1) emitirlo con `track`/`trackOnce`, (2) declararlo en `EVENTS`
+  (`api/_lib/events.js`), (3) si lleva un valor cerrado, definirlo en `track-props.js`. Un test cruza
+  los `track(...)` y los `where:` del código del estudio con el servidor; lo que no cuadre se
+  descarta en silencio.
+- **`studio_placed` es "el cliente colocó el logo", no "el sistema lo encajó"**: `commit()` del stage
+  notifica igual en los dos casos, así que `studio-app.js` marca las llamadas programáticas
+  (`sinContarComoColocado`). Todo `stage.setLogo` nuevo que se añada debe ir envuelto en ella.
+- **Nunca viaja** del estudio: nombre/correo/teléfono/detalle, el nombre del archivo del logo (sólo su
+  formato, o la extensión de una lista cerrada si se rechaza), montos ni el `draftId`. Y en un flujo que
+  ya creó un pedido la medición **no puede lanzar**: por eso `studio_submit` suma las piezas a mano y
+  no con `totalUnits()`, que lanza ante datos sin normalizar.
+- Las vistas del SITIO (`v_sessions`, `v_intent_daily`…) **excluyen** `/estudio/*` (migración 0012);
+  el estudio tiene las suyas: `v_studio_sessions`, `v_studio_funnel`, `v_studio_problems` y
+  `v_studio_orders` (cuadre de cada envío con su fila de `orders`).
 - **Privacidad**: sin cookies, sin ID persistente (`sid` en `sessionStorage`, por pestaña), la IP
   no se guarda (sólo entra como HMAC al límite de tasa) y **nunca** viaja texto que el usuario
   escribió: nombre y detalle del formulario no están en la lista blanca. Se respeta Do Not Track
@@ -106,8 +128,16 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
 - **Un `204` no prueba que se guardó**: el filtro de bots/hosts también responde `204`. La prueba
   real es consultar `site_events`. Y el `SELECT` de una consulta con un `DELETE` en un CTE ve la
   tabla *antes* del borrado: verificar el borrado con una consulta aparte.
-- Tests: `npx vitest run tests/unit/events.test.js tests/unit/track-handler.test.js` y
-  `npx playwright test --project=analytics` (fixture hermético, sin CDN).
+- Tests: `npx vitest run` y, para navegador, `npx playwright test --project=analytics` (fixture
+  hermético, sin CDN, ligero) y `npx playwright test --project=studio-analytics` (el embudo del
+  estudio con la UI real; PESADO, corre sin paralelismo dentro del archivo).
+- **Las pruebas de navegador que cargan el estudio (`studio-analytics`, `studio-flow`, `a11y`,
+  `canvas`) se corren con `--workers=1`.** Cargan React y Konva del CDN y pintan canvas de 900×900:
+  en paralelo, el `waitForFunction` de arranque vence por carga de la máquina y parece un fallo del
+  código. Verificado el 2026-09-21: en serie pasan todas (`a11y` 5/5, `studio-flow` 12/12, `canvas`
+  9/9, `studio-analytics` 11/11); en paralelo fallaban las mismas al azar. Ojo: `--repeat-each` clona
+  las pruebas y las corre en paralelo entre sí aunque el proyecto sea `fullyParallel: false`; para
+  repetir usa también `--workers=1`.
 - **Límite honesto**: un clic en `wa.me` es *intención* de cotizar, no un mensaje enviado.
   "Visitantes únicos" ≈ sesiones. Los bloqueadores de anuncios ocultan una fracción: la tasa es
   una cota, no un valor exacto.

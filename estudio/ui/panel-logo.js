@@ -5,7 +5,7 @@
 // local que se permite aquí es de UI pura: si el dropzone está en hover de
 // un drag, y el mensaje de "archivo rechazado antes de intentar subirlo".
 
-import { h, useState, useRef, useCallback, cx } from './react.js';
+import { h, useState, useRef, useCallback, useEffect, cx } from './react.js';
 import { legibility } from '../lib/color.js';
 import { printQuality } from '../lib/print-quality.js';
 
@@ -112,12 +112,14 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  *   onTransform: (partial: object) => void,
  *   onFit: (mode: 'contain'|'cover') => void,
  *   onRemove: () => void,
+ *   onQualityWarning?: (level:'warn'|'fail', dpi:number) => void,  // sólo al ENTRAR en aviso
+ *   onReject?: (reason:'type'|'size', file: File) => void,         // rechazo previo a onFile
  * }} props
  */
 export function PanelLogo({
   logo, transform, garmentHex, logoDominantHex, busy, error,
   printArea, printAreaWidthCm,
-  onFile, onTransform, onFit, onRemove,
+  onFile, onTransform, onFit, onRemove, onQualityWarning, onReject,
 }) {
   const inputRef = useRef(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -131,15 +133,17 @@ export function PanelLogo({
     if (!file) return;
     if (!isAcceptedFile(file)) {
       setLocalError('Ese formato no se acepta. Sube un PNG, JPG, WEBP o SVG.');
+      if (onReject) onReject('type', file);
       return;
     }
     if (file.size > MAX_LOGO_BYTES) {
       setLocalError(`El archivo pesa ${formatBytes(file.size)}; el máximo son 8 MB.`);
+      if (onReject) onReject('size', file);
       return;
     }
     setLocalError(null);
     onFile(file);
-  }, [onFile]);
+  }, [onFile, onReject]);
 
   const openPicker = useCallback(() => {
     if (busy) return;
@@ -217,6 +221,20 @@ export function PanelLogo({
         vector: logo.isVector === true,
       })
     : null;
+
+  // Se avisa hacia arriba sólo al ENTRAR en warn/fail, no en cada render: `calidad`
+  // se recalcula cada vez que el cliente arrastra un tirador, y sin esto un solo
+  // escalado emitiría decenas de avisos. El dpi que sube es el del momento de entrar.
+  const nivelCalidad = calidad ? calidad.level : null;
+  const dpiCalidad = calidad ? Math.round(calidad.dpi) : undefined;
+  useEffect(() => {
+    if ((nivelCalidad === 'warn' || nivelCalidad === 'fail') && onQualityWarning) {
+      onQualityWarning(nivelCalidad, dpiCalidad);
+    }
+    // dpiCalidad y onQualityWarning fuera de las dependencias a propósito: sólo el
+    // CAMBIO DE NIVEL debe disparar el aviso.
+    // eslint-disable-next-line
+  }, [nivelCalidad]);
 
   const fileInput = h('input', {
     ref: inputRef,

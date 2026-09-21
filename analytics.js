@@ -92,6 +92,10 @@
 
   // ── Cola y envío ──────────────────────────────────────────────────────────
   const MAX_BATCH = 20;
+  // Eventos que salen ya, sin esperar la cola de 2 s: tras ellos el usuario salta a
+  // WhatsApp y la pestaña puede quedar en segundo plano antes de que venza el
+  // temporizador. `studio_submit` es la conversión del configurador.
+  const IMMEDIATE = { cta_click: true, studio_submit: true };
   const queue = [];
   let timer = null;
 
@@ -128,9 +132,7 @@
     if (debug) console.info('[grafik:analytics]', ev);
     if (!canSend) return;
     queue.push(ev);
-    // Un clic en CTA sale ya: en móvil el usuario puede saltar a WhatsApp y la
-    // pestaña quedar en segundo plano antes de que venza el temporizador.
-    if (name === 'cta_click' || queue.length >= MAX_BATCH) flush();
+    if (IMMEDIATE[name] || queue.length >= MAX_BATCH) flush();
     else if (!timer) timer = setTimeout(flush, 2000);
   }
 
@@ -189,6 +191,15 @@
 
     const cta = t.closest('[data-cta]');
     if (cta) { trackCta(cta); return; }
+
+    // data-event="nombre" [data-where="dónde"]: un evento con una sola propiedad.
+    const custom = t.closest('[data-event]');
+    if (custom) {
+      const name = custom.getAttribute('data-event');
+      const where = custom.getAttribute('data-where') || undefined;
+      if (!repeated('ev:' + name + ':' + where)) track(name, { where: where });
+      return;
+    }
     if (e.type !== 'click') return;
 
     const work = t.closest('[data-work]');

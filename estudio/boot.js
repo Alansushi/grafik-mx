@@ -10,6 +10,7 @@
 
 import { React, ReactDOM } from './ui/react.js';
 import { StudioApp } from './ui/studio-app.js';
+import { trackOnce } from './ui/track.js';
 
 const els = {
   app: document.getElementById('es-app'),
@@ -73,6 +74,10 @@ async function fetchCatalog() {
 /** Único punto que cambia el estado visible (ver los [data-state] de studio.css). */
 function setState(name) {
   els.app.dataset.state = name;
+  // Un estado de error es un cliente que no pudo ni empezar: es lo que más
+  // importa medir. `ready` da además el tiempo hasta poder usarlo (t_ms).
+  if (name === 'ready') trackOnce('studio_ready');
+  else if (name === 'catalog-error') trackOnce('studio_error', { where: 'catalog' }, 'error:catalog');
 }
 
 /**

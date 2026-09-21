@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  CTA_IDS, SECTIONS, MAX_EVENTS, validateBatch, cleanGeo, parseAllowedHosts,
+  CTA_IDS, SECTIONS, EVENT_NAMES, STUDIO_ERROR_WHERE, STUDIO_FALLBACK_WHERE, MAX_EVENTS, validateBatch, cleanGeo, parseAllowedHosts,
   requestHostname, isBotUserAgent,
 } from '../../api/_lib/events.js';
 
@@ -307,6 +307,168 @@ describe('events.js — sincronía con la migración 0011', () => {
   it('32. toda sección del `mapa` existe en SECTIONS (si no, su exposición sería 0 %)', () => {
     for (const { cta, seccion } of mapa) {
       if (seccion !== null) expect(SECTIONS, `cta ${cta}`).toContain(seccion);
+    }
+  });
+});
+
+describe('events.js — Fase 3: embudo de /estudio/', () => {
+  const ev = (name, props, extra = {}) => ({ name, t_ms: 1000, path: '/estudio/', props, ...extra });
+  const filas = (e) => validateBatch(batch([e])).rows;
+
+  it.each([
+    ['studio_ready', {}],
+    ['studio_garment', { garment: 'gorra' }],
+    ['studio_logo', { format: 'png', vector: false }],
+    ['studio_logo', { format: 'svg', vector: true }],
+    ['studio_placed', {}],
+    ['studio_sizes', { qty: 12 }],
+    ['studio_quote', { qty: 12 }],
+    ['studio_lowres', { level: 'warn', dpi: 118 }],
+    ['studio_lowres', { level: 'fail' }],
+    ['studio_submit', { short_code: 'GK-7A3F1C', qty: 12 }],
+    ['studio_error', { where: 'quote', code: 'BELOW_MIN' }],
+    ['studio_error', { where: 'konva' }],
+    ['studio_fallback', { where: 'catalog' }],
+  ])('33. %s válido se guarda tal cual', (name, props) => {
+    const rows = filas(ev(name, props));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].props).toEqual(props);
+    expect(rows[0].path).toBe('/estudio/');
+  });
+
+  it('34. studio_error: `where` fuera de la lista descarta el evento; un `code` mal formado sólo se anula', () => {
+    for (const where of ['otro', '', undefined, 'Quote']) {
+      expect(filas(ev('studio_error', { where, code: 'X_Y' }))).toHaveLength(0);
+    }
+    // El código lo inventa a veces el navegador (DOMException.code es numérico):
+    // no debe costar el evento entero, sólo perder el detalle.
+    for (const code of ['boom', 8, 'A'.repeat(41), 'BAD CODE', '']) {
+      expect(filas(ev('studio_error', { where: 'submit', code }))[0].props).toEqual({ where: 'submit' });
+    }
+  });
+
+  it('35. studio_submit: el folio debe tener la forma exacta de gen_short_code() (GK- + 6 hex en mayúsculas)', () => {
+    for (const short_code of ['GK-7A3F1C', 'GK-000000', 'GK-FFFFFF']) {
+      expect(filas(ev('studio_submit', { short_code }))).toHaveLength(1);
+    }
+    for (const short_code of ['gk-7a3f1c', 'GK-7A3F1', 'GK-7A3F1CC', 'GK-7A3F1G', 'XX-7A3F1C', '', undefined, 'GK-7A3F1C\n']) {
+      expect(filas(ev('studio_submit', { short_code })), String(short_code)).toHaveLength(0);
+    }
+  });
+
+  it('36. cantidades: entero >= 1; texto, decimales, cero o absurdos se descartan', () => {
+    for (const qty of ['12', 1.5, 0, -3, 100001, null]) {
+      expect(filas(ev('studio_sizes', { qty })), String(qty)).toHaveLength(0);
+    }
+    expect(filas(ev('studio_sizes', { qty: 100000 }))).toHaveLength(1);
+    // En submit la cantidad es un dato extra: si viene mal, el evento se conserva sin ella.
+    expect(filas(ev('studio_submit', { short_code: 'GK-7A3F1C', qty: 'doce' }))[0].props).toEqual({ short_code: 'GK-7A3F1C' });
+  });
+
+  it('37. studio_logo: formato conocido; uno inventado descarta el evento', () => {
+    for (const format of ['png', 'jpeg', 'webp', 'svg', 'other']) {
+      expect(filas(ev('studio_logo', { format }))).toHaveLength(1);
+    }
+    for (const format of ['exe', 'PNG', '', undefined]) {
+      expect(filas(ev('studio_logo', { format }))).toHaveLength(0);
+    }
+  });
+
+  it('38. studio_lowres: sólo "warn" o "fail" ("ok" no es un aviso); dpi fuera de rango se anula', () => {
+    expect(filas(ev('studio_lowres', { level: 'ok' }))).toHaveLength(0);
+    expect(filas(ev('studio_lowres', {}))).toHaveLength(0);
+    expect(filas(ev('studio_lowres', { level: 'warn', dpi: 99999 }))[0].props).toEqual({ level: 'warn' });
+    expect(filas(ev('studio_lowres', { level: 'fail', dpi: -5 }))[0].props).toEqual({ level: 'fail' });
+  });
+
+  it('39. PRIVACIDAD: ni el nombre del archivo del logo ni los datos del cliente llegan a la fila', () => {
+    const [logo] = filas(ev('studio_logo', {
+      format: 'png', vector: false,
+      name: 'logo-CLIENTE-secreto.png', filename: 'logo-CLIENTE-secreto.png', sizeBytes: 123456,
+    }));
+    expect(logo.props).toEqual({ format: 'png', vector: false });
+
+    const [submit] = filas(ev('studio_submit', {
+      short_code: 'GK-7A3F1C', qty: 12,
+      customer: { name: 'Ana Ruiz', email: 'ana@ejemplo.mx', phone: '5512345678' },
+      name: 'Ana Ruiz', email: 'ana@ejemplo.mx', phone: '5512345678', total_cents: 180000,
+    }));
+    expect(submit.props).toEqual({ short_code: 'GK-7A3F1C', qty: 12 });
+    expect(JSON.stringify(submit)).not.toMatch(/Ana|ejemplo|5512345678|180000|CLIENTE/);
+  });
+
+  it('40. studio_garment usa un slug (el catálogo es dinámico), no una lista fija', () => {
+    expect(filas(ev('studio_garment', { garment: 'sudadera-con-capucha' }))).toHaveLength(1);
+    expect(filas(ev('studio_garment', { garment: 'Playera cuello redondo' }))).toHaveLength(0);
+    expect(filas(ev('studio_garment', {}))).toHaveLength(0);
+  });
+});
+
+describe('events.js — studio_logo_rejected', () => {
+  const ev = (props) => ({ name: 'studio_logo_rejected', t_ms: 900, path: '/estudio/', props });
+  const filas = (props) => validateBatch(batch([ev(props)])).rows;
+
+  it('45. motivo y extensión de la lista cerrada se guardan tal cual', () => {
+    expect(filas({ reason: 'type', ext: 'pdf' })[0].props).toEqual({ reason: 'type', ext: 'pdf' });
+    expect(filas({ reason: 'size', ext: 'png' })[0].props).toEqual({ reason: 'size', ext: 'png' });
+  });
+
+  it('46. un motivo desconocido descarta el evento; una extensión fuera de la lista sólo se anula', () => {
+    for (const reason of ['otro', '', undefined, 'TYPE']) expect(filas({ reason, ext: 'pdf' })).toHaveLength(0);
+    for (const ext of ['docx', 'PDF', 'x'.repeat(50), 5, '']) {
+      expect(filas({ reason: 'type', ext })[0].props).toEqual({ reason: 'type' });
+    }
+  });
+
+  it('47. PRIVACIDAD: el nombre del archivo no llega a la fila', () => {
+    const [row] = filas({ reason: 'type', ext: 'pdf', name: 'CLIENTE-secreto.pdf', filename: 'CLIENTE-secreto.pdf', size: 99 });
+    expect(row.props).toEqual({ reason: 'type', ext: 'pdf' });
+    expect(JSON.stringify(row)).not.toMatch(/CLIENTE|secreto/);
+  });
+});
+
+// Igual que con los CTA y las secciones: un evento o un `where` mal escrito en el
+// código del estudio se descarta en el servidor SIN error. Este test cruza lo
+// que el código del estudio de verdad emite con lo que el servidor acepta.
+describe('events.js — sincronía de la Fase 3 con el código del estudio', () => {
+  const RAIZ = fileURLToPath(new URL('../../', import.meta.url));
+  const leer = (ruta) => readFileSync(`${RAIZ}${ruta}`, 'utf8');
+  const ARCHIVOS_JS = ['estudio/boot.js', 'estudio/ui/studio-app.js', 'estudio/ui/panel-logo.js'];
+  const CODIGO = ARCHIVOS_JS.map(leer).join('\n');
+  const HTML = leer('estudio/index.html');
+
+  const emitidos = new Set([
+    ...[...CODIGO.matchAll(/\btrack(?:Once)?\(\s*'([a-z_]+)'/g)].map((m) => m[1]),
+    ...[...HTML.matchAll(/grafikTrack\(\s*'([a-z_]+)'/g)].map((m) => m[1]),
+    ...[...(CODIGO + HTML).matchAll(/data-event[=:]\s*['"]([a-z_]+)['"]/g)].map((m) => m[1]),
+  ]);
+
+  it('41. el estudio sí emite eventos (el regex no está midiendo el vacío)', () => {
+    expect(emitidos.size).toBeGreaterThanOrEqual(8);
+  });
+
+  it('42. todo evento que emite el estudio existe en el servidor', () => {
+    for (const nombre of emitidos) expect(EVENT_NAMES, nombre).toContain(nombre);
+  });
+
+  it('43. todo `where` literal del estudio está en las listas del servidor', () => {
+    const literales = [
+      ...[...CODIGO.matchAll(/where:\s*'([a-z]+)'/g)].map((m) => m[1]),
+      ...[...HTML.matchAll(/where:\s*'([a-z]+)'/g)].map((m) => m[1]),
+      ...[...HTML.matchAll(/data-where="([a-z]+)"/g)].map((m) => m[1]),
+      ...[...CODIGO.matchAll(/'data-where':\s*'([a-z]+)'/g)].map((m) => m[1]),
+    ];
+    expect(literales.length).toBeGreaterThan(0);
+    const validos = new Set([...STUDIO_ERROR_WHERE, ...STUDIO_FALLBACK_WHERE]);
+    for (const w of literales) expect(validos, w).toContain(w);
+  });
+
+  it('44. los enlaces de respaldo a WhatsApp del estudio declaran data-event y data-where válidos', () => {
+    const enlaces = [...HTML.matchAll(/<a\b[^>]*data-event="studio_fallback"[^>]*>/g)].map((m) => m[0]);
+    expect(enlaces.length).toBeGreaterThanOrEqual(2); // banner de Konva y de catálogo
+    for (const tag of enlaces) {
+      const where = tag.match(/data-where="([a-z]+)"/)?.[1];
+      expect(STUDIO_FALLBACK_WHERE, tag).toContain(where);
     }
   });
 });

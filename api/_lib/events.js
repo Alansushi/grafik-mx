@@ -23,6 +23,8 @@ export const CTA_IDS = [
   'trabajos-bottom',
 ];
 
+import { LOGO_FORMATS, REJECTED_KINDS, ERROR_CODE_RE, MAX_TRACKED_QTY } from '../../estudio/lib/track-props.js';
+
 export const CTA_KINDS = ['whatsapp', 'tel', 'form'];
 
 /**
@@ -33,6 +35,13 @@ export const CTA_KINDS = ['whatsapp', 'tel', 'form'];
 export const SECTIONS = [
   'servicios', 'ventajas', 'proceso', 'faqs', 'trabajos', 'contacto', 'cta-final', 'footer',
 ];
+
+/**
+ * Dónde falló algo en el configurador (`studio_error`) y qué degradación llevó al
+ * cliente a escribir por WhatsApp en vez de seguir (`studio_fallback`).
+ */
+export const STUDIO_ERROR_WHERE = ['catalog', 'konva', 'stage', 'logo', 'quote', 'submit'];
+export const STUDIO_FALLBACK_WHERE = ['konva', 'catalog', 'stage'];
 
 const DEVICES = ['mobile', 'tablet', 'desktop'];
 
@@ -50,6 +59,11 @@ const LABEL_RE = /^[\p{L}\p{N} _.\-]{1,40}$/u;
 const enumOf = (list) => (v) => (list.includes(v) ? v : undefined);
 const label = (v) => (typeof v === 'string' && LABEL_RE.test(v) ? v : undefined);
 const bool = (v) => (typeof v === 'boolean' ? v : undefined);
+const int = (min, max) => (v) => (Number.isInteger(v) && v >= min && v <= max ? v : undefined);
+const errCode = (v) => (typeof v === 'string' && ERROR_CODE_RE.test(v) ? v : undefined);
+// Debe ser EXACTAMENTE la forma de gen_short_code() (0007): 'GK-' + 6 hex en mayúsculas.
+const shortCode = (v) => (typeof v === 'string' && /^GK-[0-9A-F]{6}$/.test(v) ? v : undefined);
+const QTY = int(1, MAX_TRACKED_QTY);
 // Identificadores que arma el cliente (id de ancla, slug de pregunta o de foto).
 // Se aceptan por FORMA y no por lista: las FAQs y las fotos de Trabajos cambian
 // seguido y CLAUDE.md ya obliga a tocar tres sitios al hacerlo; un cuarto sería
@@ -77,6 +91,26 @@ const EVENTS = {
   // `q` = texto de la pregunta convertido a slug, no su posición: las FAQs se reordenan.
   faq_open: { fields: { q: slug(60) }, required: ['q'] },
   work_open: { fields: { slug: slug(40), cat: label }, required: ['slug'] },
+
+  // ── Fase 3: embudo de /estudio/ ──
+  // El page_view de /estudio/ ya es "abrió el configurador"; estos son los pasos
+  // siguientes. Ninguno lleva lo que el cliente escribe ni el nombre de su archivo.
+  studio_ready: { fields: {}, required: [] },
+  studio_garment: { fields: { garment: slug(40) }, required: ['garment'] },
+  studio_logo: { fields: { format: enumOf(LOGO_FORMATS), vector: bool }, required: ['format'] },
+  // El cliente movió, escaló, rotó o reencajó el logo él mismo (no el ajuste automático).
+  studio_placed: { fields: {}, required: [] },
+  // El panel rechazó el archivo ANTES de intentar leerlo. `ext` es de una lista
+  // cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
+  studio_logo_rejected: { fields: { reason: enumOf(['type', 'size']), ext: enumOf(REJECTED_KINDS) }, required: ['reason'] },
+  studio_sizes: { fields: { qty: QTY }, required: ['qty'] },
+  studio_quote: { fields: { qty: QTY }, required: ['qty'] },
+  studio_lowres: { fields: { level: enumOf(['warn', 'fail']), dpi: int(1, 2000) }, required: ['level'] },
+  // `short_code` (folio GK-XXXXXX) es "sólo para mostrar, nunca sirve como
+  // credencial" (spec §7.8): une este evento con su fila de `orders`.
+  studio_submit: { fields: { short_code: shortCode, qty: QTY }, required: ['short_code'] },
+  studio_error: { fields: { where: enumOf(STUDIO_ERROR_WHERE), code: errCode }, required: ['where'] },
+  studio_fallback: { fields: { where: enumOf(STUDIO_FALLBACK_WHERE) }, required: ['where'] },
 };
 
 export const EVENT_NAMES = Object.keys(EVENTS);

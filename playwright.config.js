@@ -7,7 +7,14 @@ import { defineConfig, devices } from '@playwright/test';
 //            cuentas. Es el que corre en cada incremento.
 //
 //   analytics → analytics.js del sitio contra una página fixture, con /api/track
-//            interceptado. Hermético, sólo Chromium.
+//            interceptado. Hermético, sólo Chromium. Ligero: corre en paralelo.
+//
+//   studio-analytics → el embudo de /estudio/ (tests/e2e/studio-analytics.spec.js)
+//            recorrido con la UI real. Hermético también, pero PESADO: cada
+//            prueba carga React y Konva del CDN y pinta un canvas de 900×900, y
+//            con varias a la vez los `waitForFunction` de arranque vencían por
+//            carga de la máquina (pasan las 10 en serie). Por eso NO es
+//            fullyParallel: las pruebas de este archivo van una tras otra.
 //
 //   live   → contra un deploy real (preview de Vercel). Sólo corre si existe
 //            E2E_BASE_URL; sin esa variable el proyecto queda vacío en vez de
@@ -66,7 +73,15 @@ export default defineConfig({
     // es DOM estándar y no hay nada que se porte distinto entre motores.
     {
       name: 'analytics',
-      testMatch: /analytics\.spec\.js/,
+      // Anclado: sin el `$` y el separador, este patrón también capturaría
+      // studio-analytics.spec.js y lo correría en paralelo con todo lo demás.
+      testMatch: /[\\/]analytics\.spec\.js$/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
+      name: 'studio-analytics',
+      testMatch: /[\\/]studio-analytics\.spec\.js$/,
+      fullyParallel: false,
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     ...(LIVE_BASE_URL

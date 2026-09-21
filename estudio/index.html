@@ -68,7 +68,7 @@
          si el CDN de Konva no respondió. -->
     <div id="es-notice-konva" class="es-banner">
       <p><strong>El configurador no está disponible en este momento.</strong> Mándanos tu logo directo por WhatsApp y te armamos la cotización a mano.</p>
-      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
+      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer" data-event="studio_fallback" data-where="konva">Escribir por WhatsApp</a>
     </div>
 
     <!-- data-state="catalog-error": lo activa boot.js si /api/catalog falla
@@ -76,7 +76,7 @@
          sin backend, donde esta ruta no existe). -->
     <div id="es-notice-catalog" class="es-banner">
       <p><strong>No pudimos cargar el catálogo del configurador.</strong> Puede ser una falla momentánea — intenta recargar la página, o mándanos tu logo por WhatsApp y cotizamos a mano.</p>
-      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer">Escribir por WhatsApp</a>
+      <a class="es-btn es-btn-wa" href="https://wa.me/525539014600" target="_blank" rel="noopener noreferrer" data-event="studio_fallback" data-where="catalog">Escribir por WhatsApp</a>
     </div>
 
     <!-- data-state="ready": lo activa boot.js cuando el stage ya está montado. -->
@@ -108,9 +108,13 @@
     document.addEventListener('DOMContentLoaded', function () {
       if (typeof window.Konva === 'undefined') {
         document.getElementById('es-app').dataset.state = 'konva-unavailable';
+        if (window.grafikTrack) window.grafikTrack('studio_error', { where: 'konva' });
       }
     });
   </script>
+  <!-- Medición (raíz). Va ANTES de boot.js: los scripts `defer` y los módulos se
+       ejecutan en orden de documento, y boot.js emite eventos al arrancar. -->
+  <script defer src="/analytics.js"></script>
   <script type="module" src="./boot.js"></script>
 </body>
 </html>

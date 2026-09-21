@@ -411,3 +411,34 @@ test.describe('analytics.js — secciones vistas', () => {
     await expect.poll(() => de(t, 'section_view')().map((e) => e.props.section), ESPERA).toContain('proceso');
   });
 });
+
+test.describe('analytics.js — Fase 3 (estudio)', () => {
+  test('31. un enlace con data-event emite ese evento con su `where`', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#respaldo');
+    await expect.poll(() => de(t, 'studio_fallback')().length, ESPERA).toBe(1);
+    expect(de(t, 'studio_fallback')()[0].props).toEqual({ where: 'konva' });
+    expect(t.clics()).toHaveLength(0); // es otro evento, no un cta_click del sitio
+  });
+
+  test('32. el clic con la rueda en ese enlace también cuenta, y el doble clic no se duplica', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#respaldo', { button: 'middle' });
+    await page.waitForTimeout(900);
+    await page.dblclick('#respaldo');
+    await expect.poll(() => de(t, 'studio_fallback')().length, ESPERA).toBe(2);
+    await page.waitForTimeout(300);
+    expect(de(t, 'studio_fallback')()).toHaveLength(2); // rueda + un doble clic (= uno)
+  });
+
+  test('33. studio_submit sale DE INMEDIATO: tras él el cliente salta a WhatsApp y la pestaña queda oculta', async ({ page }) => {
+    const t = await preparar(page);
+    await page.goto(PAGE);
+    await page.click('#enviar-pedido');
+    // Antes de que venza la cola de 2 s: igual que un cta_click.
+    await expect.poll(() => de(t, 'studio_submit')().length, { timeout: 1500, intervals: [100] }).toBe(1);
+    expect(de(t, 'studio_submit')()[0].props).toEqual({ short_code: 'GK-7A3F1C', qty: 12 });
+  });
+});

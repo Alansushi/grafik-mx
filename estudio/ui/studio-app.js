@@ -19,6 +19,8 @@ import { normalizeBreakdown } from '../lib/sizes.js';
 import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
 import { breakdownToLabel } from '../lib/sizes.js';
 import { formatCentsMXN } from '../lib/format.js';
+import { track, trackOnce } from './track.js';
+import { logoFormat, rejectedKind, safeCode, quoteErrorCode, trackedQty } from '../lib/track-props.js';
 
 const PROCEDURAL_PREFIX = 'procedural:';
 const DEFAULT_CANVAS_SIZE = { width: 900, height: 900 };
@@ -59,6 +61,17 @@ export function StudioApp({ catalog, stageContainer }) {
   const draftIdRef = useRef(null);
   if (draftIdRef.current === null) draftIdRef.current = crypto.randomUUID();
 
+  // commit() del stage notifica de forma SÍNCRONA a onTransformChange, y lo hace
+  // igual cuando el ajuste es automático (encajar el logo al subirlo, o
+  // reencajarlo al cambiar de prenda) que cuando lo mueve el cliente. Esta marca
+  // deja distinguirlos: `studio_placed` es "el cliente colocó el logo", no "el
+  // sistema lo encajó".
+  const programmaticRef = useRef(false);
+  const sinContarComoColocado = useCallback((fn) => {
+    programmaticRef.current = true;
+    try { fn(); } finally { programmaticRef.current = false; }
+  }, []);
+
   const garment = useMemo(
     () => garments.find((g) => g.slug === garmentSlug) ?? garments[0],
     [garments, garmentSlug],
@@ -96,13 +109,17 @@ export function StudioApp({ catalog, stageContainer }) {
 
       created = createStudioStage({ container: stageContainer, width: size.width, height: size.height, printArea });
       created.setGarment({ baseImage, foldImage: null, colorHex });
-      created.onTransformChange((t) => setTransform(t));
+      created.onTransformChange((t) => {
+        setTransform(t);
+        if (!programmaticRef.current) trackOnce('studio_placed');
+      });
 
       // El logo ya colocado sobrevive al cambio de prenda, reencajado en el
       // área nueva. Perderlo obligaría a subirlo otra vez por cambiar de
       // playera a gorra, que es justo la comparación que el cliente quiere hacer.
       if (logoImageRef.current) {
-        created.setLogo({ image: logoImageRef.current.image, naturalSize: logoImageRef.current.naturalSize });
+        const { image, naturalSize } = logoImageRef.current;
+        sinContarComoColocado(() => created.setLogo({ image, naturalSize }));
       }
 
       stageRef.current = created;
@@ -114,6 +131,8 @@ export function StudioApp({ catalog, stageContainer }) {
       // — reactivando los controles sobre un stage que todavía no existe.
       if (cancelled) return;
       console.error('[estudio] no se pudo montar el stage', err);
+      const codigo = safeCode(err?.code, 'STAGE_FAILED');
+      trackOnce('studio_error', { where: 'stage', code: codigo }, `error:stage:${codigo}`);
       setStageError({
         code: err?.code ?? 'STAGE_FAILED',
         message: 'No pudimos cargar la vista previa de esta prenda. Recarga la página o escríbenos por WhatsApp.',
@@ -166,6 +185,8 @@ export function StudioApp({ catalog, stageContainer }) {
     let cancelled = false;
     setQuoting(true);
     const id = setTimeout(async () => {
+      // Pasado el debounce: la cantidad ya se asentó (no es el "1" de escribir "12").
+      trackOnce('studio_sizes', { qty: trackedQty(qty) });
       try {
         const res = await fetch('/api/quote', {
           method: 'POST',
@@ -183,15 +204,21 @@ export function StudioApp({ catalog, stageContainer }) {
         if (!res.ok) {
           setQuote(null);
           setQuoteError({ code: data.error, message: mensajeDeCotizacion(data, garment) });
+          // Una vez por código: BELOW_MIN y ABOVE_MAX son señal de negocio (piden
+          // menos del mínimo o más del máximo), pero escribir no debe inundar.
+          const codigo = quoteErrorCode(data);
+          trackOnce('studio_error', { where: 'quote', code: codigo }, `error:quote:${codigo}`);
         } else {
           setQuote(data);
           setQuoteError(null);
+          trackOnce('studio_quote', { qty: trackedQty(qty) });
         }
       } catch (err) {
         if (!cancelled) {
           console.error('[estudio] falló la cotización', err);
           setQuote(null);
           setQuoteError({ code: 'NETWORK', message: 'No pudimos calcular el precio. Revisa tu conexión e intenta de nuevo.' });
+          trackOnce('studio_error', { where: 'quote', code: 'NETWORK' }, 'error:quote:NETWORK');
         }
       } finally {
         if (!cancelled) setQuoting(false);
@@ -232,6 +259,8 @@ export function StudioApp({ catalog, stageContainer }) {
         else throw err;
       }
 
+      const isVector = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name);
+
       logoImageRef.current = { image, naturalSize, file };
       setLogo({
         name: file.name,
@@ -244,20 +273,25 @@ export function StudioApp({ catalog, stageContainer }) {
         // así que no tiene resolución fija y el aviso de dpi no le aplica.
         // Avisar de "baja resolución" sobre un vector sería un falso positivo,
         // y los falsos positivos enseñan al cliente a ignorar los avisos.
-        isVector: file.type === 'image/svg+xml' || /\.svg$/i.test(file.name),
+        isVector,
       });
       if (emptyLogo) {
         setLogoError({
           code: 'NO_OPAQUE_PIXELS',
           message: 'Ese archivo parece estar vacío o totalmente transparente: no se imprimiría nada. Revisa que exportaste el logo con su contenido.',
         });
+        track('studio_error', { where: 'logo', code: 'NO_OPAQUE_PIXELS' });
       }
-      stageRef.current?.setLogo({ image, naturalSize });
+      sinContarComoColocado(() => stageRef.current?.setLogo({ image, naturalSize }));
+      // Formato de una lista cerrada, nunca el nombre del archivo: suele ser el de
+      // la marca o el del cliente.
+      track('studio_logo', { format: logoFormat(file), vector: isVector });
     } catch (err) {
       console.error('[estudio] no se pudo cargar el logo', err);
       setLogoError({ code: err.code ?? 'LOGO_FAILED', message: 'No pudimos leer ese archivo. Prueba con un PNG.' });
+      track('studio_error', { where: 'logo', code: safeCode(err?.code, 'LOGO_FAILED') });
     }
-  }, []);
+  }, [sinContarComoColocado]);
 
   const onRemoveLogo = useCallback(() => {
     logoImageRef.current = null;
@@ -273,6 +307,13 @@ export function StudioApp({ catalog, stageContainer }) {
   }, []);
 
   const onFit = useCallback((mode) => stageRef.current?.fitLogo(mode), []);
+
+  // Sólo cuando CAMBIA: el botón de la prenda ya elegida también llama a onGarment.
+  // El slug viene del catálogo; el servidor sólo acepta [a-z0-9-] y descartaría uno distinto.
+  const onGarment = useCallback((slug) => {
+    if (slug !== garmentSlug) track('studio_garment', { garment: slug });
+    setGarmentSlug(slug);
+  }, [garmentSlug]);
 
   // ── Tallas ──────────────────────────────────────────────────────────────
   //
@@ -359,6 +400,15 @@ export function StudioApp({ catalog, stageContainer }) {
       if (!res.ok) throw Object.assign(new Error(data.error), { code: data.error });
 
       setSubmitted(data);
+      // El folio une este evento con su fila de `orders` (es sólo para mostrar,
+      // nunca una credencial: spec §7.8). Nada del cliente viaja aquí.
+      //
+      // La suma va a mano y NO con totalUnits(): totalUnits LANZA ante algo sin
+      // normalizar, y una excepción de la medición justo aquí habría cortado el
+      // flujo DESPUÉS de crear el pedido, sin abrir WhatsApp. Medir jamás puede
+      // romper un pedido.
+      const piezas = Object.values(breakdown).reduce((suma, n) => suma + n, 0);
+      track('studio_submit', { short_code: data.short_code, qty: trackedQty(piezas) });
       // El mensaje se arma con los datos que DEVOLVIÓ el servidor (short_code y
       // total), no con los del cliente: es la cifra que quedó guardada.
       window.open(construirMensajeWhatsApp({
@@ -366,6 +416,7 @@ export function StudioApp({ catalog, stageContainer }) {
       }), '_blank', 'noopener');
     } catch (err) {
       console.error('[estudio] no se pudo enviar el pedido', err);
+      track('studio_error', { where: 'submit', code: safeCode(err?.code, 'SUBMIT_FAILED') });
       setSubmitError({
         code: err?.code ?? 'SUBMIT_FAILED',
         message: 'No pudimos enviar tu pedido. Vuelve a intentarlo o escríbenos por WhatsApp.',
@@ -405,11 +456,14 @@ export function StudioApp({ catalog, stageContainer }) {
     stageError
       ? h('p', { className: 'es-logo-alert', role: 'alert' },
           stageError.message, ' ',
-          h('a', { href: 'https://wa.me/525539014600', target: '_blank', rel: 'noopener' }, 'Escríbenos'))
+          h('a', {
+            href: 'https://wa.me/525539014600', target: '_blank', rel: 'noopener',
+            'data-event': 'studio_fallback', 'data-where': 'stage',
+          }, 'Escríbenos'))
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
-      onGarment: setGarmentSlug, onColor: setColorHex, onTechnique: setTechniqueSlug,
+      onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),
     h(PanelLogo, {
@@ -421,6 +475,10 @@ export function StudioApp({ catalog, stageContainer }) {
       printArea: resolvePrintArea(garment.print_area, garment.canvas_size || DEFAULT_CANVAS_SIZE),
       printAreaWidthCm: garment.print_area_width_cm,
       onFile, onTransform, onFit, onRemove: onRemoveLogo,
+      // Formato de una lista cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
+      onReject: (reason, file) => track('studio_logo_rejected', { reason, ext: rejectedKind(file) }),
+      // Una vez por nivel y sesión: es "¿le salió alguna vez este aviso?".
+      onQualityWarning: (level, dpi) => trackOnce('studio_lowres', { level, dpi }, `lowres:${level}`),
     }),
     h(PanelTallas, {
       allowedSizes: garment.allowed_sizes,
