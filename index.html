@@ -1066,7 +1066,11 @@
     ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
   
-  <!-- Vercel Web Analytics -->
-  <script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
+  <!-- Vercel Web Analytics: window.va encola llamadas hasta que carga el script.
+       Se sirve desde el mismo origen (/_vercel/insights), no desde un CDN de terceros. -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
