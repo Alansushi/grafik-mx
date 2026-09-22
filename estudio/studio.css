@@ -310,12 +310,12 @@ a { color: inherit; }
 
 .es-swatch:hover { transform: translateY(-2px); }
 
-.es-swatch[aria-pressed="true"] {
+.es-swatch[aria-checked="true"] {
   border-color: var(--es-blanco);
   box-shadow: 0 0 0 3px var(--es-negro), 0 0 0 5px var(--es-rojo);
 }
 
-.es-swatch[aria-pressed="true"]::after {
+.es-swatch[aria-checked="true"]::after {
   /* Insignia de "seleccionado": punto rojo dentro de un círculo blanco fijo,
      en la esquina. Fondo fijo (no hereda --es-swatch-color) para que se lea
      igual de claro sobre un swatch claro que sobre uno oscuro — un check o
@@ -750,7 +750,12 @@ a { color: inherit; }
   font-size: 13px; line-height: 1.55;
   color: var(--es-blanco);
 }
-.es-logo-alert a { color: var(--es-wa); font-weight: 600; }
+/* :not(.es-btn): esta regla es para el <a> de texto plano (el aviso de
+   stageError en studio-app.js). Sin la exclusión, su especificidad (clase+
+   elemento) le gana a `.es-btn-wa` y pinta el botón "Escribir por WhatsApp"
+   del aviso de transparencia con el mismo verde de su propio fondo —
+   texto invisible, un botón que se ve vacío. */
+.es-logo-alert a:not(.es-btn) { color: var(--es-wa); font-weight: 600; }
 
 .es-logo-card {
   display: flex; align-items: center; gap: 12px;
@@ -776,16 +781,71 @@ a { color: inherit; }
    .es-logo-scale/.es-logo-rotation, que no existen, así que nunca aplicaron y
    los controles salían con el azul por defecto del navegador en vez del rojo de
    marca. Es el caso inverso al que cubre css-classes.test.js: CSS definido que
-   nadie usa — inofensivo salvo porque el estilo que creías puesto no lo está. */
+   nadie usa — inofensivo salvo porque el estilo que creías puesto no lo está.
+
+   El pulgar nativo mide ~12-16px según el navegador: se reporta difícil de
+   tomar con el dedo o el mouse pese a que el <input> ya reserva 44px de alto
+   táctil (el hit-box es grande, pero el círculo que se VE es chico). Track y
+   pulgar se redefinen a mano en vez de sólo agrandar con accent-color, que no
+   controla tamaño — sólo color, y de forma no uniforme entre navegadores. */
 .es-logo-range-row input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
-  min-height: 44px; /* el pulgar del range es chico; el alto da el área táctil */
-  accent-color: var(--es-rojo);
+  min-height: 44px; /* área táctil; el track visual queda centrado dentro */
+  background: transparent;
   cursor: pointer;
+}
+.es-logo-range-row input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--es-carbon-hi);
+}
+.es-logo-range-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -10px; /* centra el pulgar de 24px sobre el track de 4px */
+  border-radius: 50%;
+  border: 2px solid var(--es-blanco);
+  background: var(--es-rojo);
+  box-shadow: 0 1px 3px rgba(12, 12, 12, 0.4);
+}
+.es-logo-range-row input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--es-carbon-hi);
+}
+.es-logo-range-row input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--es-blanco);
+  background: var(--es-rojo);
+  box-shadow: 0 1px 3px rgba(12, 12, 12, 0.4);
 }
 .es-logo-range-row input[type="range"]:focus-visible {
   outline: 2px solid var(--es-rojo);
   outline-offset: 3px;
+}
+
+/* Input numérico junto al slider: mismo valor, editable a mano para quien
+   quiera un número exacto en vez de arrastrar. */
+.es-logo-range-number {
+  width: 64px;
+  min-height: 44px; /* mismo mínimo táctil que el resto de controles (A3) */
+  padding: 4px 6px;
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.3);
+  background: var(--es-carbon);
+  color: var(--es-blanco);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.es-logo-range-number:focus-visible {
+  outline: 2px solid var(--es-rojo);
+  outline-offset: 2px;
 }
 /* El botón de reinicio de rotación no debe ocupar todo el ancho: se lee como un
    campo de texto y no como una acción. */

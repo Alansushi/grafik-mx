@@ -239,7 +239,17 @@ Sin `print_area` ni `print_area_width_cm` en `garment_type_views`: estas vistas 
 
 El coste de teñir es `O(n log n)` sobre `canvas_size` y se paga **en cada clic de color**:
 medido, 51 ms a 955×900 contra 129 ms a 1595×1504. Por eso `canvas_size` se mantiene en el
-presupuesto de ~0.86 MP aunque la foto tenga más resolución.
+presupuesto de ~0.86 MP aunque la foto tenga más resolución. La nitidez en pantalla se separa
+de ese presupuesto con `Konva.pixelRatio` (ver más abajo), no subiendo `canvas_size`.
+
+**`Konva.pixelRatio` es global, no de instancia.** `new Konva.Stage({..., pixelRatio})` y `new
+Konva.Layer({..., pixelRatio})` **no hacen nada** en Konva 10.3.3 — cada Layer crea su
+SceneCanvas leyendo la propiedad global `Konva.pixelRatio` (o `window.devicePixelRatio` si no
+se fijó), nunca un config por instancia. `konva-adapter.js` fija `window.Konva.pixelRatio =
+Math.min(Math.max(devicePixelRatio, 2), 3)` **antes** de crear las layers, con piso 2 (nitidez
+incluso sin retina) y techo 3 (memoria en 3x). Es seguro pisar el global porque este archivo es
+el único que toca Konva y sólo existe un stage a la vez. Verificado en navegador: pasarlo al
+config dejaba el backing-store en el `canvas_size` lógico sin multiplicar, a cualquier dpr.
 
 Verificar siempre **mirando el render**, no sólo los números: así se encontró que la guía
 punteada del área imprimible (`konva-adapter.js`) era de un trazo fijo casi blanco y

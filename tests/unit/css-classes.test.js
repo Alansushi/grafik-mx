@@ -92,4 +92,42 @@ describe('studio.css — toda clase usada está definida', () => {
       expect(bloque[0], `.${variante} cambia el fondo sin declarar color de texto`).toMatch(/color:/);
     }
   });
+
+  // Caso real (2026-09-22): `.es-logo-alert a { color: var(--es-wa) }` pintaba
+  // TAMBIÉN el botón "Escribir por WhatsApp" (`.es-btn.es-btn-wa`) anidado
+  // dentro del aviso de transparencia en panel-logo.js — un selector
+  // descendiente (1 clase + 1 elemento) le gana en especificidad a `.es-btn-wa`
+  // (1 clase sola) y volvía el texto del mismo verde que su propio fondo:
+  // un botón que se ve vacío. `clasesUsadas`/"clases huérfanas" no detecta
+  // esto porque ambas clases SÍ existen — el bug es de especificidad entre
+  // selectores, no de una clase faltante.
+  it('el link de .es-logo-alert no pisa el color de los botones que anida', () => {
+    expect(
+      /\.es-logo-alert a\s*\{/.test(CSS),
+      '.es-logo-alert a sin acotar vuelve a pisar el color de .es-btn-wa cuando ' +
+      'el botón de WhatsApp del aviso de transparencia vive dentro de .es-logo-alert',
+    ).toBe(false);
+    expect(CSS, 'falta la variante acotada .es-logo-alert a:not(.es-btn)').toMatch(
+      /\.es-logo-alert a:not\(\.es-btn\)/,
+    );
+  });
+
+  // Caso real (2026-09-22): el anillo de "seleccionado" de los swatches de
+  // color apuntaba a `[aria-pressed="true"]`, pero panel-prenda.js siempre
+  // escribió `aria-checked` (correcto para role="radio"). Ningún swatch se
+  // distinguía jamás como elegido — una fila de círculos sin indicar cuál
+  // está activo. Cruzar el atributo real contra el CSS cierra ese hueco.
+  it('el anillo de swatch seleccionado usa el mismo atributo aria que escribe panel-prenda.js', () => {
+    const panelPrenda = readFileSync(`${RAIZ}estudio/ui/panel-prenda.js`, 'utf8');
+    const swatchBlock = panelPrenda.slice(panelPrenda.indexOf('es-swatch-row'));
+    expect(swatchBlock, 'no se encontró el bloque de swatches en panel-prenda.js').toMatch(/'aria-checked':/);
+
+    expect(CSS, 'falta .es-swatch[aria-checked="true"] en studio.css').toMatch(
+      /\.es-swatch\[aria-checked="true"\]/,
+    );
+    expect(
+      /\.es-swatch\[aria-pressed="true"\]/.test(CSS),
+      '.es-swatch[aria-pressed="true"] no sirve: panel-prenda.js nunca escribe aria-pressed',
+    ).toBe(false);
+  });
 });

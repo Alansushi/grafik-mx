@@ -40,6 +40,9 @@ export function StudioApp({ catalog, stageContainer }) {
   const [activeView, setActiveView] = useState('front');
   const [logo, setLogo] = useState(null);
   const [transform, setTransform] = useState(null);
+  // Escala del último "ajustar al área": referencia para mostrar el %
+  // de Escala relativo al fit en PanelLogo (ver konva-adapter.js#getFitScale).
+  const [fitScale, setFitScale] = useState(1);
   const [breakdown, setBreakdown] = useState({});
   const [rawSizes, setRawSizes] = useState({});
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '' });
@@ -152,6 +155,7 @@ export function StudioApp({ catalog, stageContainer }) {
       created.setGarment({ baseImage, foldImage: null, colorHex });
       created.onTransformChange((t) => {
         setTransform(t);
+        setFitScale(created.getFitScale());
         if (!programmaticRef.current) trackOnce('studio_placed');
       });
 
@@ -520,7 +524,7 @@ export function StudioApp({ catalog, stageContainer }) {
       busy: stageBusy,
     }),
     h(PanelLogo, {
-      logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
+      logo, transform, fitScale, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,
       // El área en PÍXELES del canvas (no la fracción) y su ancho real en cm:
       // con esas dos cosas, printQuality traduce la escala del Transformer a

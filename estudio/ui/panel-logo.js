@@ -8,6 +8,7 @@
 import { h, useState, useRef, useCallback, useEffect, cx } from './react.js';
 import { legibility } from '../lib/color.js';
 import { printQuality } from '../lib/print-quality.js';
+import { snapRotation } from '../lib/geometry.js';
 
 const ACCEPT_ATTR = 'image/png,image/jpeg,image/webp,image/svg+xml';
 const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
@@ -20,9 +21,10 @@ const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml']
 const ACCEPTED_EXT_RE = /\.(png|jpe?g|webp|svg)$/i;
 const MAX_LOGO_BYTES = 8 * 1024 * 1024; // 8 MB — mismo tope que el servidor (spec §7.2)
 
-const SCALE_MIN = 0.1;
-const SCALE_MAX = 3;
-const SCALE_STEP = 0.01;
+// El slider de Escala ya no usa constantes de rango/paso fijas: min, max y
+// step se calculan relativos a fitScale (ver scaleMin/scaleMax/scaleStep más
+// abajo), para que queden centrados en "lo que de verdad cabe" en vez de un
+// 0.1-3 absoluto sin relación con la resolución del logo subido.
 const ROTATION_MIN = -180;
 const ROTATION_MAX = 180;
 const ROTATION_STEP = 1;
@@ -71,7 +73,7 @@ function UploadIcon() {
  * Rotación. `extra` es el hueco para el botón "0°" de Rotación; Escala no lo
  * usa y pasa null.
  */
-function RangeField({ id, label, value, min, max, step, display, disabled, onChange, extra }) {
+function RangeField({ id, label, value, min, max, step, display, disabled, onChange, extra, numberInput }) {
   return h(
     'div',
     { className: 'es-field' },
@@ -79,7 +81,27 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
       'div',
       { className: 'es-logo-range-head' },
       h('label', { className: 'es-field-label', htmlFor: id }, label),
-      h('span', { className: 'es-logo-range-value' }, display),
+      // Un <span> de solo lectura no deja teclear un valor exacto — con el
+      // slider solo, llegar a "150%" o "45°" depende de arrastrar fino o de
+      // repetir flechas de a un `step`. El input numérico reusa el mismo
+      // `onChange`/estado; sólo cambia el DOMINIO en que se expresa el valor
+      // (p.ej. Escala lo recibe en % relativo al fit, no en escala absoluta).
+      numberInput
+        ? h('input', {
+            type: 'number',
+            className: 'es-logo-range-number',
+            'aria-label': `${label} (valor exacto)`,
+            value: numberInput.value,
+            min: numberInput.min,
+            max: numberInput.max,
+            step: numberInput.step,
+            disabled,
+            onChange: (e) => {
+              const n = Number(e.target.value);
+              if (Number.isFinite(n)) numberInput.onChange(n);
+            },
+          })
+        : h('span', { className: 'es-logo-range-value' }, display),
     ),
     h(
       'div',
@@ -104,6 +126,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  * @param {{
  *   logo: {name:string, sizeBytes:number, naturalSize:{width:number,height:number}, hasAlpha:boolean} | null,
  *   transform: {x:number,y:number,scaleX:number,scaleY:number,rotation:number} | null,
+ *   fitScale: number, // escala del último "ajustar al área"; 100% de Escala = este valor
  *   garmentHex: string,
  *   logoDominantHex: string | null,
  *   busy: boolean,
@@ -117,7 +140,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  * }} props
  */
 export function PanelLogo({
-  logo, transform, garmentHex, logoDominantHex, busy, error,
+  logo, transform, fitScale, garmentHex, logoDominantHex, busy, error,
   printArea, printAreaWidthCm,
   onFile, onTransform, onFit, onRemove, onQualityWarning, onReject,
 }) {
@@ -187,6 +210,20 @@ export function PanelLogo({
   const scale = transform?.scaleX ?? 1;
   const rotation = transform?.rotation ?? 0;
   const controlsDisabled = busy || !transform;
+
+  // % de Escala relativo al FIT, no absoluto: "100%" = como quedó el logo al
+  // ajustarlo al área imprimible. El valor absoluto (scaleX, px de canvas por
+  // px del archivo) no dice nada al cliente — para un logo típico de miles de
+  // px, el fit "correcto" cae en 5%-20% de esa escala absoluta, pegado al piso
+  // del rango y sin relación intuitiva con "qué tan grande se ve el logo".
+  // fitScaleSafe evita dividir por 0/undefined antes de que exista un fit.
+  const fitScaleSafe = Number(fitScale) > 0 ? fitScale : (scale || 1);
+  const scaleMin = fitScaleSafe * 0.2;
+  const scaleMax = fitScaleSafe * 4;
+  // 1% relativo por tick, no un paso absoluto fijo: así la precisión es la
+  // misma sin importar si el fit dio una escala absoluta chica o grande.
+  const scaleStep = fitScaleSafe / 100;
+  const scalePercent = Math.round((scale / fitScaleSafe) * 100);
 
   // El §6 del spec decidió NO remover fondos automáticamente: la única
   // defensa contra un logo con fondo blanco es explicárselo bien al
@@ -303,50 +340,13 @@ export function PanelLogo({
               disabled: busy,
             }, 'Cambiar'),
           ),
-
-          showAlphaNotice
-            ? h(
-                'div',
-                { className: cx('es-banner', 'es-logo-alert'), role: 'status' },
-                h('p', null,
-                  h('strong', null, 'Este archivo no trae fondo transparente. '),
-                  'Se va a ver un rectángulo de color detrás del logo al imprimirlo. Escríbenos y te ayudamos a prepararlo.'),
-                h('a', {
-                  className: 'es-btn es-btn-wa',
-                  href: WHATSAPP_URL,
-                  target: '_blank',
-                  rel: 'noopener noreferrer',
-                }, 'Escribir por WhatsApp'),
-              )
-            : null,
         ),
 
-    showContrastWarning
-      ? h('p', {
-          className: cx('es-warning', contrast.level === 'fail' && 'is-strong'),
-          role: 'status',
-        }, contrast.message)
-      : null,
-
-    // El tamaño impreso se enseña SIEMPRE que se pueda medir, no sólo cuando
-    // hay problema: "se imprimirá a 12 × 5 cm" es justo el dato que el cliente
-    // no tiene forma de deducir de una pantalla, y verlo cambiar mientras
-    // escala es lo que convierte el aviso en algo que entiende.
-    calidad?.message
-      ? h('p', {
-          className: cx(
-            'es-print-quality',
-            calidad.level === 'warn' && 'es-warning',
-            calidad.level === 'fail' && 'es-warning is-strong',
-          ),
-          role: 'status',
-          'data-dpi-level': calidad.level,
-        }, calidad.message)
-      : null,
-
-    error ? h('p', { className: 'es-error-text', role: 'alert' }, error.message) : null,
-    localError ? h('p', { className: 'es-error-text', role: 'alert' }, localError) : null,
-
+    // Los controles van INMEDIATAMENTE después de la tarjeta del logo, antes
+    // de cualquier aviso condicional: son lo primero que hay que poder usar
+    // al subir un logo, y el aviso de transparencia + el de contraste + el de
+    // calidad de impresión pueden aparecer los tres a la vez, empujando todo
+    // lo de abajo — no deben interponerse entre la tarjeta y los sliders.
     logo
       ? h(
           'div',
@@ -355,12 +355,25 @@ export function PanelLogo({
             id: 'es-logo-scale',
             label: 'Escala',
             value: scale,
-            min: SCALE_MIN,
-            max: SCALE_MAX,
-            step: SCALE_STEP,
-            display: `${Math.round(scale * 100)}%`,
+            min: scaleMin,
+            max: scaleMax,
+            step: scaleStep,
+            display: `${scalePercent}%`,
             disabled: controlsDisabled,
             onChange: (v) => onTransform({ scaleX: v, scaleY: v }),
+            numberInput: {
+              // En porcentaje RELATIVO al fit (100% = ajustado al área), no en
+              // la escala absoluta: es la misma unidad que ve el cliente en
+              // `display`, así el campo numérico y el slider siempre coinciden.
+              value: scalePercent,
+              min: 20,
+              max: 400,
+              step: 1,
+              onChange: (pct) => {
+                const s = (pct / 100) * fitScaleSafe;
+                onTransform({ scaleX: s, scaleY: s });
+              },
+            },
           }),
           h(RangeField, {
             id: 'es-logo-rotation',
@@ -371,7 +384,14 @@ export function PanelLogo({
             step: ROTATION_STEP,
             display: `${Math.round(rotation)}°`,
             disabled: controlsDisabled,
-            onChange: (v) => onTransform({ rotation: v }),
+            onChange: (v) => onTransform({ rotation: snapRotation(v) }),
+            numberInput: {
+              value: Math.round(rotation),
+              min: ROTATION_MIN,
+              max: ROTATION_MAX,
+              step: 1,
+              onChange: (v) => onTransform({ rotation: snapRotation(v) }),
+            },
             extra: h('button', {
               type: 'button',
               className: 'es-btn es-btn-outline es-btn-sm',
@@ -398,5 +418,47 @@ export function PanelLogo({
           ),
         )
       : null,
+
+    showAlphaNotice
+      ? h(
+          'div',
+          { className: cx('es-banner', 'es-logo-alert'), role: 'status' },
+          h('p', null,
+            h('strong', null, 'Este archivo no trae fondo transparente. '),
+            'Se va a ver un rectángulo de color detrás del logo al imprimirlo. Escríbenos y te ayudamos a prepararlo.'),
+          h('a', {
+            className: 'es-btn es-btn-wa',
+            href: WHATSAPP_URL,
+            target: '_blank',
+            rel: 'noopener noreferrer',
+          }, 'Escribir por WhatsApp'),
+        )
+      : null,
+
+    showContrastWarning
+      ? h('p', {
+          className: cx('es-warning', contrast.level === 'fail' && 'is-strong'),
+          role: 'status',
+        }, contrast.message)
+      : null,
+
+    // El tamaño impreso se enseña SIEMPRE que se pueda medir, no sólo cuando
+    // hay problema: "se imprimirá a 12 × 5 cm" es justo el dato que el cliente
+    // no tiene forma de deducir de una pantalla, y verlo cambiar mientras
+    // escala es lo que convierte el aviso en algo que entiende.
+    calidad?.message
+      ? h('p', {
+          className: cx(
+            'es-print-quality',
+            calidad.level === 'warn' && 'es-warning',
+            calidad.level === 'fail' && 'es-warning is-strong',
+          ),
+          role: 'status',
+          'data-dpi-level': calidad.level,
+        }, calidad.message)
+      : null,
+
+    error ? h('p', { className: 'es-error-text', role: 'alert' }, error.message) : null,
+    localError ? h('p', { className: 'es-error-text', role: 'alert' }, localError) : null,
   );
 }

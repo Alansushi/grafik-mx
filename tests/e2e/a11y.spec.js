@@ -274,6 +274,11 @@ test.describe('accesibilidad del configurador', () => {
 
   test('A3. los controles tienen al menos 44x44 px de área táctil', async ({ page }) => {
     await montarEstudio(page);
+
+    // Sin logo, #es-logo-scale/#es-logo-rotation (y su input numérico) ni
+    // siquiera existen en el DOM: sin este upload, A3 nunca los mide.
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
     await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
 
