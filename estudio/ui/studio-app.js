@@ -33,6 +33,11 @@ export function StudioApp({ catalog, stageContainer }) {
   const [garmentSlug, setGarmentSlug] = useState(garments[0].slug);
   const [colorHex, setColorHex] = useState(garments[0].variants[0].color_hex);
   const [techniqueSlug, setTechniqueSlug] = useState(techniques[0].slug);
+  // 'front' es la única vista imprimible (tiene logo y print_area); el resto
+  // (garment.views: left/right de la gorra, back de la playera) son de
+  // presentación. Se resetea a 'front' cada vez que cambia la prenda, más
+  // abajo — una prenda nueva puede no tener las mismas vistas.
+  const [activeView, setActiveView] = useState('front');
   const [logo, setLogo] = useState(null);
   const [transform, setTransform] = useState(null);
   const [breakdown, setBreakdown] = useState({});
@@ -55,6 +60,10 @@ export function StudioApp({ catalog, stageContainer }) {
 
   const stageRef = useRef(null);
   const logoImageRef = useRef(null);
+  // Imágenes ya cargadas de cada vista de la prenda ACTUAL, por slug
+  // ('front' + las de garment.views). Se precargan todas al montar el stage
+  // para que cambiar de vista sea instantáneo (no hay spinner por clic).
+  const viewImagesRef = useRef({});
   // Identificador del borrador. Agrupa en Storage el logo y el preview de ESTA
   // sesión, y api/submit-quote exige que toda ruta enviada lo contenga — así un
   // cliente no puede adjuntar a su pedido el archivo de otro.
@@ -71,6 +80,31 @@ export function StudioApp({ catalog, stageContainer }) {
     programmaticRef.current = true;
     try { fn(); } finally { programmaticRef.current = false; }
   }, []);
+
+  // ── Vista (front/left/right/back) ──────────────────────────────────────
+  //
+  // Cambiar de vista NUNCA recrea el stage (a diferencia de cambiar de
+  // prenda): sólo reemplaza la imagen y muestra/oculta lo que sólo aplica al
+  // front (logo, guía, Transformer). El transform del logo se conserva tal
+  // cual para cuando se vuelva a "front". Declarado ANTES de onFile/
+  // onTransform/onFit a propósito: los tres lo usan en su lista de
+  // dependencias de useCallback, y esa lista se evalúa en el orden del
+  // archivo — referenciarlo antes de esta línea rompería con un error de
+  // "acceso antes de inicializar".
+  const onView = useCallback((slug) => {
+    const image = viewImagesRef.current[slug];
+    if (!image || !stageRef.current) return;
+    setActiveView(slug);
+    stageRef.current.setView({ baseImage: image, printable: slug === 'front' });
+  }, []);
+
+  // Si el cliente sube o mueve el logo estando en una vista de presentación,
+  // el cambio se aplica igual (el nodo queda listo, oculto) pero no se ve en
+  // pantalla — puede parecer que "no funcionó". Volver a 'front' primero deja
+  // que vea el efecto de inmediato.
+  const ensureFrontView = useCallback(() => {
+    if (activeView !== 'front') onView('front');
+  }, [activeView, onView]);
 
   const garment = useMemo(
     () => garments.find((g) => g.slug === garmentSlug) ?? garments[0],
@@ -102,6 +136,13 @@ export function StudioApp({ catalog, stageContainer }) {
         ? renderProceduralBase(garment.base_mockup_url.slice(PROCEDURAL_PREFIX.length), size)
         : await loadImageFromUrl(garment.base_mockup_url);
 
+      // Vistas no-front (presentación): pocas y ligeras, se precargan todas
+      // de una vez para que el selector de vista no tenga que esperar red en
+      // cada clic. Nunca son 'procedural:' — sólo el front puede serlo hoy.
+      const extraViews = await Promise.all(
+        (garment.views ?? []).map(async (v) => [v.slug, await loadImageFromUrl(v.base_mockup_url)]),
+      );
+
       if (cancelled) return;
 
       stageRef.current?.destroy();
@@ -113,6 +154,9 @@ export function StudioApp({ catalog, stageContainer }) {
         setTransform(t);
         if (!programmaticRef.current) trackOnce('studio_placed');
       });
+
+      viewImagesRef.current = { front: baseImage, ...Object.fromEntries(extraViews) };
+      setActiveView('front');
 
       // El logo ya colocado sobrevive al cambio de prenda, reencajado en el
       // área nueva. Perderlo obligaría a subirlo otra vez por cambiar de
@@ -283,6 +327,9 @@ export function StudioApp({ catalog, stageContainer }) {
         track('studio_error', { where: 'logo', code: 'NO_OPAQUE_PIXELS' });
       }
       sinContarComoColocado(() => stageRef.current?.setLogo({ image, naturalSize }));
+      // Si estaba viendo una vista de presentación, el logo se acaba de
+      // colocar oculto: volver a "front" para que vea el resultado ya mismo.
+      ensureFrontView();
       // Formato de una lista cerrada, nunca el nombre del archivo: suele ser el de
       // la marca o el del cliente.
       track('studio_logo', { format: logoFormat(file), vector: isVector });
@@ -291,7 +338,7 @@ export function StudioApp({ catalog, stageContainer }) {
       setLogoError({ code: err.code ?? 'LOGO_FAILED', message: 'No pudimos leer ese archivo. Prueba con un PNG.' });
       track('studio_error', { where: 'logo', code: safeCode(err?.code, 'LOGO_FAILED') });
     }
-  }, [sinContarComoColocado]);
+  }, [sinContarComoColocado, ensureFrontView]);
 
   const onRemoveLogo = useCallback(() => {
     logoImageRef.current = null;
@@ -303,10 +350,14 @@ export function StudioApp({ catalog, stageContainer }) {
   const onTransform = useCallback((partial) => {
     const s = stageRef.current;
     if (!s) return;
+    ensureFrontView();
     s.setTransform({ ...s.getTransform(), ...partial });
-  }, []);
+  }, [ensureFrontView]);
 
-  const onFit = useCallback((mode) => stageRef.current?.fitLogo(mode), []);
+  const onFit = useCallback((mode) => {
+    ensureFrontView();
+    stageRef.current?.fitLogo(mode);
+  }, [ensureFrontView]);
 
   // Sólo cuando CAMBIA: el botón de la prenda ya elegida también llama a onGarment.
   // El slug viene del catálogo; el servidor sólo acepta [a-z0-9-] y descartaría uno distinto.
@@ -445,9 +496,10 @@ export function StudioApp({ catalog, stageContainer }) {
   // vivo y no una foto del montaje.
   window.__studioBridge = {
     get stage() { return stageRef.current; },
-    garment, colorHex, transform, quote,
+    garment, colorHex, transform, quote, activeView, stageBusy,
     setColor: setColorHex,
     setGarmentBySlug: setGarmentSlug,
+    setView: onView,
     setSize: onSize,
     loadLogoFromFile: onFile,
   };
@@ -463,6 +515,7 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
+      activeView, onView,
       onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),

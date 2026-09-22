@@ -97,8 +97,11 @@ function maybeExposeDebugHook(catalog) {
     get colorHex() { return window.__studioBridge?.colorHex ?? null; },
     get transform() { return window.__studioBridge?.transform ?? null; },
     get quote() { return window.__studioBridge?.quote ?? null; },
+    get activeView() { return window.__studioBridge?.activeView ?? null; },
+    get stageBusy() { return window.__studioBridge?.stageBusy ?? true; },
     setColor: (hex) => window.__studioBridge?.setColor(hex),
     setGarmentBySlug: (slug) => window.__studioBridge?.setGarmentBySlug(slug),
+    setView: (slug) => window.__studioBridge?.setView(slug),
     setSize: (talla, valor) => window.__studioBridge?.setSize(talla, valor),
     loadLogoFromFile: (file) => window.__studioBridge?.loadLogoFromFile(file),
   };

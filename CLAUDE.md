@@ -188,10 +188,16 @@ Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rom
 ### Mockups de prenda
 
 `garment_types.base_mockup_url` acepta dos formas y `estudio/ui/studio-app.js` ramifica sola:
-`procedural:tee` / `procedural:cap` (silueta calculada en `estudio/canvas/mockup.js`) o una
-URL real, que pasa por `loadImageFromUrl`. Hoy la **playera usa foto real** (bucket público
-`mockups`) y la **gorra sigue procedural** — no hay fotos utilizables de gorras lisas en
-stock libre; la mejor fuente sería una foto de inventario propio.
+`procedural:tee` / `procedural:cap` (silueta calculada en `estudio/canvas/mockup.js`, hoy sin
+uso en producción — ver abajo) o una URL real, que pasa por `loadImageFromUrl`. Playera y
+gorra usan foto real para **varias vistas** (playera: front + back; gorra: front + left +
+right). `garment_types` representa **siempre la vista "front"** — la única imprimible: tiene
+`print_area`, logo, Transformer, y es la que entra a `order_items`. Las demás vistas son de
+**presentación** (giran la prenda teñida, sin logo ni área de impresión propia) y viven en
+`garment_type_views`, tabla hija de `garment_types` (mismo molde que `garment_variants`;
+migración `0013_garment_type_views.sql`). El selector "Vista" vive en `estudio/ui/panel-prenda.js`
+y `estudio/canvas/konva-adapter.js#setView()` cambia de imagen sin tocar `print_area` ni el
+logo — cambiar de vista **nunca** recrea el `Stage` (a diferencia de cambiar de prenda).
 
 La foto base es un **mapa de sombreado**, no una imagen de color: `paintGarment` la normaliza
 contra el nivel de tela plana (percentil 0.9) y la **multiplica** por el color elegido. De ahí
@@ -204,16 +210,32 @@ dos requisitos duros:
 Por eso el recorte y el paso a grises van en `tools/mockup-cutout.swift` (Vision, el mismo
 motor que "Eliminar fondo" de Vista Previa), y **el redimensionado va dentro de esa misma
 herramienta, nunca con `sips` después**: el remuestreo de `sips` interpola cada canal por
-separado y dejó 24 173 píxeles con `r != g != b` en la primera prueba.
+separado y dejó 24 173 píxeles con `r != g != b` en la primera prueba. Es una herramienta de
+**una foto adentro → un PNG afuera**, sin lote: si el origen es un sheet con varios ángulos en
+una sola imagen (como los que generó IA para la gorra y la playera), primero hay que partirlo
+en paneles individuales — `tools/crop-mockup-sheet.py` (Pillow) hace ese recorte por bounding
+box, **antes** de pasar cada panel al `.swift`. Revisar cada panel recortado a ojo antes de
+procesarlo: un sheet generado puede traer texto horneado en los píxeles (rótulos "FRENTE" /
+"LADO IZQUIERDO"...) que, si no se excluye del recorte, Vision puede leer como una segunda
+instancia y dejarlo como letras fantasma en el mockup final.
 
-Al cambiar una foto hay que tocar **tres** columnas, no una:
+Al cambiar la foto **front** de una prenda hay que tocar tres columnas de `garment_types`, no una:
 
 | Columna | Por qué |
 |---|---|
-| `base_mockup_url` | Nombre **versionado** (`-v2`): el bucket sirve `Cache-Control: immutable` |
+| `base_mockup_url` | Nombre **versionado** (`-v2`, `-v3`...): el bucket sirve `Cache-Control: immutable` |
 | `canvas_size` | `paintGarment` hace `drawImage` estirando al canvas. Si la proporción no coincide con la foto, la prenda sale deformada |
 | `print_area` | Va en fracciones (0..1) y está calibrada a la silueta anterior. El pecho de otra foto no cae en el mismo sitio |
 | `print_area_width_cm` | Ancho REAL del área en centímetros. Es lo único que traduce píxeles a mundo físico, y de ahí sale el aviso de resolución (`estudio/lib/print-quality.js`). Es dato de la prenda, no constante: una gorra imprime a ~11 cm y una playera a ~31.6. Sin medirlo, la migración lo bloquea con `NOT NULL` en vez de inventar un valor |
+
+Al cambiar o añadir una vista **no-front** (left/right/back), tocar en `garment_type_views`:
+
+| Columna | Por qué |
+|---|---|
+| `base_mockup_url` | Mismo razonamiento: nombre versionado, bucket immutable |
+| `canvas_size` | Debe compartir proporción (idealmente el **mismo valor exacto**) que el `canvas_size` del front de esa prenda: `setView()` nunca redimensiona el Stage al cambiar de vista, sólo cambia la imagen — si la proporción no coincide, la prenda se deforma al girar |
+
+Sin `print_area` ni `print_area_width_cm` en `garment_type_views`: estas vistas nunca llevan logo.
 
 El coste de teñir es `O(n log n)` sobre `canvas_size` y se paga **en cada clic de color**:
 medido, 51 ms a 955×900 contra 129 ms a 1595×1504. Por eso `canvas_size` se mantiene en el
@@ -221,7 +243,11 @@ presupuesto de ~0.86 MP aunque la foto tenga más resolución.
 
 Verificar siempre **mirando el render**, no sólo los números: así se encontró que la guía
 punteada del área imprimible (`konva-adapter.js`) era de un trazo fijo casi blanco y
-desaparecía sobre una playera blanca.
+desaparecía sobre una playera blanca. Mismo principio detrás de `print_area` de la gorra en
+`0014_multi_view_mockups.sql`: se estimó geométricamente (perfilando el ancho de la silueta
+por fila para ubicar el panel frontal) por no tener una costura de referencia tan nítida como
+el cuello de una playera — confirmar con la guía punteada en el navegador antes de darla por
+buena.
 
 ## Sistema de diseño
 

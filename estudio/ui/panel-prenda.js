@@ -9,18 +9,21 @@ import { h, cx } from './react.js';
  * @param {{
  *   garments: Array, techniques: Array,
  *   garmentSlug: string, colorHex: string, techniqueSlug: string,
+ *   activeView: string,
  *   onGarment: (slug:string)=>void,
  *   onColor: (hex:string)=>void,
  *   onTechnique: (slug:string)=>void,
+ *   onView: (slug:string)=>void,
  *   busy: boolean,
  * }} props
  */
 export function PanelPrenda({
-  garments, techniques, garmentSlug, colorHex, techniqueSlug,
-  onGarment, onColor, onTechnique, busy,
+  garments, techniques, garmentSlug, colorHex, techniqueSlug, activeView,
+  onGarment, onColor, onTechnique, onView, busy,
 }) {
   const garment = garments.find((g) => g.slug === garmentSlug) ?? garments[0];
   const variants = garment?.variants ?? [];
+  const views = garment?.views ?? [];
   const activeTechnique = techniques.find((t) => t.slug === techniqueSlug);
 
   return h('section', { className: 'es-panel', 'aria-busy': busy ? 'true' : 'false' },
@@ -41,6 +44,29 @@ export function PanelPrenda({
         }, g.name)),
       ),
     ),
+
+    // ── Vista ── sólo si esta prenda trae vistas de presentación además de
+    // front (hoy: left/right en la gorra, back en la playera). "Frente" no
+    // viene en garment.views (ES la fila de garment_types) — se antepone aquí.
+    views.length
+      ? h('div', { className: 'es-field' },
+          h('span', { className: 'es-label', id: 'es-lbl-vista' }, 'Vista'),
+          h('div', { className: 'es-chip-row', role: 'radiogroup', 'aria-labelledby': 'es-lbl-vista' },
+            [{ slug: 'front', name: 'Frente' }, ...views].map((v) => h('button', {
+              key: v.slug,
+              type: 'button',
+              role: 'radio',
+              'aria-checked': v.slug === activeView,
+              className: cx('es-chip', v.slug === activeView && 'is-selected'),
+              onClick: () => onView(v.slug),
+              disabled: busy,
+            }, v.name)),
+          ),
+          activeView !== 'front'
+            ? h('p', { className: 'es-hint' }, 'Vista de presentación: el logo no se imprime aquí.')
+            : null,
+        )
+      : null,
 
     // ── Color ──
     h('div', { className: 'es-field' },
