@@ -52,6 +52,27 @@ export function createStudioStage(opts) {
   }
   const Konva = window.Konva;
 
+  // Konva ya multiplica el backing-store de cada canvas por
+  // window.devicePixelRatio (confirmado leyendo konva.min.js@10.3.3): no hace
+  // falta "activar" retina. El problema real es que canvas_size (width/height,
+  // arriba) se eligió sólo por el costo de paintGarment/paintFoldMap (~0.86MP,
+  // ver CLAUDE.md) y ese mismo número termina siendo el techo de resolución de
+  // TODO lo que se ve en pantalla. Forzar aquí un pixelRatio por encima del que
+  // Konva pondría por defecto (mínimo 2, incluso en pantallas no-retina) le da
+  // más resolución de backing-store al compositor sin tocar canvas_size ni el
+  // sistema de coordenadas (printArea, clamp, Transformer, snapshot siguen en
+  // unidades lógicas) — y sin recalcular el teñido: paintGarment/paintFoldMap
+  // dibujan en su propio canvas offscreen a canvas_size, ajeno a este valor.
+  //
+  // OJO: un `pixelRatio` en el config de `new Konva.Stage(...)`/`new
+  // Konva.Layer(...)` NO hace nada en Konva 10.3.3 — verificado en navegador
+  // (el backing-store seguía en 900 a dpr=1 pasándolo ahí). Cada Layer crea su
+  // SceneCanvas leyendo la propiedad GLOBAL `Konva.pixelRatio`, así que hay
+  // que fijarla ahí antes de crear las layers. Este archivo es el ÚNICO que
+  // toca Konva (ver cabecera) y sólo existe UN stage a la vez (el anterior se
+  // `destroy()`-ea antes de crear el siguiente, ver studio-app.js), así que
+  // pisar el global aquí es seguro y no se filtra a nada más.
+  window.Konva.pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3);
   const stage = new Konva.Stage({ container, width, height });
 
   // Una sola layer para todo lo que mezcla. Ver la nota de arriba.
@@ -110,6 +131,10 @@ export function createStudioStage(opts) {
   const transformer = new Konva.Transformer({
     rotateEnabled: true,
     keepRatio: true,
+    // Imanta el gesto de rotar en el canvas a los ángulos "derechos": mismo
+    // criterio que snapRotation() en geometry.js, que hace lo propio para el
+    // slider — ver setLogo()/RangeField de Rotación en panel-logo.js.
+    rotationSnaps: [0, 90, 180, 270],
     enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
     borderStroke: '#D02B34',
     anchorStroke: '#D02B34',
@@ -121,6 +146,11 @@ export function createStudioStage(opts) {
 
   let naturalSize = null;
   let current = { x: printArea.x + printArea.width / 2, y: printArea.y + printArea.height / 2, scaleX: 1, scaleY: 1, rotation: 0 };
+  // Escala que dejó el último "ajustar al área" (contain). panel-logo.js la usa
+  // como referencia para mostrar el % de Escala RELATIVO al fit ("100%" =
+  // ajustado), en vez del ratio absoluto canvas/archivo que no dice nada al
+  // cliente — ver getFitScale().
+  let lastFitScale = 1;
   let baseImage = null;
   let lastColorHex = null;
   // hasLogo es un espejo de logoNode.visible(): setView necesita saber si HAY
@@ -215,11 +245,18 @@ export function createStudioStage(opts) {
       foldGroup.visible(printable);
       transformer.nodes(printable ? [logoNode] : []);
       transformer.visible(printable);
-      commit(fitTransformToArea(ns, printArea, 'contain'));
+      const fit = fitTransformToArea(ns, printArea, 'contain');
+      lastFitScale = fit.scaleX;
+      commit(fit);
     },
 
     getTransform() {
       return { ...current };
+    },
+
+    /** Ver la nota de lastFitScale más arriba. */
+    getFitScale() {
+      return lastFitScale;
     },
 
     setTransform(t) {
@@ -228,7 +265,9 @@ export function createStudioStage(opts) {
 
     fitLogo(mode = 'contain') {
       if (!naturalSize) return;
-      commit(fitTransformToArea(naturalSize, printArea, mode));
+      const fit = fitTransformToArea(naturalSize, printArea, mode);
+      lastFitScale = fit.scaleX;
+      commit(fit);
     },
 
     onTransformChange(cb) {
