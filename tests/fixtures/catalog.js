@@ -20,6 +20,13 @@ export const CATALOG_FIXTURE = {
       min_qty: 12,
       max_qty: 1000,
       sort_order: 1,
+      // Vista de presentación (espalda): sin print_area, no es imprimible.
+      // base_mockup_url apunta a un PNG chico servible por el
+      // `python3 -m http.server` del proyecto 'canvas' de Playwright — nunca
+      // 'procedural:', que sólo aplica a la vista front.
+      views: [
+        { id: 'av1', garment_type_id: '11111111-1111-4111-8111-111111111111', slug: 'back', name: 'Espalda', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 1 },
+      ],
       variants: [
         { id: 'a1', garment_type_id: '11111111-1111-4111-8111-111111111111', color_hex: '#FFFFFF', color_name: 'Blanco', sort_order: 1 },
         { id: 'a2', garment_type_id: '11111111-1111-4111-8111-111111111111', color_hex: '#0C0C0C', color_name: 'Negro', sort_order: 2 },
@@ -43,6 +50,10 @@ export const CATALOG_FIXTURE = {
       min_qty: 12,
       max_qty: 1000,
       sort_order: 2,
+      views: [
+        { id: 'bv1', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'left', name: 'Lado izquierdo', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 1 },
+        { id: 'bv2', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'right', name: 'Lado derecho', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 2 },
+      ],
       variants: [
         { id: 'b1', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#0C0C0C', color_name: 'Negro', sort_order: 1 },
         { id: 'b2', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#FFFFFF', color_name: 'Blanco', sort_order: 2 },

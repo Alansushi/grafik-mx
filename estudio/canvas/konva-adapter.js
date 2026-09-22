@@ -122,6 +122,16 @@ export function createStudioStage(opts) {
   let naturalSize = null;
   let current = { x: printArea.x + printArea.width / 2, y: printArea.y + printArea.height / 2, scaleX: 1, scaleY: 1, rotation: 0 };
   let baseImage = null;
+  let lastColorHex = null;
+  // hasLogo es un espejo de logoNode.visible(): setView necesita saber si HAY
+  // logo para decidir si mostrarlo, sin depender de leer el estado de Konva
+  // (que setView mismo puede estar a punto de pisar).
+  let hasLogo = false;
+  let guideRequested = true;
+  // Sólo "front" es imprimible (spec: left/right/back son vistas de
+  // presentación, sin print_area ni logo propios). Empieza en true porque el
+  // stage siempre se crea mostrando la vista front.
+  let printable = true;
   const listeners = new Set();
 
   /**
@@ -168,9 +178,10 @@ export function createStudioStage(opts) {
     setGarment({ baseImage: img, foldImage, colorHex }) {
       if (img) baseImage = img;
       if (!baseImage) throw new AppError('NO_BASE_IMAGE', 'Falta la imagen base de la prenda.', {});
+      if (colorHex) lastColorHex = colorHex;
 
-      garmentNode.image(paintGarment(baseImage, colorHex, { width, height }));
-      printAreaGuide.stroke(trazoGuia(colorHex));
+      garmentNode.image(paintGarment(baseImage, lastColorHex, { width, height }));
+      printAreaGuide.stroke(trazoGuia(lastColorHex));
 
       const foldSource = foldImage ?? baseImage;
       if (foldSource) {
@@ -184,6 +195,7 @@ export function createStudioStage(opts) {
 
     setLogo({ image, naturalSize: ns }) {
       if (!image) {
+        hasLogo = false;
         logoNode.visible(false);
         transformer.nodes([]);
         transformer.visible(false);
@@ -192,11 +204,17 @@ export function createStudioStage(opts) {
         uiLayer.batchDraw();
         return;
       }
+      hasLogo = true;
       naturalSize = ns;
       logoNode.image(image);
-      logoNode.visible(true);
-      transformer.nodes([logoNode]);
-      transformer.visible(true);
+      // La vista activa decide si el logo se ve: si se sube/reajusta un logo
+      // estando en una vista de presentación (left/right/back), el nodo queda
+      // listo pero oculto — sólo "front" lo muestra. Ver setView().
+      logoNode.visible(printable);
+      logoGroup.visible(printable);
+      foldGroup.visible(printable);
+      transformer.nodes(printable ? [logoNode] : []);
+      transformer.visible(printable);
       commit(fitTransformToArea(ns, printArea, 'contain'));
     },
 
@@ -219,8 +237,40 @@ export function createStudioStage(opts) {
     },
 
     setPrintAreaVisible(visible) {
-      printAreaGuide.visible(visible);
+      guideRequested = visible;
+      printAreaGuide.visible(printable && visible);
       composeLayer.batchDraw();
+    },
+
+    /**
+     * Cambia qué imagen de prenda se ve, SIN tocar el logo ni el print_area:
+     * ambos siguen siendo los del front, porque sólo el front es imprimible
+     * (spec: left/right/back son vistas de presentación). Como
+     * garment_type_views.canvas_size se calibra igual al canvas_size del
+     * front de esa prenda, el Stage nunca cambia de tamaño aquí — sólo se
+     * reemplaza la imagen de la prenda y se muestra/oculta lo que sólo
+     * aplica al front, sin destruir naturalSize/current (el transform del
+     * logo se conserva intacto para cuando se vuelva a "front").
+     */
+    setView({ baseImage: viewImage, printable: nuevoPrintable }) {
+      if (!viewImage) throw new AppError('NO_VIEW_IMAGE', 'Falta la imagen de esta vista.', {});
+      api.setGarment({ baseImage: viewImage, foldImage: null, colorHex: null });
+      printable = nuevoPrintable;
+
+      logoNode.visible(printable && hasLogo);
+      logoGroup.visible(printable && hasLogo);
+      logoNode.draggable(printable);
+      foldGroup.visible(printable && hasLogo);
+      printAreaGuide.visible(printable && guideRequested);
+      transformer.nodes(printable && hasLogo ? [logoNode] : []);
+      transformer.visible(printable && hasLogo);
+
+      composeLayer.batchDraw();
+      uiLayer.batchDraw();
+    },
+
+    isPrintable() {
+      return printable;
     },
 
     setFoldShadowOpacity(value) {
@@ -269,6 +319,9 @@ export function createStudioStage(opts) {
         // color de la prenda. Muestrear el píxel del trazo sería frágil: es una
         // línea punteada de 1 px.
         printAreaGuideStroke: printAreaGuide.stroke(),
+        // true = vista "front" activa (única imprimible). false = vista de
+        // presentación (left/right/back): sin logo, sin guía, sin Transformer.
+        printable,
       };
     },
 

@@ -44,21 +44,28 @@ export default async function handler(req, res) {
   const headers = sbHeaders({ key: anonKey });
 
   try {
-    const [types, variants, techniques] = await Promise.all([
+    const [types, variants, views, techniques] = await Promise.all([
       fetchAll(supabaseUrl, headers, 'garment_types',
         'id,slug,name,base_mockup_url,print_area,canvas_size,print_area_width_cm,allowed_sizes,min_qty,max_qty,sort_order'),
       fetchAll(supabaseUrl, headers, 'garment_variants',
         'id,garment_type_id,color_hex,color_name,sort_order'),
+      // Vistas NO-front (left/right de la gorra, back de la playera): sólo
+      // presentación, nunca imprimibles — por eso no traen print_area ni
+      // print_area_width_cm. garment_types sigue representando SIEMPRE la
+      // vista front (ver CLAUDE.md § "Mockups de prenda").
+      fetchAll(supabaseUrl, headers, 'garment_type_views',
+        'id,garment_type_id,slug,name,base_mockup_url,canvas_size,sort_order'),
       fetchAll(supabaseUrl, headers, 'print_techniques',
         'id,slug,name,notes,sort_order'),
     ]);
 
-    // Se anidan las variantes bajo su prenda: el configurador siempre las usa
-    // juntas y así evita una correlación en el cliente.
+    // Se anidan las variantes y las vistas bajo su prenda: el configurador
+    // siempre las usa juntas y así evita una correlación en el cliente.
     const bySort = (a, b) => a.sort_order - b.sort_order;
     const garments = types.sort(bySort).map((t) => ({
       ...t,
       variants: variants.filter((v) => v.garment_type_id === t.id).sort(bySort),
+      views: views.filter((v) => v.garment_type_id === t.id).sort(bySort),
     }));
 
     return json(res, 200, {

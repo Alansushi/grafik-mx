@@ -310,4 +310,85 @@ test.describe('motor de canvas', () => {
     const ultimas = times.slice(-3).reduce((a, b) => a + b, 0) / 3;
     expect(ultimas).toBeLessThanOrEqual(Math.max(primeras * 2, 8));
   });
+
+  // ── Vistas (front/left/right/back) ──────────────────────────────────────
+  //
+  // Sólo "front" es imprimible: left/right/back son de presentación (giran la
+  // prenda teñida, sin logo ni print_area propios). CATALOG_FIXTURE trae
+  // 'back' en playera y 'left'/'right' en gorra (tests/fixtures/catalog.js).
+
+  test('C10. la vista activa arranca en "front" e imprimible', async ({ page }) => {
+    const errors = await openStudio(page);
+    const info = await page.evaluate(() => window.__studio.stage.debugInfo());
+    expect(info.printable).toBe(true);
+    expect(await page.evaluate(() => window.__studio.activeView)).toBe('front');
+    expect(errors).toEqual([]);
+  });
+
+  test('C11. cambiar a una vista de presentación oculta lo imprimible sin recrear el stage', async ({ page }) => {
+    const errors = await openStudio(page);
+    // La gorra del fixture trae dos vistas de presentación (left/right); la
+    // playera sólo trae 'back'. Se usa gorra para probar dos vistas distintas.
+    //
+    // Esperar sólo "garment.slug==='gorra' && !stageBusy" no basta: garment
+    // se recalcula (useMemo) en el MISMO render que dispara el cambio, antes
+    // de que el efecto asíncrono siquiera arranque — hay una rendija de un
+    // frame donde slug ya es 'gorra' pero stageBusy sigue en `false`, sobrante
+    // del montaje anterior (de playera), y stage sigue siendo el de playera.
+    // Por eso se espera la TRANSICIÓN completa (primero true, luego false):
+    // así se confirma que el efecto de verdad corrió de principio a fin.
+    await page.evaluate(() => window.__studio.setGarmentBySlug('gorra'));
+    await page.waitForFunction(() => window.__studio.stageBusy === true);
+    await page.waitForFunction(() => window.__studio.garment?.slug === 'gorra' && window.__studio.stageBusy === false);
+
+    const before = await page.evaluate(() => window.__studio.stage.debugInfo());
+    expect(before.printable).toBe(true);
+
+    await page.evaluate(() => window.__studio.setView('left'));
+    await page.waitForFunction(() => window.__studio.activeView === 'left');
+    const after = await page.evaluate(() => window.__studio.stage.debugInfo());
+
+    expect(after.printable).toBe(false);
+    // La prueba de que NO se recreó el stage: mismas dimensiones que antes.
+    expect(after.stageWidth).toBe(before.stageWidth);
+    expect(after.stageHeight).toBe(before.stageHeight);
+    expect(after.printArea).toEqual(before.printArea);
+    expect(errors).toEqual([]);
+  });
+
+  test('C12. el logo colocado sobrevive un viaje a una vista de presentación y de vuelta', async ({ page }) => {
+    const errors = await openStudio(page);
+    await page.evaluate(() => window.__studio.setGarmentBySlug('gorra'));
+    await page.waitForFunction(() => window.__studio.stageBusy === true);
+    await page.waitForFunction(() => window.__studio.garment?.slug === 'gorra' && window.__studio.stageBusy === false);
+
+    const natural = { width: 200, height: 80 };
+    await page.evaluate(async (ns) => {
+      const c = document.createElement('canvas');
+      c.width = ns.width; c.height = ns.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#D02B34';
+      ctx.fillRect(0, 0, ns.width, ns.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      const { loadImageFromBlob } = await import('/estudio/canvas/image-loader.js');
+      const img = await loadImageFromBlob(blob);
+      window.__studio.stage.setLogo({ image: img, naturalSize: ns });
+    }, natural);
+    await page.evaluate(() => window.__studio.stage.setTransform({ x: 400, y: 300, scaleX: 1.5, scaleY: 1.5, rotation: 12 }));
+    const before = await page.evaluate(() => window.__studio.stage.getTransform());
+
+    await page.evaluate(() => window.__studio.setView('right'));
+    await page.waitForFunction(() => window.__studio.activeView === 'right');
+    await page.evaluate(() => window.__studio.setView('front'));
+    await page.waitForFunction(() => window.__studio.activeView === 'front');
+
+    const after = await page.evaluate(() => window.__studio.stage.getTransform());
+    const info = await page.evaluate(() => window.__studio.stage.debugInfo());
+
+    for (const k of ['x', 'y', 'scaleX', 'scaleY', 'rotation']) {
+      expect(after[k]).toBeCloseTo(before[k], 5);
+    }
+    expect(info.printable).toBe(true);
+    expect(errors).toEqual([]);
+  });
 });

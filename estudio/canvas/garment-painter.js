@@ -24,9 +24,10 @@ const tintCache = new Map();
 const foldCache = new Map();
 
 // Límite del cache: un cliente que pruebe muchos colores no debe inflar la
-// memoria sin techo. 24 combinaciones cubren de sobra el catálogo actual
-// (14 colores × 2 prendas) y el descarte es el más viejo primero.
-const MAX_CACHE = 24;
+// memoria sin techo. 14 colores × hasta 5 vistas-fuente por prenda (playera:
+// front+back; gorra: front+left+right) cubren de sobra el catálogo actual con
+// margen, y el descarte es el más viejo primero.
+const MAX_CACHE = 96;
 
 function putCapped(cache, key, value) {
   if (cache.size >= MAX_CACHE) {
