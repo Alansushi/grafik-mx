@@ -126,7 +126,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  * @param {{
  *   logo: {name:string, sizeBytes:number, naturalSize:{width:number,height:number}, hasAlpha:boolean} | null,
  *   transform: {x:number,y:number,scaleX:number,scaleY:number,rotation:number} | null,
- *   fitScale: number, // escala del último "ajustar al área"; 100% de Escala = este valor
+ *   fitScale: number, // techo alcanzable AHORA (a la rotación actual); 100% de Escala = este valor
  *   garmentHex: string,
  *   logoDominantHex: string | null,
  *   busy: boolean,
@@ -211,15 +211,19 @@ export function PanelLogo({
   const rotation = transform?.rotation ?? 0;
   const controlsDisabled = busy || !transform;
 
-  // % de Escala relativo al FIT, no absoluto: "100%" = como quedó el logo al
-  // ajustarlo al área imprimible. El valor absoluto (scaleX, px de canvas por
-  // px del archivo) no dice nada al cliente — para un logo típico de miles de
-  // px, el fit "correcto" cae en 5%-20% de esa escala absoluta, pegado al piso
-  // del rango y sin relación intuitiva con "qué tan grande se ve el logo".
+  // % de Escala relativo al FIT, no absoluto: "100%" = el máximo que cabe en
+  // el área imprimible AHORA MISMO (a la rotación actual — ver getFitScale()
+  // en konva-adapter.js). El valor absoluto (scaleX, px de canvas por px del
+  // archivo) no dice nada al cliente — para un logo típico de miles de px, el
+  // fit "correcto" cae en 5%-20% de esa escala absoluta, pegado al piso del
+  // rango y sin relación intuitiva con "qué tan grande se ve el logo".
   // fitScaleSafe evita dividir por 0/undefined antes de que exista un fit.
   const fitScaleSafe = Number(fitScale) > 0 ? fitScale : (scale || 1);
   const scaleMin = fitScaleSafe * 0.2;
-  const scaleMax = fitScaleSafe * 4;
+  // 100%, no más: por encima del fit el AABB del logo ya no cabe en el área
+  // imprimible, así que clampScale lo rechaza siempre — ofrecer un rango
+  // mayor (antes ×4) prometía un "agrandar" que nunca sucedía.
+  const scaleMax = fitScaleSafe;
   // 1% relativo por tick, no un paso absoluto fijo: así la precisión es la
   // misma sin importar si el fit dio una escala absoluta chica o grande.
   const scaleStep = fitScaleSafe / 100;
@@ -362,12 +366,13 @@ export function PanelLogo({
             disabled: controlsDisabled,
             onChange: (v) => onTransform({ scaleX: v, scaleY: v }),
             numberInput: {
-              // En porcentaje RELATIVO al fit (100% = ajustado al área), no en
+              // En porcentaje RELATIVO al fit (100% = el máximo real), no en
               // la escala absoluta: es la misma unidad que ve el cliente en
               // `display`, así el campo numérico y el slider siempre coinciden.
+              // Tope en 100, a juego con scaleMax: no hay nada por encima.
               value: scalePercent,
               min: 20,
-              max: 400,
+              max: 100,
               step: 1,
               onChange: (pct) => {
                 const s = (pct / 100) * fitScaleSafe;

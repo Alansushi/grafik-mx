@@ -7,6 +7,7 @@ import {
   rotatedAabb,
   rectContains,
   clampScale,
+  maxFitScaleFor,
   clampTransformToArea,
   fitTransformToArea,
   isTransformValid,
@@ -267,6 +268,39 @@ describe('geometry.js — fitTransformToArea', () => {
       expect(err).toBeInstanceOf(GeometryError);
       expect(err.code).toBe('INVALID_FIT_MODE');
     }
+  });
+});
+
+describe('geometry.js — maxFitScaleFor (export)', () => {
+  // Techo real que usa clampScale por dentro (línea ~129 de geometry.js). No
+  // estaba exportada porque nada fuera del propio módulo la necesitaba — el
+  // fix de los controles del Transformer (playera/gorra que no respondían al
+  // agrandar/mover) la reutiliza en konva-adapter.js para que `getFitScale()`
+  // refleje siempre el techo vigente, no el de la última fit explícita.
+  const NATURAL_WIDE = { width: 400, height: 100 };
+  const AREA_WIDE = { x: 0, y: 0, width: 300, height: 100 };
+
+  it('a rotación 0 coincide exactamente con fitTransformToArea(...).scaleX', () => {
+    const t = { x: 150, y: 50, scaleX: 1, scaleY: 1, rotation: 0 };
+    const max = maxFitScaleFor(t, NATURAL_WIDE, AREA_WIDE);
+    const fit = fitTransformToArea(NATURAL_WIDE, AREA_WIDE, 'contain');
+    expect(max).toBeCloseTo(fit.scaleX, 9);
+    expect(max).toBeCloseTo(0.75, 9);
+  });
+
+  it('a rotación 90° coincide con fitTransformToArea del logo con width/height invertidos', () => {
+    const t = { x: 150, y: 50, scaleX: 1, scaleY: 1, rotation: 90 };
+    const max = maxFitScaleFor(t, NATURAL_WIDE, AREA_WIDE);
+    const swapped = { width: NATURAL_WIDE.height, height: NATURAL_WIDE.width };
+    const fit = fitTransformToArea(swapped, AREA_WIDE, 'contain');
+    expect(max).toBeCloseTo(fit.scaleX, 6);
+    expect(max).toBeCloseTo(0.25, 6);
+  });
+
+  it('es independiente de x/y (el AABB rotado no cambia de tamaño al trasladarse)', () => {
+    const a = maxFitScaleFor({ x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
+    const b = maxFitScaleFor({ x: 999, y: -400, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
+    expect(a).toBeCloseTo(b, 9);
   });
 });
 

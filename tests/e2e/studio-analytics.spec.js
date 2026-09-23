@@ -216,9 +216,11 @@ test.describe('estudio — señales de fricción', () => {
   test('E5. el aviso de resolución baja se emite al ENTRAR en cada nivel, no en cada arrastre', async ({ page }) => {
     const t = await preparar(page);
     await abrir(page);
-    await subirLogo(page); // el fixture mide 200x80 y se encaja al ancho: 16 dpi → fail
+    // El fixture mide 200x80 y se encaja al ancho con el headroom del fit
+    // automático (INITIAL_FIT_HEADROOM en konva-adapter.js, 90% del techo): 18 dpi.
+    await subirLogo(page);
     await expect.poll(() => t.de('studio_lowres').length, ESPERA).toBe(1);
-    expect(t.de('studio_lowres')[0].props).toEqual({ level: 'fail', dpi: 16 });
+    expect(t.de('studio_lowres')[0].props).toEqual({ level: 'fail', dpi: 18 });
 
     const escalar = (n) => page.evaluate((k) => {
       const s = window.__studio.stage;

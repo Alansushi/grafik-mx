@@ -33,6 +33,7 @@ import {
   clampTransformToArea,
   transformToRenderProps,
   fitTransformToArea,
+  maxFitScaleFor,
 } from '../lib/geometry.js';
 import { paintGarment, paintFoldMap } from './garment-painter.js';
 import { assertNotTainted } from './image-loader.js';
@@ -40,6 +41,13 @@ import { AppError } from '../lib/errors.js';
 import { isDarkColor } from '../lib/color.js';
 
 const DEFAULT_FOLD_OPACITY = 0.35;
+// El fit automático al subir un logo deja este margen bajo el techo real
+// (ver maxFitScaleFor): a 1.0 el logo nace exactamente pegado al límite que
+// clampScale nunca deja superar, y agrandar/mover/rotar desde ahí es un no-op
+// o un achicamiento sorpresa — el cliente hace click y "no pasa nada". No
+// aplica a fitLogo() (botón "Ajustar al área"): ese sí debe maximizar de
+// verdad cuando el cliente lo pide explícitamente.
+const INITIAL_FIT_HEADROOM = 0.9;
 
 /**
  * @param {{container: HTMLElement, width: number, height: number,
@@ -146,10 +154,11 @@ export function createStudioStage(opts) {
 
   let naturalSize = null;
   let current = { x: printArea.x + printArea.width / 2, y: printArea.y + printArea.height / 2, scaleX: 1, scaleY: 1, rotation: 0 };
-  // Escala que dejó el último "ajustar al área" (contain). panel-logo.js la usa
-  // como referencia para mostrar el % de Escala RELATIVO al fit ("100%" =
-  // ajustado), en vez del ratio absoluto canvas/archivo que no dice nada al
-  // cliente — ver getFitScale().
+  // Techo de escala alcanzable AHORA MISMO (a la rotación actual del logo) —
+  // lo recalcula commit() en cada cambio, no sólo al subir/ajustar el logo.
+  // panel-logo.js lo usa como referencia para mostrar el % de Escala RELATIVO
+  // al fit ("100%" = el máximo real), en vez del ratio absoluto
+  // canvas/archivo que no dice nada al cliente — ver getFitScale().
   let lastFitScale = 1;
   let baseImage = null;
   let lastColorHex = null;
@@ -182,6 +191,11 @@ export function createStudioStage(opts) {
     logoNode.scaleY(1);
 
     current = clamped;
+    // Recalculado en CADA commit, no sólo al subir/ajustar el logo: la
+    // rotación cambia el techo (una caja rotada necesita más espacio), así
+    // que el % de Escala que ve el cliente debe reflejar siempre el máximo
+    // vigente, no el que había cuando se subió el logo.
+    lastFitScale = maxFitScaleFor(clamped, naturalSize, printArea);
     composeLayer.batchDraw();
     uiLayer.batchDraw();
     listeners.forEach((fn) => fn({ ...clamped }));
@@ -245,9 +259,12 @@ export function createStudioStage(opts) {
       foldGroup.visible(printable);
       transformer.nodes(printable ? [logoNode] : []);
       transformer.visible(printable);
+      // Headroom a propósito (ver INITIAL_FIT_HEADROOM): commit() ya
+      // recalcula lastFitScale solo, así que aquí no hace falta tocarlo — y
+      // no debe fijarse al valor SIN headroom de `fit`, o el % de Escala
+      // mostraría "100%" para un logo que en realidad nació al 90%.
       const fit = fitTransformToArea(ns, printArea, 'contain');
-      lastFitScale = fit.scaleX;
-      commit(fit);
+      commit({ ...fit, scaleX: fit.scaleX * INITIAL_FIT_HEADROOM, scaleY: fit.scaleY * INITIAL_FIT_HEADROOM });
     },
 
     getTransform() {
@@ -265,9 +282,9 @@ export function createStudioStage(opts) {
 
     fitLogo(mode = 'contain') {
       if (!naturalSize) return;
-      const fit = fitTransformToArea(naturalSize, printArea, mode);
-      lastFitScale = fit.scaleX;
-      commit(fit);
+      // Sin headroom: a diferencia del fit automático de setLogo(), este es
+      // el botón explícito "Ajustar al área" — su trabajo es maximizar.
+      commit(fitTransformToArea(naturalSize, printArea, mode));
     },
 
     onTransformChange(cb) {

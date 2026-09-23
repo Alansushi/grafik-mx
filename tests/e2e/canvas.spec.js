@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { hexToRgb } from '../../estudio/lib/color.js';
-import { clampTransformToArea, rotatedAabb, rectContains } from '../../estudio/lib/geometry.js';
+import { clampTransformToArea, rotatedAabb, rectContains, maxFitScaleFor, fitTransformToArea } from '../../estudio/lib/geometry.js';
 import { CATALOG_FIXTURE } from '../fixtures/catalog.js';
 
 // CERO screenshot diffing (spec §3.5).
@@ -223,6 +223,146 @@ test.describe('motor de canvas', () => {
       // Y la invariante que de verdad importa: el logo cabe en el área.
       expect(rectContains(printArea, rotatedAabb(got, natural), 0.01)).toBe(true);
     }
+  });
+
+  // Los 4 tests de abajo cubren el fix de "el Transformer no responde al
+  // agrandar/mover/rotar": antes, `setLogo()` colocaba el logo EXACTAMENTE en
+  // el techo que `clampScale` nunca deja superar, así que cualquier intento
+  // de agrandar (o de mover, si el logo saturaba ambos ejes) era un no-op
+  // silencioso. No son parte de la tabla C1-C14 del spec — cubren la
+  // regresión reportada, no un caso previsto ahí.
+
+  test('el fit inicial deja margen operable (no nace pegado al techo)', async ({ page }) => {
+    await openStudio(page);
+    const { printArea } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const natural = { width: 200, height: 80 };
+    await page.evaluate(async (ns) => {
+      const c = document.createElement('canvas');
+      c.width = ns.width; c.height = ns.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#D02B34';
+      ctx.fillRect(0, 0, ns.width, ns.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      const { loadImageFromBlob } = await import('/estudio/canvas/image-loader.js');
+      const img = await loadImageFromBlob(blob);
+      window.__studio.stage.setLogo({ image: img, naturalSize: ns });
+    }, natural);
+
+    const { transform, fitScale } = await page.evaluate(() => ({
+      transform: window.__studio.stage.getTransform(),
+      fitScale: window.__studio.stage.getFitScale(),
+    }));
+
+    // El techo real (fitScale) ya no coincide con la escala inicial: hay
+    // margen. Antes esto era una igualdad exacta.
+    expect(transform.scaleX).toBeLessThan(fitScale);
+
+    const aabb = rotatedAabb(transform, natural);
+    const marginX = printArea.width - aabb.width;
+    const marginY = printArea.height - aabb.height;
+    expect(marginX).toBeGreaterThan(1);
+    expect(marginY).toBeGreaterThan(1);
+  });
+
+  test('agrandar y mover ya no son no-ops tras subir el logo', async ({ page }) => {
+    await openStudio(page);
+    const natural = { width: 200, height: 80 };
+    await page.evaluate(async (ns) => {
+      const c = document.createElement('canvas');
+      c.width = ns.width; c.height = ns.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#D02B34';
+      ctx.fillRect(0, 0, ns.width, ns.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      const { loadImageFromBlob } = await import('/estudio/canvas/image-loader.js');
+      const img = await loadImageFromBlob(blob);
+      window.__studio.stage.setLogo({ image: img, naturalSize: ns });
+    }, natural);
+
+    const before = await page.evaluate(() => window.__studio.stage.getTransform());
+
+    // Agrandar un poco (esto era SIEMPRE un no-op antes del fix: el clamp
+    // devolvía exactamente `before.scaleX`).
+    const grown = await page.evaluate((t) => {
+      window.__studio.stage.setTransform({ ...t, scaleX: t.scaleX * 1.05, scaleY: t.scaleY * 1.05 });
+      return window.__studio.stage.getTransform();
+    }, before);
+    expect(grown.scaleX).toBeGreaterThan(before.scaleX);
+
+    // Mover un poco (no-op cuando el logo saturaba el eje desde el fit).
+    const moved = await page.evaluate((t) => {
+      window.__studio.stage.setTransform({ ...t, x: t.x + 5 });
+      return window.__studio.stage.getTransform();
+    }, grown);
+    expect(moved.x).toBeGreaterThan(grown.x);
+  });
+
+  test('getFitScale() refleja el techo vigente, no el de la última fit explícita', async ({ page }) => {
+    await openStudio(page);
+    const { printArea } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const natural = { width: 200, height: 80 };
+    await page.evaluate(async (ns) => {
+      const c = document.createElement('canvas');
+      c.width = ns.width; c.height = ns.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#D02B34';
+      ctx.fillRect(0, 0, ns.width, ns.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      const { loadImageFromBlob } = await import('/estudio/canvas/image-loader.js');
+      const img = await loadImageFromBlob(blob);
+      window.__studio.stage.setLogo({ image: img, naturalSize: ns });
+    }, natural);
+
+    const fitScale0 = await page.evaluate(() => window.__studio.stage.getFitScale());
+
+    const rotated = await page.evaluate(() => {
+      const t = window.__studio.stage.getTransform();
+      window.__studio.stage.setTransform({ ...t, rotation: 90 });
+      return {
+        transform: window.__studio.stage.getTransform(),
+        fitScale: window.__studio.stage.getFitScale(),
+      };
+    });
+
+    // Un logo apaisado (200x80) rotado 90° necesita más espacio: el techo a
+    // 90° es distinto (más chico) que el techo a 0°.
+    expect(rotated.fitScale).not.toBeCloseTo(fitScale0, 2);
+    const expected = maxFitScaleFor(rotated.transform, natural, printArea);
+    expect(rotated.fitScale).toBeCloseTo(expected, 6);
+  });
+
+  test("fitLogo('contain') sigue maximizando sin margen (el botón \"Ajustar al área\" no lleva headroom)", async ({ page }) => {
+    await openStudio(page);
+    const { printArea } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const natural = { width: 200, height: 80 };
+    await page.evaluate(async (ns) => {
+      const c = document.createElement('canvas');
+      c.width = ns.width; c.height = ns.height;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#D02B34';
+      ctx.fillRect(0, 0, ns.width, ns.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+      const { loadImageFromBlob } = await import('/estudio/canvas/image-loader.js');
+      const img = await loadImageFromBlob(blob);
+      window.__studio.stage.setLogo({ image: img, naturalSize: ns });
+    }, natural);
+
+    // Achicar primero, para que "Ajustar al área" tenga que crecer de verdad.
+    await page.evaluate(() => {
+      const t = window.__studio.stage.getTransform();
+      window.__studio.stage.setTransform({ ...t, scaleX: t.scaleX * 0.5, scaleY: t.scaleY * 0.5 });
+    });
+
+    const fitted = await page.evaluate(() => {
+      window.__studio.stage.fitLogo('contain');
+      return window.__studio.stage.getTransform();
+    });
+
+    // Sin margen: la escala coincide exactamente con el contain-fit "puro"
+    // (sea cual sea el eje que satura para este logo/área), a diferencia del
+    // fit automático de setLogo(), que ahora sí deja headroom.
+    const pureFit = fitTransformToArea(natural, printArea, 'contain');
+    expect(fitted.scaleX).toBeCloseTo(pureFit.scaleX, 6);
   });
 
   test('C7. anti-taint: una imagen servida SIN CORS no rompe el snapshot', async ({ page }) => {
