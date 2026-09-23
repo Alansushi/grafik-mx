@@ -273,8 +273,8 @@ describe('events.js — sincronía de la Fase 2 con index.html', () => {
 
   it('29. las secciones del HTML (ids + data-section, sin el hero) son exactamente SECTIONS', () => {
     // Sólo el bloque React: el .ssr-fallback (HTML plano para crawlers, que React
-    // reemplaza al montar) declara sus propias <section id=…>, y hasta con otro
-    // nombre (`por-que` allí, `ventajas` en React).
+    // reemplaza al montar) declara sus propias <section id=…> y se excluye del
+    // conteo — se homologan con las de React, pero no se validan aquí.
     const REACT = HTML.slice(HTML.indexOf('type="text/babel"'));
     const ids = [...REACT.matchAll(/<section id="([a-z-]+)"/g)].map((m) => m[1]).filter((id) => id !== 'top');
     const marcadas = [...REACT.matchAll(/data-section="([a-z-]+)"/g)].map((m) => m[1]);
