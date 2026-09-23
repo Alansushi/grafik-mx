@@ -125,8 +125,14 @@ function clampNum(v, lo, hi) {
  * multiplicador uniforme (rotar es una transformación lineal; escalar ambos
  * ejes por el mismo factor antes de rotar equivale a escalar el AABB por ese
  * mismo factor después) — así el resultado es exacto, no una aproximación.
+ *
+ * Exportada (además de usarla `clampScale` internamente) porque
+ * `konva-adapter.js` la reutiliza para saber, en cualquier momento, cuál es
+ * el techo de escala alcanzable a la rotación ACTUAL del logo — antes sólo
+ * vivía aquí adentro y el techo que veía el cliente se quedaba congelado en
+ * el de la última vez que se subió/ajustó el logo.
  */
-function maxFitScaleFor(t, natural, area) {
+export function maxFitScaleFor(t, natural, area) {
   const box1 = rotatedAabb({ ...t, scaleX: 1, scaleY: 1 }, natural);
   return Math.min(area.width / box1.width, area.height / box1.height);
 }

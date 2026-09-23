@@ -330,12 +330,13 @@ test.describe('flujo del configurador', () => {
 
     const aviso = page.locator('.es-print-quality');
 
-    // El fixture mide 200×80 px y por defecto se encaja a todo el ancho del
-    // área (31.6 cm): 16 dpi. Es justo el caso que llegaba a producción sin
-    // que nada se lo dijera al cliente.
+    // El fixture mide 200×80 px y por defecto se encaja al fit automático
+    // (INITIAL_FIT_HEADROOM en konva-adapter.js deja el logo al 90% del ancho
+    // del área, 28.4 de 31.6 cm): 18 dpi. Es justo el caso que llegaba a
+    // producción sin que nada se lo dijera al cliente.
     await expect(aviso).toHaveAttribute('data-dpi-level', 'fail');
-    await expect(aviso).toContainText('16 dpi');
-    await expect(aviso).toContainText('31.6');
+    await expect(aviso).toContainText('18 dpi');
+    await expect(aviso).toContainText('28.4');
 
     // Al achicarlo, el mismo archivo pasa a ser suficiente.
     await page.evaluate(() => {

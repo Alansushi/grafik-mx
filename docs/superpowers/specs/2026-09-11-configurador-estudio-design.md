@@ -310,6 +310,7 @@ export function aabbOf(points: Point[]): Rect
 export function rotatedAabb(t: Transform, natural: Size): Rect
 export function rectContains(outer: Rect, inner: Rect, eps?: number): boolean
 export function clampScale(t: Transform, natural: Size, area: Rect, minPx?: number): number
+export function maxFitScaleFor(t: Transform, natural: Size, area: Rect): number  // techo de clampScale, reutilizado por konva-adapter.js para getFitScale()
 export function clampTransformToArea(t: Transform, natural: Size, area: Rect): Transform
 export function fitTransformToArea(natural: Size, area: Rect, mode: 'contain'|'cover'): Transform
 export function isTransformValid(t, natural, area): { valid: boolean, reasons: string[] }
