@@ -795,6 +795,21 @@ a { color: inherit; }
   filter: none;
 }
 
+/* Sólo en el escritorio de 3 columnas: con Prenda/Logo a la izquierda y
+   Tallas/Resumen a la derecha, la columna derecha puede quedar más corta
+   que el canvas — pegar el CTA al fondo del viewport evita que haya que
+   scrollear de más para encontrarlo. En móvil/tablet (1-2 columnas, todo
+   es un solo scroll largo) se deja tal cual: ahí un CTA fijo se siente más
+   intrusivo que útil. */
+@media (min-width: 1100px) {
+  .es-resumen-cta {
+    position: sticky;
+    bottom: 20px;
+    padding-top: 8px;
+    background: var(--es-carbon);
+  }
+}
+
 /* ═══ Incremento 8 ════════════════════════════════════════════════════════
    Los dos agentes que construyeron los paneles se interrumpieron justo antes
    de añadir su CSS, así que estas reglas completan lo que faltaba siguiendo

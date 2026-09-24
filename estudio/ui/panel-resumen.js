@@ -161,16 +161,20 @@ export function PanelResumen({
       ]),
     ]),
 
-    h(
-      'button',
-      {
-        type: 'button',
-        className: 'es-btn es-btn-wa es-resumen-submit',
-        disabled: !canSubmit || submitting,
-        onClick: onSubmit,
-        key: 'submit',
-      },
-      submitting ? 'Enviando…' : 'Enviar pedido por WhatsApp',
+    // El wrapper es sólo para poder pegar el botón al fondo del viewport en
+    // escritorio ancho (ver .es-resumen-cta en studio.css) sin duplicar
+    // onSubmit/canSubmit ni el botón mismo.
+    h('div', { className: 'es-resumen-cta', key: 'cta' },
+      h(
+        'button',
+        {
+          type: 'button',
+          className: 'es-btn es-btn-wa es-resumen-submit',
+          disabled: !canSubmit || submitting,
+          onClick: onSubmit,
+        },
+        submitting ? 'Enviando…' : 'Enviar pedido por WhatsApp',
+      ),
     ),
   ]);
 }
