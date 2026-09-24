@@ -6,11 +6,12 @@
 // stage empezara a ser fuente de verdad de algo, habría dos estados que
 // mantener sincronizados y ése es el camino a los bugs difíciles.
 
-import { h, useState, useEffect, useMemo, useRef, useCallback, Fragment } from './react.js';
+import { h, useState, useEffect, useMemo, useRef, useCallback, Fragment, createPortal } from './react.js';
 import { PanelPrenda } from './panel-prenda.js';
 import { PanelLogo } from './panel-logo.js';
 import { PanelTallas } from './panel-tallas.js';
 import { PanelResumen } from './panel-resumen.js';
+import { ViewPill } from './view-pill.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
 import { renderProceduralBase, resolvePrintArea } from '../canvas/mockup.js';
@@ -508,7 +509,20 @@ export function StudioApp({ catalog, stageContainer }) {
     loadLogoFromFile: onFile,
   };
 
+  // Puntos de montaje fuera de #es-controls (ver estudio/index.html): piezas
+  // de UI que conceptualmente pertenecen al canvas, no al sidebar. Se
+  // consultan en cada render (getElementById es barato) en vez de guardarse
+  // en un ref: estos <div> son estáticos y siempre existen mientras
+  // data-state="ready", así que no hace falta más que esto.
+  const viewPillMount = document.getElementById('es-view-pill-mount');
+
   return h(Fragment, null,
+    viewPillMount
+      ? createPortal(
+          h(ViewPill, { views: garment.views ?? [], activeView, onView, busy: stageBusy }),
+          viewPillMount,
+        )
+      : null,
     stageError
       ? h('p', { className: 'es-logo-alert', role: 'alert' },
           stageError.message, ' ',
@@ -519,7 +533,6 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
-      activeView, onView,
       onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),

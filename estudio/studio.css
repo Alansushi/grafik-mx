@@ -210,6 +210,11 @@ a { color: inherit; }
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+  /* Contexto de posicionamiento para lo que se superpone al canvas
+     (view-pill.js, canvas-dropzone.js — el logo-toolbar.js va en flujo
+     normal, debajo, no absoluto). Los puntos de montaje viven en
+     estudio/index.html como hermanos de #es-stage. */
+  position: relative;
 }
 
 .es-controls { min-width: 0; }
@@ -239,6 +244,67 @@ a { color: inherit; }
   display: block;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ---- Vista, superpuesta al canvas (estudio/ui/view-pill.js) ----
+   Sólo se monta cuando la prenda trae vistas de presentación (gorra:
+   izq/der; playera: espalda) — ver ViewPill, `if (!views.length) return null`.
+   min-height:44px en los chips, igual que el resto de controles interactivos
+   del sitio: el área táctil no se negocia por verse "flotante" (WCAG 2.5.5,
+   tests/e2e/a11y.spec.js A3). */
+.es-view-pill {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  pointer-events: none; /* el hueco entre chips no debe robarle el drag al logo */
+}
+
+.es-view-pill-row {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(24, 24, 24, 0.9);
+  border: 1px solid rgba(184, 184, 184, 0.18);
+  pointer-events: auto;
+}
+
+.es-view-pill-chip {
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--es-plata);
+  font-family: var(--es-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.es-view-pill-chip:hover:not(:disabled) { color: var(--es-blanco); }
+.es-view-pill-chip.is-selected { background: var(--es-blanco); color: var(--es-negro); }
+.es-view-pill-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.es-view-pill-chip:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+.es-view-pill-hint {
+  pointer-events: none;
+  max-width: 100%;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.75);
+  color: var(--es-plata);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 /* ---- Controles ---- */
