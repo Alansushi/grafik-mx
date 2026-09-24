@@ -634,6 +634,28 @@ a { color: inherit; }
 }
 .es-talla-input { appearance: textfield; }
 
+/* ---- Barra de progreso hacia el mínimo (panel-tallas.js) ----
+   --es-wa (verde de WhatsApp) para "meta alcanzada": ya es un verde de éxito
+   en la paleta del sitio, no hace falta introducir un token nuevo. */
+.es-tallas-progress { display: flex; flex-direction: column; gap: 6px; }
+
+.es-tallas-progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--es-carbon-hi);
+  overflow: hidden;
+}
+
+.es-tallas-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--es-rojo);
+  transition: width 0.2s ease-out;
+}
+.es-tallas-progress-fill.is-ok { background: var(--es-wa); }
+
+.es-tallas-progress-label { font-size: 12.5px; color: var(--es-plata); }
+
 .es-tallas-total {
   display: flex;
   justify-content: space-between;
