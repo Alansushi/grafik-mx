@@ -842,6 +842,30 @@ a { color: inherit; }
 
 .es-logo-hint { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--es-plata-dim); }
 
+/* ---- Subir logo, superpuesto al canvas (estudio/ui/canvas-dropzone.js) ----
+   #es-view-pill-mount y #es-canvas-dropzone-mount se sacan del flujo del
+   flex de .es-stage-wrap por completo (position:absolute + inset:0): así no
+   suman su propio `gap` entre #es-stage y #es-logo-toolbar-mount aunque
+   estén vacíos antes de que React monte. El toolbar (más abajo) SÍ queda en
+   flujo normal a propósito — "flotante" es de estilo, no de posición. */
+#es-view-pill-mount,
+#es-canvas-dropzone-mount {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.es-canvas-dropzone-wrap { position: relative; width: 100%; height: 100%; }
+
+.es-canvas-dropzone {
+  position: absolute;
+  inset: 16px;
+  min-height: 0;
+  pointer-events: auto;
+}
+
+.es-canvas-dropzone-error { margin-top: 4px; }
+
 /* Aviso de "sin transparencia": es AVISO y no error a propósito. El §6 del
    spec decidió no remover fondos automáticamente y apoyarse en el soporte
    humano que el sitio ya ofrece, así que bloquear aquí sería cortar una venta
@@ -875,7 +899,6 @@ a { color: inherit; }
 }
 .es-logo-card-meta { display: block; font-size: 12px; color: var(--es-plata-dim); margin-top: 2px; }
 
-.es-logo-controls { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
 .es-logo-range-row { display: flex; flex-direction: column; gap: 6px; }
 .es-logo-range-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .es-logo-range-value { font-variant-numeric: tabular-nums; color: var(--es-plata); font-size: 13px; }
@@ -955,7 +978,60 @@ a { color: inherit; }
    campo de texto y no como una acción. */
 .es-logo-range-row .es-btn-sm { flex: 0 0 auto; width: auto; }
 .es-logo-range-row { display: flex; align-items: center; gap: 10px; }
-.es-logo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* ---- Toolbar flotante del logo (estudio/ui/logo-toolbar.js) ----
+   En flujo normal debajo del canvas (no position:absolute) — "flotante" es
+   de estilo: fondo semitransparente, borde, sombra. Grupos separados por una
+   línea vertical, como el mockup de referencia; envuelve en varias líneas
+   (flex-wrap) en vez de scroll horizontal, más accesible con zoom/teclado. */
+.es-logo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.15);
+  background: rgba(24, 24, 24, 0.92);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.es-lt-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 6px 14px;
+}
+.es-lt-group + .es-lt-group { border-left: 1px solid rgba(184, 184, 184, 0.15); }
+
+.es-lt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(184, 184, 184, 0.25);
+  border-radius: var(--es-radius);
+  background: transparent;
+  color: var(--es-plata);
+  font-family: var(--es-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background-color .15s;
+}
+.es-lt-btn:hover:not(:disabled) { border-color: var(--es-plata-dim); color: var(--es-blanco); }
+.es-lt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.es-lt-btn:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+/* Escala/Rotación reusan .es-field/.es-logo-range-*: mismo componente
+   RangeField de antes, sólo que ahora vive en el flujo horizontal de la
+   toolbar. Ancho fijo para que el grupo no se estire más de la cuenta, y
+   slider+botón de reinicio en fila (no columna, como en el sidebar
+   angosto) — hay espacio de sobra en un grupo horizontal. */
+.es-lt-field { width: 200px; }
+.es-lt-field .es-logo-range-row { flex-direction: row; }
 
 /* ── Huecos de tallas y resumen ── */
 .es-tallas-general-errors { margin: 10px 0 0; padding: 0; list-style: none; }
