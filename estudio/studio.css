@@ -358,9 +358,11 @@ a { color: inherit; }
 }
 
 /* ---- Escritorio: canvas a la izquierda, controles a la derecha ----
-   960px para quedar alineado con el breakpoint que ya usa el sitio
-   público (ver CLAUDE.md § Responsive). */
-@media (min-width: 960px) {
+   760px (antes 960px: se corrió hacia abajo al añadir el breakpoint de
+   1100px de aquí abajo, que es el que ahora hace de "escritorio completo").
+   Éste queda como el escalón intermedio — tablet y escritorio angosto —,
+   variación menor de un breakpoint que ya estaba probado. */
+@media (min-width: 760px) {
   .es-main {
     grid-template-columns: minmax(0, 1fr) 320px;
     align-items: start;
@@ -370,6 +372,42 @@ a { color: inherit; }
     grid-template-columns: minmax(0, 1fr) 320px;
     align-items: start;
   }
+}
+
+/* ---- Escritorio ancho: 3 columnas — prenda/color/técnica | canvas | tallas/resumen ----
+   A partir de aquí el sidebar de controles cabe partido en dos sin apretar
+   el canvas. Los 4 paneles pasan a ser hijos DIRECTOS del grid de .es-main
+   vía `display:contents` en los dos niveles que los envuelven hoy —
+   `.es-controls` es el `<aside>` de index.html, `#es-controls` es el `<div>`
+   donde React monta (ver estudio/ui/studio-app.js) — y cada uno se coloca
+   por su propia clase de layout (`es-panel-prenda`/`es-panel-logo` a la
+   izquierda, `es-panel-tallas`/`es-panel-resumen` a la derecha, ya
+   existentes). `.es-stage-wrap` no se mueve de sitio en el DOM: solo ocupa
+   las dos filas del grid en la columna central.
+
+   Nota de accesibilidad: `display:contents` en el `<aside>` le quita su rol
+   implícito de landmark ("complementary") en algunos navegadores. Se acepta
+   aquí porque `tests/e2e/a11y.spec.js` no depende de landmarks (solo
+   contraste, área táctil y desbordamiento) y la ruta es privada/sin indexar —
+   si más adelante se necesita el landmark de vuelta, hay que resolverlo con
+   un `role` en otro nodo que si tenga caja, no revirtiendo este layout. */
+@media (min-width: 1100px) {
+  .es-app { max-width: 1440px; }
+
+  .es-main {
+    grid-template-columns: 300px minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+
+  .es-controls,
+  #es-controls { display: contents; }
+
+  .es-stage-wrap { grid-column: 2; grid-row: 1 / span 2; }
+  .es-panel-prenda { grid-column: 1; grid-row: 1; }
+  .es-panel-logo { grid-column: 1; grid-row: 2; }
+  .es-panel-tallas { grid-column: 3; grid-row: 1; }
+  .es-panel-resumen { grid-column: 3; grid-row: 2; }
+  .es-disclaimer { grid-column: 3; grid-row: 3; }
 }
 
 /* ============================================================

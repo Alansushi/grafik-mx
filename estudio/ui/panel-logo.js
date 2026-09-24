@@ -289,7 +289,7 @@ export function PanelLogo({
 
   return h(
     'section',
-    { className: 'es-panel', 'aria-busy': busy ? 'true' : 'false' },
+    { className: 'es-panel es-panel-logo', 'aria-busy': busy ? 'true' : 'false' },
     h('h2', { className: 'es-panel-title' }, '2. Tu logo'),
 
     // El <input> real vive siempre en el árbol (obligatorio para móvil, donde
