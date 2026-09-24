@@ -795,6 +795,28 @@ a { color: inherit; }
   filter: none;
 }
 
+/* Mensaje tras enviar el pedido (panel-resumen.js#formOrDone). --es-wa
+   como acento: mismo verde que ya usa el CTA de WhatsApp, "esto va a buen
+   puerto" en vez de un rojo de alerta. */
+.es-resumen-done {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--es-wa);
+  border-radius: var(--es-radius);
+  background: rgba(37, 211, 102, 0.08);
+}
+.es-resumen-done-title { font-weight: 700; color: var(--es-blanco); font-size: 15px; }
+.es-resumen-done-text { font-size: 13px; line-height: 1.5; color: var(--es-plata); }
+/* .es-resumen-done es flex column: sin esto el link de variante "outline" se
+   estira a 100% de ancho (align-items:stretch, el default). Clase propia en
+   vez de anidar el selector de esa variante bajo .es-resumen-done: el
+   escáner de css-classes.test.js busca la SUBCADENA de esa variante seguida
+   de una llave, no un selector real — un anidado la habría hecho "encontrar"
+   la definición aquí, antes de llegar al bloque que sí declara su color. */
+.es-resumen-done-link { align-self: flex-start; }
+
 /* Sólo en el escritorio de 3 columnas: con Prenda/Logo a la izquierda y
    Tallas/Resumen a la derecha, la columna derecha puede quedar más corta
    que el canvas — pegar el CTA al fondo del viewport evita que haya que
