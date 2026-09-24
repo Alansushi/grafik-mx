@@ -110,6 +110,50 @@ a { color: inherit; }
   font-size: 14px;
 }
 
+/* ---- Indicador de pasos (estudio/ui/step-indicator.js) ----
+   Tercera fila del header, sólo de lectura — no hay wizard que navegar.
+   Blanco sobre rojo en el círculo "hecho" es la misma combinación que ya
+   usa .es-chip.is-selected (línea ~700), probada contra A1. */
+.es-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  list-style: none;
+}
+
+.es-steps-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--es-plata-dim);
+}
+
+.es-steps-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(184, 184, 184, 0.35);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.es-steps-item.is-done { color: var(--es-plata); }
+.es-steps-item.is-done .es-steps-num {
+  background: var(--es-rojo);
+  border-color: var(--es-rojo);
+  color: var(--es-blanco);
+}
+
 /* ---- Estados de la página ----
    #es-app trae data-state: "loading" (default) | "ready" | "catalog-error"
    | "konva-unavailable". Un único atributo decide qué bloque se ve; boot.js

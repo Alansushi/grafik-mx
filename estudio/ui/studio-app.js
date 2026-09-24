@@ -14,6 +14,7 @@ import { PanelResumen } from './panel-resumen.js';
 import { ViewPill } from './view-pill.js';
 import { CanvasDropzone } from './canvas-dropzone.js';
 import { LogoToolbar } from './logo-toolbar.js';
+import { StepIndicator } from './step-indicator.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
 import { renderProceduralBase, resolvePrintArea } from '../canvas/mockup.js';
@@ -503,6 +504,20 @@ export function StudioApp({ catalog, stageContainer }) {
     && customer.email.includes('@'),
   );
 
+  // Indicador de pasos del header (step-indicator.js): mismos ingredientes
+  // que canSubmit, pero por separado — "tallas" se marca lista con sólo
+  // llegar al mínimo de piezas, sin esperar a que /api/quote responda (la
+  // cotización puede tardar o fallar por red y eso no debería leerse como
+  // "te faltan tallas"). Es sólo de lectura: no hay wizard ni pasos que
+  // navegar, el configurador entero sigue en una sola pantalla.
+  const totalPiezas = Object.values(breakdown).reduce((s, n) => s + n, 0);
+  const stepsDone = {
+    prenda: true,
+    logo: Boolean(logo && !logo.isEmpty && transform),
+    tallas: totalPiezas >= garment.min_qty,
+    contacto: customer.email.includes('@'),
+  };
+
   // Puente para el gancho de depuración de boot.js. Se publica SIEMPRE (es sólo
   // una referencia interna), pero boot.js sólo lo envuelve en window.__studio
   // cuando la URL trae ?debug=1 — así no hay objeto de depuración accesible en
@@ -526,8 +541,10 @@ export function StudioApp({ catalog, stageContainer }) {
   const viewPillMount = document.getElementById('es-view-pill-mount');
   const dropzoneMount = document.getElementById('es-canvas-dropzone-mount');
   const toolbarMount = document.getElementById('es-logo-toolbar-mount');
+  const stepsMount = document.getElementById('es-steps-mount');
 
   return h(Fragment, null,
+    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone }), stepsMount) : null,
     viewPillMount
       ? createPortal(
           h(ViewPill, { views: garment.views ?? [], activeView, onView, busy: stageBusy }),
