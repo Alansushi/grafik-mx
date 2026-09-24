@@ -24,7 +24,7 @@ export function PanelPrenda({
   const activeTechnique = techniques.find((t) => t.slug === techniqueSlug);
 
   return h('section', { className: 'es-panel es-panel-prenda', 'aria-busy': busy ? 'true' : 'false' },
-    h('h2', { className: 'es-panel-title' }, '1. Tu prenda'),
+    h('h2', { className: 'es-panel-title' }, 'Tu prenda'),
 
     // ── Prenda ──
     h('div', { className: 'es-field' },

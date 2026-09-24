@@ -191,7 +191,7 @@ export function PanelTallas({
       'aria-describedby': generalErrors.length > 0 ? generalErrorsId : undefined,
     },
     [
-      h('legend', { className: 'es-field-label', key: 'legend' }, 'Tallas'),
+      h('legend', { className: 'es-panel-title', key: 'legend' }, 'Tallas'),
       h(
         'div',
         { className: cx('es-tallas-grid', isSingleSize && 'es-tallas-grid--single'), key: 'grid' },

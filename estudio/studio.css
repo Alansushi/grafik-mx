@@ -540,10 +540,13 @@ a { color: inherit; }
   background: var(--es-carbon);
 }
 
-.es-panel > legend {
-  padding: 0 4px;
-  margin-left: -4px; /* compensa el padding del panel para que el texto de la leyenda quede alineado con el resto del contenido */
-}
+/* Sólo resetea el padding por defecto del navegador en <legend> (varía
+   entre motores); el margen lo pone .es-panel-title igual que en los otros
+   3 paneles — panel-tallas.js le pasa esa misma clase en vez de
+   .es-field-label para que los 4 títulos se vean iguales. Se mantiene
+   <legend> (no <h2>) para no perder el nombre accesible que le da al
+   <fieldset> que envuelve las tallas. */
+.es-panel > legend { padding: 0; }
 
 /* Etiqueta pequeña reusada por los steppers de talla y los campos de
    contacto — no es --es-field-label (esa es para títulos de sección). */
@@ -816,21 +819,6 @@ a { color: inherit; }
    de una llave, no un selector real — un anidado la habría hecho "encontrar"
    la definición aquí, antes de llegar al bloque que sí declara su color. */
 .es-resumen-done-link { align-self: flex-start; }
-
-/* Sólo en el escritorio de 3 columnas: con Prenda/Logo a la izquierda y
-   Tallas/Resumen a la derecha, la columna derecha puede quedar más corta
-   que el canvas — pegar el CTA al fondo del viewport evita que haya que
-   scrollear de más para encontrarlo. En móvil/tablet (1-2 columnas, todo
-   es un solo scroll largo) se deja tal cual: ahí un CTA fijo se siente más
-   intrusivo que útil. */
-@media (min-width: 1100px) {
-  .es-resumen-cta {
-    position: sticky;
-    bottom: 20px;
-    padding-top: 8px;
-    background: var(--es-carbon);
-  }
-}
 
 /* ═══ Incremento 8 ════════════════════════════════════════════════════════
    Los dos agentes que construyeron los paneles se interrumpieron justo antes

@@ -92,7 +92,7 @@ export function PanelLogo({
   return h(
     'section',
     { className: 'es-panel es-panel-logo', 'aria-busy': busy ? 'true' : 'false' },
-    h('h2', { className: 'es-panel-title' }, '2. Tu logo'),
+    h('h2', { className: 'es-panel-title' }, 'Tu logo'),
 
     logo
       ? h(
