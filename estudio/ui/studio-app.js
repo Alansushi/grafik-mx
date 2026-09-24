@@ -6,11 +6,15 @@
 // stage empezara a ser fuente de verdad de algo, habría dos estados que
 // mantener sincronizados y ése es el camino a los bugs difíciles.
 
-import { h, useState, useEffect, useMemo, useRef, useCallback, Fragment } from './react.js';
+import { h, useState, useEffect, useMemo, useRef, useCallback, Fragment, createPortal } from './react.js';
 import { PanelPrenda } from './panel-prenda.js';
 import { PanelLogo } from './panel-logo.js';
 import { PanelTallas } from './panel-tallas.js';
 import { PanelResumen } from './panel-resumen.js';
+import { ViewPill } from './view-pill.js';
+import { CanvasDropzone } from './canvas-dropzone.js';
+import { LogoToolbar } from './logo-toolbar.js';
+import { StepIndicator } from './step-indicator.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
 import { renderProceduralBase, resolvePrintArea } from '../canvas/mockup.js';
@@ -72,6 +76,13 @@ export function StudioApp({ catalog, stageContainer }) {
   // cliente no puede adjuntar a su pedido el archivo de otro.
   const draftIdRef = useRef(null);
   if (draftIdRef.current === null) draftIdRef.current = crypto.randomUUID();
+  // Único <input type="file"> del configurador (vive en canvas-dropzone.js).
+  // logo-toolbar.js abre el mismo picker por este ref — así no hay dos
+  // <input> ni dos orígenes de "qué archivo se eligió".
+  const fileInputRef = useRef(null);
+  const openPicker = useCallback(() => {
+    if (!stageBusy) fileInputRef.current?.click();
+  }, [stageBusy]);
 
   // commit() del stage notifica de forma SÍNCRONA a onTransformChange, y lo hace
   // igual cuando el ajuste es automático (encajar el logo al subirlo, o
@@ -493,6 +504,20 @@ export function StudioApp({ catalog, stageContainer }) {
     && customer.email.includes('@'),
   );
 
+  // Indicador de pasos del header (step-indicator.js): mismos ingredientes
+  // que canSubmit, pero por separado — "tallas" se marca lista con sólo
+  // llegar al mínimo de piezas, sin esperar a que /api/quote responda (la
+  // cotización puede tardar o fallar por red y eso no debería leerse como
+  // "te faltan tallas"). Es sólo de lectura: no hay wizard ni pasos que
+  // navegar, el configurador entero sigue en una sola pantalla.
+  const totalPiezas = Object.values(breakdown).reduce((s, n) => s + n, 0);
+  const stepsDone = {
+    prenda: true,
+    logo: Boolean(logo && !logo.isEmpty && transform),
+    tallas: totalPiezas >= garment.min_qty,
+    contacto: customer.email.includes('@'),
+  };
+
   // Puente para el gancho de depuración de boot.js. Se publica SIEMPRE (es sólo
   // una referencia interna), pero boot.js sólo lo envuelve en window.__studio
   // cuando la URL trae ?debug=1 — así no hay objeto de depuración accesible en
@@ -508,7 +533,46 @@ export function StudioApp({ catalog, stageContainer }) {
     loadLogoFromFile: onFile,
   };
 
+  // Puntos de montaje fuera de #es-controls (ver estudio/index.html): piezas
+  // de UI que conceptualmente pertenecen al canvas, no al sidebar. Se
+  // consultan en cada render (getElementById es barato) en vez de guardarse
+  // en un ref: estos <div> son estáticos y siempre existen mientras
+  // data-state="ready", así que no hace falta más que esto.
+  const viewPillMount = document.getElementById('es-view-pill-mount');
+  const dropzoneMount = document.getElementById('es-canvas-dropzone-mount');
+  const toolbarMount = document.getElementById('es-logo-toolbar-mount');
+  const stepsMount = document.getElementById('es-steps-mount');
+
   return h(Fragment, null,
+    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone }), stepsMount) : null,
+    viewPillMount
+      ? createPortal(
+          h(ViewPill, { views: garment.views ?? [], activeView, onView, busy: stageBusy }),
+          viewPillMount,
+        )
+      : null,
+    dropzoneMount
+      ? createPortal(
+          h(CanvasDropzone, {
+            visible: !logo,
+            busy: stageBusy,
+            fileInputRef,
+            onFile,
+            // Formato de una lista cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
+            onReject: (reason, file) => track('studio_logo_rejected', { reason, ext: rejectedKind(file) }),
+          }),
+          dropzoneMount,
+        )
+      : null,
+    toolbarMount
+      ? createPortal(
+          h(LogoToolbar, {
+            logo, transform, fitScale, busy: stageBusy, openPicker,
+            onTransform, onFit, onRemove: onRemoveLogo,
+          }),
+          toolbarMount,
+        )
+      : null,
     stageError
       ? h('p', { className: 'es-logo-alert', role: 'alert' },
           stageError.message, ' ',
@@ -519,21 +583,17 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
-      activeView, onView,
       onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),
     h(PanelLogo, {
-      logo, transform, fitScale, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
+      logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,
       // El área en PÍXELES del canvas (no la fracción) y su ancho real en cm:
       // con esas dos cosas, printQuality traduce la escala del Transformer a
       // los dpi con los que la prenda va a salir de la impresora.
       printArea: resolvePrintArea(garment.print_area, garment.canvas_size || DEFAULT_CANVAS_SIZE),
       printAreaWidthCm: garment.print_area_width_cm,
-      onFile, onTransform, onFit, onRemove: onRemoveLogo,
-      // Formato de una lista cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
-      onReject: (reason, file) => track('studio_logo_rejected', { reason, ext: rejectedKind(file) }),
       // Una vez por nivel y sesión: es "¿le salió alguna vez este aviso?".
       onQualityWarning: (level, dpi) => trackOnce('studio_lowres', { level, dpi }, `lowres:${level}`),
     }),

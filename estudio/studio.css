@@ -110,6 +110,50 @@ a { color: inherit; }
   font-size: 14px;
 }
 
+/* ---- Indicador de pasos (estudio/ui/step-indicator.js) ----
+   Tercera fila del header, sólo de lectura — no hay wizard que navegar.
+   Blanco sobre rojo en el círculo "hecho" es la misma combinación que ya
+   usa .es-chip.is-selected (línea ~700), probada contra A1. */
+.es-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  list-style: none;
+}
+
+.es-steps-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--es-plata-dim);
+}
+
+.es-steps-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(184, 184, 184, 0.35);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.es-steps-item.is-done { color: var(--es-plata); }
+.es-steps-item.is-done .es-steps-num {
+  background: var(--es-rojo);
+  border-color: var(--es-rojo);
+  color: var(--es-blanco);
+}
+
 /* ---- Estados de la página ----
    #es-app trae data-state: "loading" (default) | "ready" | "catalog-error"
    | "konva-unavailable". Un único atributo decide qué bloque se ve; boot.js
@@ -210,6 +254,11 @@ a { color: inherit; }
   flex-direction: column;
   gap: 8px;
   min-width: 0;
+  /* Contexto de posicionamiento para lo que se superpone al canvas
+     (view-pill.js, canvas-dropzone.js — el logo-toolbar.js va en flujo
+     normal, debajo, no absoluto). Los puntos de montaje viven en
+     estudio/index.html como hermanos de #es-stage. */
+  position: relative;
 }
 
 .es-controls { min-width: 0; }
@@ -239,6 +288,67 @@ a { color: inherit; }
   display: block;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ---- Vista, superpuesta al canvas (estudio/ui/view-pill.js) ----
+   Sólo se monta cuando la prenda trae vistas de presentación (gorra:
+   izq/der; playera: espalda) — ver ViewPill, `if (!views.length) return null`.
+   min-height:44px en los chips, igual que el resto de controles interactivos
+   del sitio: el área táctil no se negocia por verse "flotante" (WCAG 2.5.5,
+   tests/e2e/a11y.spec.js A3). */
+.es-view-pill {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  pointer-events: none; /* el hueco entre chips no debe robarle el drag al logo */
+}
+
+.es-view-pill-row {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(24, 24, 24, 0.9);
+  border: 1px solid rgba(184, 184, 184, 0.18);
+  pointer-events: auto;
+}
+
+.es-view-pill-chip {
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--es-plata);
+  font-family: var(--es-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.es-view-pill-chip:hover:not(:disabled) { color: var(--es-blanco); }
+.es-view-pill-chip.is-selected { background: var(--es-blanco); color: var(--es-negro); }
+.es-view-pill-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+.es-view-pill-chip:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+.es-view-pill-hint {
+  pointer-events: none;
+  max-width: 100%;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(12, 12, 12, 0.75);
+  color: var(--es-plata);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 /* ---- Controles ---- */
@@ -358,9 +468,11 @@ a { color: inherit; }
 }
 
 /* ---- Escritorio: canvas a la izquierda, controles a la derecha ----
-   960px para quedar alineado con el breakpoint que ya usa el sitio
-   público (ver CLAUDE.md § Responsive). */
-@media (min-width: 960px) {
+   760px (antes 960px: se corrió hacia abajo al añadir el breakpoint de
+   1100px de aquí abajo, que es el que ahora hace de "escritorio completo").
+   Éste queda como el escalón intermedio — tablet y escritorio angosto —,
+   variación menor de un breakpoint que ya estaba probado. */
+@media (min-width: 760px) {
   .es-main {
     grid-template-columns: minmax(0, 1fr) 320px;
     align-items: start;
@@ -370,6 +482,42 @@ a { color: inherit; }
     grid-template-columns: minmax(0, 1fr) 320px;
     align-items: start;
   }
+}
+
+/* ---- Escritorio ancho: 3 columnas — prenda/color/técnica | canvas | tallas/resumen ----
+   A partir de aquí el sidebar de controles cabe partido en dos sin apretar
+   el canvas. Los 4 paneles pasan a ser hijos DIRECTOS del grid de .es-main
+   vía `display:contents` en los dos niveles que los envuelven hoy —
+   `.es-controls` es el `<aside>` de index.html, `#es-controls` es el `<div>`
+   donde React monta (ver estudio/ui/studio-app.js) — y cada uno se coloca
+   por su propia clase de layout (`es-panel-prenda`/`es-panel-logo` a la
+   izquierda, `es-panel-tallas`/`es-panel-resumen` a la derecha, ya
+   existentes). `.es-stage-wrap` no se mueve de sitio en el DOM: solo ocupa
+   las dos filas del grid en la columna central.
+
+   Nota de accesibilidad: `display:contents` en el `<aside>` le quita su rol
+   implícito de landmark ("complementary") en algunos navegadores. Se acepta
+   aquí porque `tests/e2e/a11y.spec.js` no depende de landmarks (solo
+   contraste, área táctil y desbordamiento) y la ruta es privada/sin indexar —
+   si más adelante se necesita el landmark de vuelta, hay que resolverlo con
+   un `role` en otro nodo que si tenga caja, no revirtiendo este layout. */
+@media (min-width: 1100px) {
+  .es-app { max-width: 1440px; }
+
+  .es-main {
+    grid-template-columns: 300px minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+
+  .es-controls,
+  #es-controls { display: contents; }
+
+  .es-stage-wrap { grid-column: 2; grid-row: 1 / span 2; }
+  .es-panel-prenda { grid-column: 1; grid-row: 1; }
+  .es-panel-logo { grid-column: 1; grid-row: 2; }
+  .es-panel-tallas { grid-column: 3; grid-row: 1; }
+  .es-panel-resumen { grid-column: 3; grid-row: 2; }
+  .es-disclaimer { grid-column: 3; grid-row: 3; }
 }
 
 /* ============================================================
@@ -392,10 +540,13 @@ a { color: inherit; }
   background: var(--es-carbon);
 }
 
-.es-panel > legend {
-  padding: 0 4px;
-  margin-left: -4px; /* compensa el padding del panel para que el texto de la leyenda quede alineado con el resto del contenido */
-}
+/* Sólo resetea el padding por defecto del navegador en <legend> (varía
+   entre motores); el margen lo pone .es-panel-title igual que en los otros
+   3 paneles — panel-tallas.js le pasa esa misma clase en vez de
+   .es-field-label para que los 4 títulos se vean iguales. Se mantiene
+   <legend> (no <h2>) para no perder el nombre accesible que le da al
+   <fieldset> que envuelve las tallas. */
+.es-panel > legend { padding: 0; }
 
 /* Etiqueta pequeña reusada por los steppers de talla y los campos de
    contacto — no es --es-field-label (esa es para títulos de sección). */
@@ -485,6 +636,28 @@ a { color: inherit; }
   margin: 0;
 }
 .es-talla-input { appearance: textfield; }
+
+/* ---- Barra de progreso hacia el mínimo (panel-tallas.js) ----
+   --es-wa (verde de WhatsApp) para "meta alcanzada": ya es un verde de éxito
+   en la paleta del sitio, no hace falta introducir un token nuevo. */
+.es-tallas-progress { display: flex; flex-direction: column; gap: 6px; }
+
+.es-tallas-progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--es-carbon-hi);
+  overflow: hidden;
+}
+
+.es-tallas-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--es-rojo);
+  transition: width 0.2s ease-out;
+}
+.es-tallas-progress-fill.is-ok { background: var(--es-wa); }
+
+.es-tallas-progress-label { font-size: 12.5px; color: var(--es-plata); }
 
 .es-tallas-total {
   display: flex;
@@ -625,6 +798,28 @@ a { color: inherit; }
   filter: none;
 }
 
+/* Mensaje tras enviar el pedido (panel-resumen.js#formOrDone). --es-wa
+   como acento: mismo verde que ya usa el CTA de WhatsApp, "esto va a buen
+   puerto" en vez de un rojo de alerta. */
+.es-resumen-done {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--es-wa);
+  border-radius: var(--es-radius);
+  background: rgba(37, 211, 102, 0.08);
+}
+.es-resumen-done-title { font-weight: 700; color: var(--es-blanco); font-size: 15px; }
+.es-resumen-done-text { font-size: 13px; line-height: 1.5; color: var(--es-plata); }
+/* .es-resumen-done es flex column: sin esto el link de variante "outline" se
+   estira a 100% de ancho (align-items:stretch, el default). Clase propia en
+   vez de anidar el selector de esa variante bajo .es-resumen-done: el
+   escáner de css-classes.test.js busca la SUBCADENA de esa variante seguida
+   de una llave, no un selector real — un anidado la habría hecho "encontrar"
+   la definición aquí, antes de llegar al bloque que sí declara su color. */
+.es-resumen-done-link { align-self: flex-start; }
+
 /* ═══ Incremento 8 ════════════════════════════════════════════════════════
    Los dos agentes que construyeron los paneles se interrumpieron justo antes
    de añadir su CSS, así que estas reglas completan lo que faltaba siguiendo
@@ -738,6 +933,30 @@ a { color: inherit; }
 
 .es-logo-hint { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--es-plata-dim); }
 
+/* ---- Subir logo, superpuesto al canvas (estudio/ui/canvas-dropzone.js) ----
+   #es-view-pill-mount y #es-canvas-dropzone-mount se sacan del flujo del
+   flex de .es-stage-wrap por completo (position:absolute + inset:0): así no
+   suman su propio `gap` entre #es-stage y #es-logo-toolbar-mount aunque
+   estén vacíos antes de que React monte. El toolbar (más abajo) SÍ queda en
+   flujo normal a propósito — "flotante" es de estilo, no de posición. */
+#es-view-pill-mount,
+#es-canvas-dropzone-mount {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.es-canvas-dropzone-wrap { position: relative; width: 100%; height: 100%; }
+
+.es-canvas-dropzone {
+  position: absolute;
+  inset: 16px;
+  min-height: 0;
+  pointer-events: auto;
+}
+
+.es-canvas-dropzone-error { margin-top: 4px; }
+
 /* Aviso de "sin transparencia": es AVISO y no error a propósito. El §6 del
    spec decidió no remover fondos automáticamente y apoyarse en el soporte
    humano que el sitio ya ofrece, así que bloquear aquí sería cortar una venta
@@ -771,7 +990,6 @@ a { color: inherit; }
 }
 .es-logo-card-meta { display: block; font-size: 12px; color: var(--es-plata-dim); margin-top: 2px; }
 
-.es-logo-controls { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
 .es-logo-range-row { display: flex; flex-direction: column; gap: 6px; }
 .es-logo-range-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .es-logo-range-value { font-variant-numeric: tabular-nums; color: var(--es-plata); font-size: 13px; }
@@ -851,7 +1069,60 @@ a { color: inherit; }
    campo de texto y no como una acción. */
 .es-logo-range-row .es-btn-sm { flex: 0 0 auto; width: auto; }
 .es-logo-range-row { display: flex; align-items: center; gap: 10px; }
-.es-logo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* ---- Toolbar flotante del logo (estudio/ui/logo-toolbar.js) ----
+   En flujo normal debajo del canvas (no position:absolute) — "flotante" es
+   de estilo: fondo semitransparente, borde, sombra. Grupos separados por una
+   línea vertical, como el mockup de referencia; envuelve en varias líneas
+   (flex-wrap) en vez de scroll horizontal, más accesible con zoom/teclado. */
+.es-logo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: var(--es-radius);
+  border: 1px solid rgba(184, 184, 184, 0.15);
+  background: rgba(24, 24, 24, 0.92);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.es-lt-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 6px 14px;
+}
+.es-lt-group + .es-lt-group { border-left: 1px solid rgba(184, 184, 184, 0.15); }
+
+.es-lt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(184, 184, 184, 0.25);
+  border-radius: var(--es-radius);
+  background: transparent;
+  color: var(--es-plata);
+  font-family: var(--es-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background-color .15s;
+}
+.es-lt-btn:hover:not(:disabled) { border-color: var(--es-plata-dim); color: var(--es-blanco); }
+.es-lt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.es-lt-btn:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
+
+/* Escala/Rotación reusan .es-field/.es-logo-range-*: mismo componente
+   RangeField de antes, sólo que ahora vive en el flujo horizontal de la
+   toolbar. Ancho fijo para que el grupo no se estire más de la cuenta, y
+   slider+botón de reinicio en fila (no columna, como en el sidebar
+   angosto) — hay espacio de sobra en un grupo horizontal. */
+.es-lt-field { width: 200px; }
+.es-lt-field .es-logo-range-row { flex-direction: row; }
 
 /* ── Huecos de tallas y resumen ── */
 .es-tallas-general-errors { margin: 10px 0 0; padding: 0; list-style: none; }

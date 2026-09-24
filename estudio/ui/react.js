@@ -25,6 +25,12 @@ if (typeof window.React === 'undefined' || typeof window.ReactDOM === 'undefined
 export const React = window.React;
 export const ReactDOM = window.ReactDOM;
 
+// Portales: dejan montar una pieza de UI en un nodo del DOM que no es hijo de
+// #es-controls (p.ej. sobre el canvas, o en el header) sin mover quién es
+// dueño del estado — el componente sigue viviendo en el árbol de React de
+// siempre, solo cambia DÓNDE se pinta su DOM.
+export const createPortal = ReactDOM.createPortal;
+
 /** Alias corto de createElement. `h('div', {className:'x'}, hijo)` */
 export const h = React.createElement;
 
