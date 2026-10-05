@@ -3,7 +3,7 @@
 // Componente controlado: no hace fetch. Etapa A no muestra precios: el pedido
 // llega por WhatsApp y se cotiza a mano con lo que el cliente armó.
 
-import { h } from './react.js';
+import { h, Fragment } from './react.js';
 import { breakdownToLabel } from '../lib/sizes.js';
 
 // Mismo patrón que EMAIL_RE en api/_lib/validation.js#isEmail, duplicado a
@@ -37,6 +37,7 @@ export function PanelResumen({
   onSubmit,
   canSubmit,
   submitting,
+  submitted,
 }) {
   const name = customer?.name ?? '';
   const email = customer?.email ?? '';
@@ -49,12 +50,30 @@ export function PanelResumen({
       ])
     : null;
 
-  return h('section', { className: 'es-panel es-panel-resumen' }, [
-    h('h2', { className: 'es-field-label', key: 'heading' }, 'Resumen y contacto'),
-    h(SummaryBody, { summary, key: 'summary' }),
-    errorArea,
-
-    h('div', { className: 'es-resumen-contact', key: 'contact' }, [
+  // Tras un envío exitoso, `onSubmit` ya abrió WhatsApp en otra pestaña —
+  // esta sigue con el formulario intacto y habilitado si no se reemplaza
+  // por algo, así que un cliente que vuelve a ella puede parecer que "no
+  // pasó nada" y tocar enviar otra vez. El folio + liga a /estudio/pedido/
+  // (la misma que ya viaja en el mensaje de WhatsApp, generada en
+  // studio-app.js#onSubmit) le confirman que sí se guardó, sin inventar
+  // ningún dato nuevo — short_code y public_token ya vienen de la
+  // respuesta de /api/submit-quote.
+  const formOrDone = submitted
+    ? h('div', { className: 'es-resumen-done', role: 'status', key: 'done' }, [
+        h('p', { className: 'es-resumen-done-title', key: 'title' },
+          `Pedido enviado — folio ${submitted.short_code}`),
+        h('p', { className: 'es-resumen-done-text', key: 'text' },
+          'Seguimos la conversación por WhatsApp. Si cerraste esa pestaña, aquí puedes ver tu diseño y el estado de tu pedido:'),
+        h('a', {
+          key: 'link',
+          className: 'es-btn es-btn-outline es-resumen-done-link',
+          href: `/estudio/pedido/?t=${submitted.public_token}`,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, 'Ver mi pedido'),
+      ])
+    : h(Fragment, null,
+        h('div', { className: 'es-resumen-contact', key: 'contact' }, [
       h('div', { className: 'es-field', key: 'name' }, [
         h('label', { className: 'es-label-sm', htmlFor: 'es-customer-name', key: 'label' }, 'Nombre *'),
         h('input', {
@@ -107,7 +126,6 @@ export function PanelResumen({
         }),
       ]),
     ]),
-
     h(
       'button',
       {
@@ -119,5 +137,12 @@ export function PanelResumen({
       },
       submitting ? 'Enviando…' : 'Enviar pedido por WhatsApp',
     ),
+      );
+
+  return h('section', { className: 'es-panel es-panel-resumen' }, [
+    h('h2', { className: 'es-panel-title', key: 'heading' }, 'Resumen y contacto'),
+    h(SummaryBody, { summary, key: 'summary' }),
+    errorArea,
+    formOrDone,
   ]);
 }

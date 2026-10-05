@@ -52,6 +52,9 @@
         GRAFIK
       </a>
       <p class="es-context">Configurador — vista previa de tu logo sobre la prenda</p>
+      <!-- Punto de montaje del indicador de pasos (estudio/ui/step-indicator.js),
+           vía createPortal desde studio-app.js. Vacío hasta que React monta. -->
+      <div id="es-steps-mount"></div>
     </header>
 
     <!-- Skeleton: visible mientras carga el catálogo (data-state="loading"). -->
@@ -84,6 +87,14 @@
       <div class="es-stage-wrap">
         <!-- Contenedor que recibe createStudioStage({container: this, ...}). -->
         <div id="es-stage" class="es-stage" role="img" aria-label="Vista previa de la prenda con tu logo"></div>
+
+        <!-- Puntos de montaje de UI que se superpone o vive junto al canvas
+             (view-pill.js, canvas-dropzone.js, logo-toolbar.js), todos vía
+             createPortal desde studio-app.js. Hermanos de #es-stage, nunca
+             hijos: Konva es dueño exclusivo del contenido de #es-stage. -->
+        <div id="es-view-pill-mount"></div>
+        <div id="es-canvas-dropzone-mount"></div>
+        <div id="es-logo-toolbar-mount"></div>
       </div>
 
       <aside class="es-controls">
