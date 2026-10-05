@@ -10,28 +10,20 @@ import { fileURLToPath } from 'node:url';
 
 const LOGO_PNG = fileURLToPath(new URL('../fixtures/logo-transparente.png', import.meta.url));
 
-/** Respuesta de /api/quote coherente con el seed: playera DTF, 12 piezas. */
-const QUOTE_12 = {
-  currency: 'MXN',
-  total_cents: 180000,
-  is_placeholder: true,
-  items: [{
-    index: 0, garment_slug: 'playera', qty: 12,
-    unit_price_cents: 15000, subtotal_cents: 180000,
-    size_surcharge_cents: 0, total_cents: 180000,
-    lines: [{ label: 'Subtotal', qty: 12, unit_cents: 15000, amount_cents: 180000 }],
-  }],
-};
+/** Etapa A no cotiza: espera a que el total de piezas deje de ser 0. */
+const hayPiezas = (page) =>
+  page.waitForFunction(
+    () => document.querySelector('.es-tallas-total span:last-child')?.textContent !== '0',
+    null, { timeout: 10000 },
+  );
 
-async function abrir(page, { quote = QUOTE_12 } = {}) {
+async function abrir(page) {
   const errors = [];
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
 
   await page.route('**/api/catalog', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
-  await page.route('**/api/quote', (r) =>
-    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(quote) }));
 
   await page.goto('/estudio/?debug=1');
   await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
@@ -117,7 +109,7 @@ test.describe('flujo del configurador', () => {
     ).toBe(true);
   });
 
-  test('F5. capturar tallas pide el precio AL SERVIDOR y lo muestra', async ({ page }) => {
+  test('F5. capturar tallas NO pide ni muestra precios', async ({ page }) => {
     let pedidos = 0;
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -125,53 +117,39 @@ test.describe('flujo del configurador', () => {
 
     await page.route('**/api/catalog', (r) =>
       r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
-    await page.route('**/api/quote', async (r) => {
-      pedidos += 1;
-      const body = JSON.parse(r.request().postData() ?? '{}');
-      // El cliente NUNCA manda precios: sólo qué, con qué técnica y cuántas.
-      expect(JSON.stringify(body)).not.toMatch(/cents|price|total/i);
-      await r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(QUOTE_12) });
-    });
+    await page.route('**/api/quote', async (r) => { pedidos += 1; await r.abort(); });
 
     await page.goto('/estudio/?debug=1');
     await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
 
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.waitForTimeout(600); // más que el debounce de tallas
 
-    expect(pedidos).toBeGreaterThan(0);
-    // $1,800.00 — formateado por formatCentsMXN, no a mano en el componente.
-    await expect(page.getByText('$1,800.00').first()).toBeVisible();
-    // Y el aviso de que son precios de referencia, porque is_placeholder=true.
-    await expect(page.getByText(/referencia/i).first()).toBeVisible();
+    expect(pedidos).toBe(0);
+    const resumen = await page.locator('.es-panel-resumen').innerText();
+    expect(resumen).not.toMatch(/\$|precio|total|cotizando|referencia/i);
+    expect(resumen).toContain('12 pzas');
     expect(errors, `errores en consola: ${errors.join(' | ')}`).toEqual([]);
   });
 
   test('F6. las cantidades en string no se concatenan', async ({ page }) => {
-    // El input del DOM entrega strings. Antes se concatenaban y un pedido de
-    // 12 piezas se cotizaba como 57, cobrando casi 4x de más. Este caso
-    // comprueba que el camino real desde la UI produce el total correcto.
-    let visto = null;
-    await page.route('**/api/catalog', (r) =>
-      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
-    await page.route('**/api/quote', async (r) => {
-      visto = JSON.parse(r.request().postData() ?? '{}');
-      await r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(QUOTE_12) });
-    });
-
-    await page.goto('/estudio/?debug=1');
-    await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
-
+    // El input del DOM entrega strings. Antes se concatenaban y 5 + 7 salía 57.
+    await abrir(page);
     await page.evaluate(() => {
       window.__studioBridge.setSize('M', '5');
       window.__studioBridge.setSize('L', '7');
     });
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await expect(page.locator('.es-tallas-total span:last-child')).toHaveText('12'); // no 57
+  });
 
-    const bd = visto.items[0].size_breakdown;
-    expect(bd.M).toBe(5);
-    expect(bd.L).toBe(7);
-    expect(Object.values(bd).reduce((a, b) => a + b, 0)).toBe(12); // no 57
+  test('F6b. sin mínimo: una sola pieza es válida', async ({ page }) => {
+    await abrir(page);
+    await page.evaluate(() => window.__studioBridge.setSize('M', '1'));
+    await hayPiezas(page);
+    await expect(page.locator('.es-tallas-total span:last-child')).toHaveText('1');
+    await expect(page.locator('.es-tallas-errors')).toHaveCount(0);
   });
 
   // ── Hallazgos de la puerta de revisión del incremento 8 ──────────────────
@@ -182,7 +160,7 @@ test.describe('flujo del configurador', () => {
     // volumen eso termina en la cantidad equivocada y nadie se entera.
     await abrir(page);
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
 
     await page.evaluate(() => window.__studioBridge.setSize('M', '1,000'));
 
@@ -199,10 +177,12 @@ test.describe('flujo del configurador', () => {
     // salido con el logo sin colocar.
     await abrir(page);
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('cliente@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('55 1234 5678');
 
-    // Con cotización y correo pero SIN logo, el botón sigue bloqueado.
+    // Con contacto completo pero SIN logo, el botón sigue bloqueado.
     await expect(page.locator('.es-resumen-submit')).toBeDisabled();
 
     await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
@@ -216,9 +196,6 @@ test.describe('flujo del configurador', () => {
 
     await page.route('**/api/catalog', (r) =>
       r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
-    await page.route('**/api/quote', (r) =>
-      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(QUOTE_12) }));
-
     await page.route('**/api/upload-url', async (r) => {
       const b = JSON.parse(r.request().postData() ?? '{}');
       subidas.push(b);
@@ -241,7 +218,6 @@ test.describe('flujo del configurador', () => {
         body: JSON.stringify({
           short_code: 'GK-7A3F1C',
           public_token: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
-          total_cents: 180000, currency: 'MXN', is_placeholder: true,
         }),
       });
     });
@@ -258,9 +234,10 @@ test.describe('flujo del configurador', () => {
     await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
     await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
     await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('55 1234 5678');
 
     await page.locator('.es-resumen-submit').click();
     await page.waitForFunction(() => window.__abierto !== null, null, { timeout: 15000 });
@@ -268,7 +245,7 @@ test.describe('flujo del configurador', () => {
     // Se subieron los dos binarios, y ninguno cruzó api/*.
     expect(subidas.map((u) => u.kind).sort()).toEqual(['logo', 'preview']);
 
-    // El cuerpo del pedido NO lleva precios: el servidor re-cotiza.
+    // El cuerpo del pedido NO lleva precios: Etapa A no cotiza.
     expect(JSON.stringify(cuerpoPedido)).not.toMatch(/cents|unit_price|total/i);
 
     // Y todas las rutas pertenecen al MISMO borrador. Sin esto, un cliente
@@ -287,7 +264,10 @@ test.describe('flujo del configurador', () => {
     const texto = decodeURIComponent(url.split('text=')[1]);
     expect(texto).toContain('GK-7A3F1C');
     expect(texto).toContain('/estudio/pedido/?t=9b1deb4d');
-    expect(texto).toContain('$1,800.00');
+    expect(texto).toContain('Ana Ruiz');
+    expect(texto).toContain('ana@ejemplo.mx');
+    expect(texto).toContain('55 1234 5678');
+    expect(texto).not.toMatch(/\$|total|precio/i);
   });
 
   test('F10. la guía del área imprimible se adapta al color de la prenda', async ({ page }) => {

@@ -526,58 +526,16 @@ a { color: inherit; }
   color: var(--es-plata);
 }
 
-/* Aviso de precios de referencia — discreto pero legible, nunca se calla:
-   ver PanelResumen y el encargo (is_placeholder). */
-.es-resumen-placeholder {
-  padding: 8px 10px;
-  border: 1px dashed rgba(184, 184, 184, 0.3);
-  border-radius: var(--es-radius);
-  font-size: 12.5px;
-  color: var(--es-plata);
-}
-
-.es-resumen-items {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.es-resumen-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(184, 184, 184, 0.1);
-}
-
-.es-resumen-item:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.es-resumen-item-heading {
-  font-weight: 600;
+/* Resumen sin precios (Etapa A): lista prenda/color/técnica/tallas. */
+.es-resumen-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 0;
   font-size: 14px;
-  text-transform: capitalize;
 }
-
-.es-resumen-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: var(--es-plata);
-}
-
-.es-resumen-line-value { color: var(--es-blanco); }
-
-.es-resumen-total {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid rgba(184, 184, 184, 0.15);
-  font-size: 18px;
-  font-weight: 700;
-}
+.es-resumen-summary-label { color: var(--es-plata); }
+.es-resumen-summary-value { margin: 0; color: var(--es-blanco); }
 
 .es-resumen-contact {
   display: flex;
@@ -855,8 +813,6 @@ a { color: inherit; }
 
 /* ── Huecos de tallas y resumen ── */
 .es-tallas-general-errors { margin: 10px 0 0; padding: 0; list-style: none; }
-.es-resumen-quote { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--es-carbon-hi); }
-.es-resumen-line-label { color: var(--es-plata); }
 
 /* ── Página de pedido (estudio/pedido/) ───────────────────────────────────
    Vista de sólo lectura que se abre desde la liga del mensaje de WhatsApp.

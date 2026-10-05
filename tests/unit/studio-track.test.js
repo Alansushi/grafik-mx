@@ -42,9 +42,9 @@ describe('estudio/ui/track.js', () => {
   });
 
   it('5. la clave por defecto es el nombre; con clave explícita, cada una emite su vez', () => {
-    trackOnce('studio_error', { where: 'quote', code: 'BELOW_MIN' }, 'quote:BELOW_MIN');
-    trackOnce('studio_error', { where: 'quote', code: 'BELOW_MIN' }, 'quote:BELOW_MIN');
-    trackOnce('studio_error', { where: 'quote', code: 'ABOVE_MAX' }, 'quote:ABOVE_MAX');
+    trackOnce('studio_error', { where: 'submit', code: 'BELOW_MIN' }, 'submit:BELOW_MIN');
+    trackOnce('studio_error', { where: 'submit', code: 'BELOW_MIN' }, 'submit:BELOW_MIN');
+    trackOnce('studio_error', { where: 'submit', code: 'ABOVE_MAX' }, 'submit:ABOVE_MAX');
     expect(espia).toHaveBeenCalledTimes(2);
   });
 

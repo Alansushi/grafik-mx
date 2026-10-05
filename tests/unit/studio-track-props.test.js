@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { logoFormat, safeCode, quoteErrorCode, trackedQty, MAX_TRACKED_QTY, rejectedKind, REJECTED_KINDS } from '../../estudio/lib/track-props.js';
+import { logoFormat, safeCode, trackedQty, MAX_TRACKED_QTY, rejectedKind, REJECTED_KINDS } from '../../estudio/lib/track-props.js';
 
 // Ayudantes puros que convierten lo que hay en el estudio (un File, un Error, la
-// respuesta de /api/quote) en los valores CERRADOS que acepta el servidor de
+// respuesta de un fallo) en los valores CERRADOS que acepta el servidor de
 // analítica. Existen para que un dato raro no cueste el evento entero, y para
 // que jamás salga de aquí algo que el usuario escribió o nombró.
 
@@ -54,22 +54,6 @@ describe('track-props.js — safeCode', () => {
   it('7. lo demás cae al valor de respaldo: DOMException.code numérico, minúsculas, mensajes, textos largos', () => {
     for (const malo of [8, 0, 'boom', 'Network error', 'a'.repeat(50), 'A'.repeat(41), '', null, undefined, {}, 'BAD CODE']) {
       expect(safeCode(malo, 'UNKNOWN')).toBe('UNKNOWN');
-    }
-  });
-});
-
-describe('track-props.js — quoteErrorCode', () => {
-  it('8. prefiere el código accionable del primer detalle (BELOW_MIN) al genérico', () => {
-    expect(quoteErrorCode({ error: 'INVALID_BREAKDOWN', details: [{ code: 'BELOW_MIN' }] })).toBe('BELOW_MIN');
-  });
-
-  it('9. sin detalles usa el código del error', () => {
-    expect(quoteErrorCode({ error: 'PRICING_RULE_NOT_FOUND' })).toBe('PRICING_RULE_NOT_FOUND');
-  });
-
-  it('10. respuesta inservible → UNKNOWN, nunca lanza', () => {
-    for (const d of [null, undefined, {}, { error: 'raro' }, { details: [] }, { details: [{}] }, 'texto']) {
-      expect(quoteErrorCode(d)).toBe('UNKNOWN');
     }
   });
 });

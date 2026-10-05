@@ -40,7 +40,7 @@ export const SECTIONS = [
  * Dónde falló algo en el configurador (`studio_error`) y qué degradación llevó al
  * cliente a escribir por WhatsApp en vez de seguir (`studio_fallback`).
  */
-export const STUDIO_ERROR_WHERE = ['catalog', 'konva', 'stage', 'logo', 'quote', 'submit'];
+export const STUDIO_ERROR_WHERE = ['catalog', 'konva', 'stage', 'logo', 'submit'];
 export const STUDIO_FALLBACK_WHERE = ['konva', 'catalog', 'stage'];
 
 const DEVICES = ['mobile', 'tablet', 'desktop'];
@@ -104,7 +104,6 @@ const EVENTS = {
   // cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
   studio_logo_rejected: { fields: { reason: enumOf(['type', 'size']), ext: enumOf(REJECTED_KINDS) }, required: ['reason'] },
   studio_sizes: { fields: { qty: QTY }, required: ['qty'] },
-  studio_quote: { fields: { qty: QTY }, required: ['qty'] },
   studio_lowres: { fields: { level: enumOf(['warn', 'fail']), dpi: int(1, 2000) }, required: ['level'] },
   // `short_code` (folio GK-XXXXXX) es "sólo para mostrar, nunca sirve como
   // credencial" (spec §7.8): une este evento con su fila de `orders`.

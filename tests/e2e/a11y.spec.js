@@ -27,18 +27,6 @@ const LOGO_PNG = fileURLToPath(new URL('../fixtures/logo-transparente.png', impo
 // ya resueltos y se pasan por contrastRatio() de estudio/lib/color.js, que es
 // la fórmula del W3C y ya está probada en tests/unit/color.test.js.
 
-const QUOTE_12 = {
-  currency: 'MXN',
-  total_cents: 180000,
-  is_placeholder: true,
-  items: [{
-    index: 0, garment_slug: 'playera', qty: 12,
-    unit_price_cents: 15000, subtotal_cents: 180000,
-    size_surcharge_cents: 0, total_cents: 180000,
-    lines: [{ label: 'Subtotal', qty: 12, unit_cents: 15000, amount_cents: 180000 }],
-  }],
-};
-
 const PEDIDO_FIXTURE = {
   short_code: 'GK-4F2A9C',
   status: 'quoted',
@@ -216,8 +204,6 @@ function fallosDeContraste(textos) {
 async function montarEstudio(page) {
   await page.route('**/api/catalog', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
-  await page.route('**/api/quote', (r) =>
-    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(QUOTE_12) }));
 
   await page.goto('/estudio/?debug=1');
   await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
@@ -231,21 +217,23 @@ test.describe('accesibilidad del configurador', () => {
     // no se pinta no se audita. Hay que llevar la pantalla a su estado completo
     // antes de recolectar:
     //
-    //   · Sin tallas no hay cotización, y el aviso de "precios de referencia"
-    //     vive dentro del resumen — justo donde el cliente lee el PRECIO.
+    //   · Sin tallas el resumen dice "Aún sin piezas"; con tallas pinta el desglose.
     //   · Sin logo no existen la tarjeta del archivo, los controles de escala
     //     ni el aviso de resolución de impresión.
     await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
     await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await page.waitForFunction(
+      () => document.querySelector('.es-tallas-total span:last-child')?.textContent !== '0',
+      null, { timeout: 10000 },
+    );
 
     const { textos } = await page.evaluate(RECOLECTOR);
     expect(textos.length, 'no se recolectó ningún texto: el recolector está roto').toBeGreaterThan(15);
 
     // Guardia explícita: si un cambio deja de pintar estos bloques, el test
     // seguiría en verde auditando una pantalla a medias.
-    for (const marca of ['es-print-quality', 'es-resumen-placeholder', 'es-logo-card-meta']) {
+    for (const marca of ['es-print-quality', 'es-resumen-summary', 'es-logo-card-meta']) {
       expect(
         textos.some((t) => t.etiqueta.includes(marca)),
         `.${marca} no llegó al recolector: la pantalla no está en su estado completo`,
@@ -280,7 +268,10 @@ test.describe('accesibilidad del configurador', () => {
     await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
     await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await page.waitForFunction(
+      () => document.querySelector('.es-tallas-total span:last-child')?.textContent !== '0',
+      null, { timeout: 10000 },
+    );
 
     const { tactiles } = await page.evaluate(RECOLECTOR);
     expect(tactiles.length, 'no se recolectó ningún control').toBeGreaterThan(5);
