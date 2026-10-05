@@ -1085,11 +1085,11 @@
 .cp-ph picture { display: block; width: 100%; height: 100%; }
 .cp-ph img { width: 100%; height: 100%; object-fit: cover; }
 .cp-ph--main   { left: 0; top: 6%; width: 66%; aspect-ratio: 3 / 2; --r: -1.5deg; z-index: 2; }
-.cp-ph--main img { object-position: 50% 62%; }
-.cp-ph--poster { right: 0; top: 0; width: 30%; aspect-ratio: 9 / 16; --r: 2.5deg; z-index: 3; animation-delay: -2s; }
-.cp-ph--poster img { object-position: 50% 30%; }
+.cp-ph--main img { object-position: 50% 50%; }
+.cp-ph--poster { right: 0; top: 0; width: 31%; aspect-ratio: 3 / 4; --r: 2.5deg; z-index: 3; animation-delay: -2s; }
+.cp-ph--poster img { object-position: 50% 35%; }
 .cp-ph--brazal { left: 5%; bottom: 0; width: 40%; aspect-ratio: 4 / 3; --r: 1.5deg; z-index: 3; animation-delay: -4s; }
-.cp-ph--brazal img { object-position: 50% 35%; }
+.cp-ph--brazal img { object-position: 50% 14%; }
 .cp-ph--fan    { left: 48%; bottom: 0; width: 27%; aspect-ratio: 3 / 4; --r: -2deg; z-index: 4; animation-delay: -6s; }
 .cp-tag {
   position: absolute;
@@ -1433,10 +1433,10 @@
     transform: none; animation: none; scroll-snap-align: center;
   }
   .cp-ph--main   { order: 0; flex-basis: 88%; aspect-ratio: 4 / 3; }
-  .cp-ph--poster { order: 1; flex-basis: 56%; aspect-ratio: 9 / 14; }
+  .cp-ph--poster { order: 1; flex-basis: 62%; aspect-ratio: 4 / 5; }
   .cp-ph--brazal { order: 2; flex-basis: 76%; aspect-ratio: 4 / 3; }
   .cp-ph--fan    { order: 3; flex-basis: 56%; aspect-ratio: 3 / 4; }
-  .cp-hero-label { left: var(--gut); top: 6px; }
+  .cp-hero-label { left: var(--gut); top: 6px; font-size: 9.5px; letter-spacing: 0.1em; white-space: nowrap; }
   .cp-trust-grid { grid-template-columns: 1fr; }
   .cp-intent-grid { grid-template-columns: 1fr; }
   .cp-intent { aspect-ratio: 16 / 11; }

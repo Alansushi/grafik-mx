@@ -288,8 +288,8 @@
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
-  <!-- LCP del hero: la foto dominante (boletos VIP). React/Babel la pintan tarde, así que se precarga. -->
-  <link rel="preload" href="/assets/hero/boletos-vip-holo.avif" as="image" type="image/avif" fetchpriority="high">
+  <!-- LCP del hero: la foto dominante (pulseras Tyvek). React/Babel la pintan tarde, así que se precarga. -->
+  <link rel="preload" href="/assets/hero/brazaletes-morelos.avif" as="image" type="image/avif" fetchpriority="high">
 </head>
 <body>
   <div id="root">
@@ -509,10 +509,10 @@
     /* ── Hero C+ (Proof First) ──────────────── */
     /* Las fotos del hero son variantes de 1000 px (AVIF + JPEG) de assets/hero/. */
     const HERO_PHOTOS = {
-      boletos: { base: "/assets/hero/boletos-vip-holo",              w: 1000, h: 1000, alt: "Boletos VIP con sello holográfico, folio y desprendible, recién cortados en guillotina" },
-      poster:  { base: "/assets/trabajos/thumb/poster-papantla",     w: 332,  h: 720,  alt: "Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" },
-      brazal:  { base: "/assets/trabajos/thumb/brazaletes-jaripeo-vip", w: 586, h: 720, alt: "Brazaletes Tyvek VIP con folio consecutivo y código QR para control de acceso" },
-      abanico: { base: "/assets/hero/abanico-flyers",                w: 750,  h: 1000, alt: "Abanico de flyers de rodeo baile y lucha libre impresos a todo color" },
+      main:   { base: "/assets/hero/brazaletes-morelos",           w: 990, h: 1000, alt: "Diez brazaletes Tyvek de colores con logotipos institucionales y folio consecutivo" },
+      figura: { base: "/assets/hero/figura-coroplast-just-married", w: 800, h: 1000, alt: "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
+      boletos:{ base: "/assets/hero/boletos-texmola",               w: 716, h: 1000, alt: "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo" },
+      zonas:  { base: "/assets/hero/brazaletes-toluca",             w: 562, h: 1000, alt: "Brazaletes Tyvek full color por zonas: Invitados, Prensa, Acceso total y Staff" },
     };
 
     const HeroPh = ({ k, cls, tag, eager }) => {
@@ -564,10 +564,10 @@
           </div>
           <div className="cp-hero-art">
             <div className="cp-hero-label"><span aria-hidden="true"></span>Trabajos reales · Producidos por GRAFIK</div>
-            <HeroPh k="boletos" cls="cp-ph--main"   tag="Holográfico" eager />
-            <HeroPh k="poster"  cls="cp-ph--poster" tag="Gran formato" />
-            <HeroPh k="brazal"  cls="cp-ph--brazal" tag="Numerado" />
-            <HeroPh k="abanico" cls="cp-ph--fan"    tag="Full color" />
+            <HeroPh k="main"    cls="cp-ph--main"   tag="Tyvek full color" eager />
+            <HeroPh k="figura"  cls="cp-ph--poster" tag="Coroplast" />
+            <HeroPh k="boletos" cls="cp-ph--brazal" tag="Holográfico" />
+            <HeroPh k="zonas"   cls="cp-ph--fan"    tag="Por zonas" />
           </div>
         </div>
       </section>
