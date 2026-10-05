@@ -479,4 +479,29 @@ test.describe('flujo del configurador', () => {
     await page.keyboard.press('Delete');
     expect(await touchAction()).toBe('auto');
   });
+
+  test('F18. encoger con una esquina no baja del piso del slider', async ({ page }) => {
+    await conLogo(page);
+    // La esquina opuesta queda fija: para encoger de verdad hay que llevar la
+    // inferior derecha hacia la superior izquierda, y un poco más allá.
+    const esquinas = await page.evaluate(() => {
+      const tr = Konva.stages[0].find('Transformer')[0];
+      const pos = (n) => { const p = tr.findOne('.' + n).getAbsolutePosition(); return { x: p.x, y: p.y }; };
+      return { br: pos('bottom-right'), tl: pos('top-left') };
+    });
+    const t0 = await page.evaluate(() => window.__studio.stage.getTransform());
+    const ini = await aPantalla(page, esquinas.br.x, esquinas.br.y);
+    const fin = await aPantalla(page, esquinas.tl.x + 10, esquinas.tl.y + 10);
+    await page.mouse.move(ini.x, ini.y);
+    await page.mouse.down();
+    await page.mouse.move(fin.x, fin.y, { steps: 16 });
+    await page.mouse.up();
+
+    const { t, fit } = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      fit: window.__studio.stage.getFitScale(),
+    }));
+    expect(t.scaleX).toBeLessThan(t0.scaleX); // sí encogió
+    expect(t.scaleX).toBeGreaterThanOrEqual(0.2 * fit - 1e-6);
+  });
 });

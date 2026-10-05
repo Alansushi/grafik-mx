@@ -35,6 +35,7 @@ import {
   transformToRenderProps,
   fitTransformToArea,
   maxFitScaleFor,
+  minScaleFor,
 } from '../lib/geometry.js';
 import { paintGarment, paintFoldMap } from './garment-painter.js';
 import { assertNotTainted } from './image-loader.js';
@@ -290,8 +291,16 @@ export function createStudioStage(opts) {
     guideH.visible(false);
   }
 
+  // El Transformer deja encoger el logo hasta casi nada; el slider ya tiene
+  // piso (MIN_SCALE_FRACTION del techo), así que el gesto lo comparte.
   for (const ev of ['transform', 'transformend']) {
-    logoNode.on(ev, () => commit(readFromNode()));
+    logoNode.on(ev, () => {
+      const raw = readFromNode();
+      const piso = minScaleFor(raw, naturalSize, printArea);
+      raw.scaleX = Math.max(raw.scaleX, piso);
+      raw.scaleY = Math.max(raw.scaleY, piso);
+      commit(raw);
+    });
   }
 
   logoNode.on('dragmove', () => {
