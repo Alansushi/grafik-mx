@@ -4,15 +4,13 @@
 // lo manda por WhatsApp. En Etapa B, el botón de pagar lo moverá a
 // `pending_payment` sin tocar nada de este archivo.
 //
-// ── Dos reglas de seguridad que sostienen todo lo demás ──
+// Etapa A no cotiza: el pedido se guarda SIN precios, mínimos ni máximos y se
+// cotiza a mano por WhatsApp. pricing_rules y estudio/lib/pricing.js siguen
+// ahí para la Etapa B.
 //
-// 1. EL PRECIO SE RECALCULA AQUÍ. El body no trae ni puede traer cifras: sólo
-//    qué prenda, qué técnica y cuántas piezas por talla. El total sale de
-//    pricing_rules leído con service_role. Que el cliente no pueda siquiera
-//    EXPRESAR un precio es lo que hace imposible manipularlo — no una
-//    validación que alguien pueda olvidar más adelante.
+// ── Regla de seguridad que sostiene todo lo demás ──
 //
-// 2. LAS RUTAS DE STORAGE DEBEN PERTENECER AL PROPIO BORRADOR. upload-url emite
+// LAS RUTAS DE STORAGE DEBEN PERTENECER AL PROPIO BORRADOR. upload-url emite
 //    rutas con la forma `YYYY/MM/<draftId>/archivo`. Sin comprobar que el
 //    draftId de cada ruta coincide con el del cuerpo, un cliente podría mandar
 //    la ruta del logo de OTRO pedido y después leerlo con su propia liga de
@@ -25,7 +23,6 @@ import { buildPostgrestUrl, sbHeaders } from './_lib/supabase.js';
 import { logError } from './_lib/log.js';
 import { isUuid, isEmail, normalizeMxPhone, isMxPhone } from './_lib/validation.js';
 import { normalizeBreakdown, validateBreakdown, totalUnits } from '../estudio/lib/sizes.js';
-import { quoteCart } from '../estudio/lib/pricing.js';
 
 const MAX_ITEMS = 10;
 // Un pedido por WhatsApp no se manda diez veces seguidas. Limita el daño de un
@@ -63,7 +60,7 @@ export default async function handler(req, res) {
   if (!customer.name || String(customer.name).trim().length < 2) {
     return json(res, 400, { error: 'INVALID_NAME' });
   }
-  if (customer.phone && !isMxPhone(customer.phone)) {
+  if (!customer.phone || !isMxPhone(customer.phone)) {
     return json(res, 400, { error: 'INVALID_PHONE' });
   }
   if (!Array.isArray(items) || items.length === 0) return json(res, 400, { error: 'EMPTY_ITEMS' });
@@ -89,24 +86,19 @@ export default async function handler(req, res) {
     const permitido = await rateLimit(supabaseUrl, headers, `submit:${ip}`);
     if (!permitido) return json(res, 429, { error: 'RATE_LIMITED' });
 
-    // ── Re-cotización autoritativa ─────────────────────────────────────────
+    // ── Validación contra el catálogo ──────────────────────────────────────
     const garmentIds = [...new Set(items.map((i) => i.garment_type_id))];
-    const [garments, variants, rules] = await Promise.all([
+    const [garments, variants] = await Promise.all([
       sbGet(supabaseUrl, headers, 'garment_types', {
-        select: 'id,slug,name,allowed_sizes,min_qty,max_qty,is_active',
+        select: 'id,slug,name,allowed_sizes,is_active',
         in: { id: garmentIds },
       }),
       sbGet(supabaseUrl, headers, 'garment_variants', {
         select: 'id,garment_type_id,color_hex,color_name',
         in: { garment_type_id: garmentIds },
       }),
-      sbGet(supabaseUrl, headers, 'pricing_rules', {
-        select: 'id,garment_type_id,technique_id,tiers,technique_surcharge_cents,size_surcharges_cents,currency,is_placeholder',
-        in: { garment_type_id: garmentIds },
-      }),
     ]);
 
-    const quoteInputs = [];
     const preparados = [];
 
     for (const [index, it] of items.entries()) {
@@ -120,11 +112,6 @@ export default async function handler(req, res) {
       );
       if (!variant) return json(res, 404, { error: 'VARIANT_NOT_FOUND', index });
 
-      const rule = rules.find(
-        (r) => r.garment_type_id === it.garment_type_id && r.technique_id === it.technique_id,
-      );
-      if (!rule) return json(res, 404, { error: 'PRICING_RULE_NOT_FOUND', index });
-
       let breakdown;
       try {
         breakdown = normalizeBreakdown(it.size_breakdown ?? {});
@@ -132,27 +119,17 @@ export default async function handler(req, res) {
         return json(res, 400, { error: err.code ?? 'INVALID_BREAKDOWN', index });
       }
 
-      const check = validateBreakdown(breakdown, {
-        allowedSizes: garment.allowed_sizes,
-        minTotal: garment.min_qty,
-        maxTotal: garment.max_qty,
-      });
-      if (!check.valid) {
-        return json(res, 400, { error: 'INVALID_BREAKDOWN', index, details: check.errors });
+      // Sin mínimo ni máximo: sólo tallas válidas y al menos una pieza.
+      const check = validateBreakdown(breakdown, { allowedSizes: garment.allowed_sizes });
+      if (!check.valid || check.total < 1) {
+        return json(res, 400, {
+          error: 'INVALID_BREAKDOWN', index,
+          details: check.valid ? [{ code: 'EMPTY' }] : check.errors,
+        });
       }
 
-      quoteInputs.push({ rule, breakdown });
       preparados.push({ index, item: it, garment, variant, breakdown });
     }
-
-    const cart = quoteCart(quoteInputs);
-
-    // Nota: NO se llama assertChargeable. Es deliberado — en Etapa A no se
-    // cobra, así que un precio placeholder sí puede cotizarse y enviarse por
-    // WhatsApp. El candado entra en Etapa B, en /api/checkout, que es donde
-    // hay dinero de por medio. Lo que sí se hace es dejar constancia en la fila
-    // (priced_with_placeholder) para que nadie confunda después una cifra de
-    // referencia con una confirmada.
 
     // ── Persistencia ───────────────────────────────────────────────────────
     const customerId = await upsertCustomer(supabaseUrl, headers, customer);
@@ -160,9 +137,7 @@ export default async function handler(req, res) {
     const [order] = await sbInsert(supabaseUrl, headers, 'orders', [{
       customer_id: customerId,
       status: 'quoted',
-      currency: cart.currency,
-      total_cents: cart.total_cents,
-      priced_with_placeholder: cart.is_placeholder,
+      total_cents: null,
     }], 'id,short_code,public_token');
 
     const filas = preparados.map(({ index, item, garment, variant, breakdown }) => ({
@@ -176,11 +151,9 @@ export default async function handler(req, res) {
       logo_object_path: item.logo_path,
       preview_object_path: item.preview_path,
       logo_transform: item.logo_transform,
-      unit_price_cents: cart.items[index].unit_price_cents,
-      subtotal_cents: cart.items[index].subtotal_cents,
-      // El Quote entero congelado: si mañana cambian las pricing_rules, este
-      // pedido conserva con qué precio se cerró.
-      pricing_snapshot: cart.items[index],
+      unit_price_cents: null,
+      subtotal_cents: null,
+      pricing_snapshot: null,
     }));
 
     try {
@@ -197,9 +170,6 @@ export default async function handler(req, res) {
     return json(res, 201, {
       short_code: order.short_code,
       public_token: order.public_token,
-      total_cents: cart.total_cents,
-      currency: cart.currency,
-      is_placeholder: cart.is_placeholder,
     });
   } catch (err) {
     logError('submit-quote', err, { ip });
@@ -222,7 +192,7 @@ async function upsertCustomer(baseUrl, headers, customer) {
   const [fila] = await sbInsert(baseUrl, headers, 'customers', [{
     email,
     name: String(customer.name).trim(),
-    phone: customer.phone ? normalizeMxPhone(customer.phone) : null,
+    phone: normalizeMxPhone(customer.phone),
   }], 'id');
   return fila.id;
 }

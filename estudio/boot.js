@@ -96,7 +96,6 @@ function maybeExposeDebugHook(catalog) {
     get garment() { return window.__studioBridge?.garment ?? null; },
     get colorHex() { return window.__studioBridge?.colorHex ?? null; },
     get transform() { return window.__studioBridge?.transform ?? null; },
-    get quote() { return window.__studioBridge?.quote ?? null; },
     get activeView() { return window.__studioBridge?.activeView ?? null; },
     get stageBusy() { return window.__studioBridge?.stageBusy ?? true; },
     setColor: (hex) => window.__studioBridge?.setColor(hex),

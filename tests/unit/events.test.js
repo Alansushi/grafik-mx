@@ -322,11 +322,10 @@ describe('events.js — Fase 3: embudo de /estudio/', () => {
     ['studio_logo', { format: 'svg', vector: true }],
     ['studio_placed', {}],
     ['studio_sizes', { qty: 12 }],
-    ['studio_quote', { qty: 12 }],
     ['studio_lowres', { level: 'warn', dpi: 118 }],
     ['studio_lowres', { level: 'fail' }],
     ['studio_submit', { short_code: 'GK-7A3F1C', qty: 12 }],
-    ['studio_error', { where: 'quote', code: 'BELOW_MIN' }],
+    ['studio_error', { where: 'submit', code: 'SUBMIT_FAILED' }],
     ['studio_error', { where: 'konva' }],
     ['studio_fallback', { where: 'catalog' }],
   ])('33. %s válido se guarda tal cual', (name, props) => {

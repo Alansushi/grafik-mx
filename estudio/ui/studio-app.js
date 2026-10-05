@@ -22,13 +22,12 @@ import { loadImageFromUrl, loadImageFromFile } from '../canvas/image-loader.js';
 import { normalizeBreakdown } from '../lib/sizes.js';
 import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
 import { breakdownToLabel } from '../lib/sizes.js';
-import { formatCentsMXN } from '../lib/format.js';
 import { track, trackOnce } from './track.js';
-import { logoFormat, rejectedKind, safeCode, quoteErrorCode, trackedQty } from '../lib/track-props.js';
+import { logoFormat, rejectedKind, safeCode, trackedQty } from '../lib/track-props.js';
 
 const PROCEDURAL_PREFIX = 'procedural:';
 const DEFAULT_CANVAS_SIZE = { width: 900, height: 900 };
-const QUOTE_DEBOUNCE_MS = 350;
+const SIZES_DEBOUNCE_MS = 350;
 
 export function StudioApp({ catalog, stageContainer }) {
   const garments = catalog.garments;
@@ -50,9 +49,6 @@ export function StudioApp({ catalog, stageContainer }) {
   const [breakdown, setBreakdown] = useState({});
   const [rawSizes, setRawSizes] = useState({});
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '' });
-  const [quote, setQuote] = useState(null);
-  const [quoting, setQuoting] = useState(false);
-  const [quoteError, setQuoteError] = useState(null);
   const [logoError, setLogoError] = useState(null);
   const [stageBusy, setStageBusy] = useState(true);
   // Si el stage no monta, la página se veía NORMAL: controles activos, canvas
@@ -225,67 +221,17 @@ export function StudioApp({ catalog, stageContainer }) {
     }
   }, [garment, colorHex]);
 
-  // ── Cotización: el precio SIEMPRE lo calcula el servidor ────────────────
+  // ── Tallas asentadas ────────────────────────────────────────────────────
   //
-  // Se reconsulta con debounce porque el usuario teclea cantidades y cada
-  // pulsación cambiaría el total. El precio nunca se calcula aquí ni aunque
-  // tuviéramos los tiers: pricing_rules no es legible con la anon key, y eso es
-  // deliberado.
+  // Etapa A no cotiza: sin precios, mínimos ni máximos. Se conserva el debounce
+  // sólo para que `studio_sizes` mida la cantidad ya asentada (no el "1" de
+  // escribir "12").
+  const piezas = Object.values(breakdown).reduce((s, n) => s + n, 0);
   useEffect(() => {
-    const qty = Object.values(breakdown).reduce((s, n) => s + n, 0);
-    if (qty === 0) {
-      // setQuoting(false) hace falta aquí: si el cliente borra las tallas
-      // mientras una cotización va en vuelo, su `finally` ve cancelled=true y
-      // se salta el apagado — y el panel se queda en "Cotizando…" para siempre.
-      setQuote(null); setQuoteError(null); setQuoting(false);
-      return;
-    }
-
-    let cancelled = false;
-    setQuoting(true);
-    const id = setTimeout(async () => {
-      // Pasado el debounce: la cantidad ya se asentó (no es el "1" de escribir "12").
-      trackOnce('studio_sizes', { qty: trackedQty(qty) });
-      try {
-        const res = await fetch('/api/quote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: [{
-              garment_type_id: garment.id,
-              technique_id: technique.id,
-              size_breakdown: breakdown,
-            }],
-          }),
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        if (!res.ok) {
-          setQuote(null);
-          setQuoteError({ code: data.error, message: mensajeDeCotizacion(data, garment) });
-          // Una vez por código: BELOW_MIN y ABOVE_MAX son señal de negocio (piden
-          // menos del mínimo o más del máximo), pero escribir no debe inundar.
-          const codigo = quoteErrorCode(data);
-          trackOnce('studio_error', { where: 'quote', code: codigo }, `error:quote:${codigo}`);
-        } else {
-          setQuote(data);
-          setQuoteError(null);
-          trackOnce('studio_quote', { qty: trackedQty(qty) });
-        }
-      } catch (err) {
-        if (!cancelled) {
-          console.error('[estudio] falló la cotización', err);
-          setQuote(null);
-          setQuoteError({ code: 'NETWORK', message: 'No pudimos calcular el precio. Revisa tu conexión e intenta de nuevo.' });
-          trackOnce('studio_error', { where: 'quote', code: 'NETWORK' }, 'error:quote:NETWORK');
-        }
-      } finally {
-        if (!cancelled) setQuoting(false);
-      }
-    }, QUOTE_DEBOUNCE_MS);
-
-    return () => { cancelled = true; clearTimeout(id); };
-  }, [breakdown, garment, technique]);
+    if (piezas === 0) return undefined;
+    const id = setTimeout(() => trackOnce('studio_sizes', { qty: trackedQty(piezas) }), SIZES_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [piezas]);
 
   // ── Logo ────────────────────────────────────────────────────────────────
   const onFile = useCallback(async (file) => {
@@ -473,10 +419,8 @@ export function StudioApp({ catalog, stageContainer }) {
       // normalizar, y una excepción de la medición justo aquí habría cortado el
       // flujo DESPUÉS de crear el pedido, sin abrir WhatsApp. Medir jamás puede
       // romper un pedido.
-      const piezas = Object.values(breakdown).reduce((suma, n) => suma + n, 0);
       track('studio_submit', { short_code: data.short_code, qty: trackedQty(piezas) });
-      // El mensaje se arma con los datos que DEVOLVIÓ el servidor (short_code y
-      // total), no con los del cliente: es la cifra que quedó guardada.
+      // El folio y el token salen de lo que DEVOLVIÓ el servidor, no del cliente.
       window.open(construirMensajeWhatsApp({
         data, garment, variant, technique, breakdown, customer,
       }), '_blank', 'noopener');
@@ -498,24 +442,23 @@ export function StudioApp({ catalog, stageContainer }) {
   // logo sin colocar. Es el mismo bug de "el logo queda donde no se imprime",
   // pero a nivel de pedido.
   const canSubmit = Boolean(
-    quote && !quoting && !quoteError
+    piezas > 0
     && logo && !logo.isEmpty && transform
     && !stageBusy && !stageError && stageRef.current
-    && customer.email.includes('@'),
+    && customer.name.trim().length >= 2
+    && customer.email.includes('@')
+    && telefonoValido(customer.phone),
   );
 
   // Indicador de pasos del header (step-indicator.js): mismos ingredientes
   // que canSubmit, pero por separado — "tallas" se marca lista con sólo
-  // llegar al mínimo de piezas, sin esperar a que /api/quote responda (la
-  // cotización puede tardar o fallar por red y eso no debería leerse como
-  // "te faltan tallas"). Es sólo de lectura: no hay wizard ni pasos que
+  // tener al menos una pieza (Etapa A no tiene mínimo ni cotización). Es sólo de lectura: no hay wizard ni pasos que
   // navegar, el configurador entero sigue en una sola pantalla.
-  const totalPiezas = Object.values(breakdown).reduce((s, n) => s + n, 0);
   const stepsDone = {
     prenda: true,
     logo: Boolean(logo && !logo.isEmpty && transform),
-    tallas: totalPiezas >= garment.min_qty,
-    contacto: customer.email.includes('@'),
+    tallas: piezas > 0,
+    contacto: customer.name.trim().length >= 2 && customer.email.includes('@') && telefonoValido(customer.phone),
   };
 
   // Puente para el gancho de depuración de boot.js. Se publica SIEMPRE (es sólo
@@ -525,7 +468,7 @@ export function StudioApp({ catalog, stageContainer }) {
   // vivo y no una foto del montaje.
   window.__studioBridge = {
     get stage() { return stageRef.current; },
-    garment, colorHex, transform, quote, activeView, stageBusy,
+    garment, colorHex, transform, activeView, stageBusy,
     setColor: setColorHex,
     setGarmentBySlug: setGarmentSlug,
     setView: onView,
@@ -600,26 +543,28 @@ export function StudioApp({ catalog, stageContainer }) {
     h(PanelTallas, {
       allowedSizes: garment.allowed_sizes,
       breakdown, rawSizes, rawErrors: sizeErrors,
-      minQty: garment.min_qty, maxQty: garment.max_qty,
       onChange: onSize,
     }),
     h(PanelResumen, {
-      quote, loading: quoting, error: quoteError,
+      summary: {
+        garmentName: garment.name,
+        colorName: garment.variants.find((v) => v.color_hex === colorHex)?.color_name ?? '',
+        techniqueName: technique.name,
+        breakdown, qty: piezas,
+      },
       customer, onCustomer: (k, v) => setCustomer((c) => ({ ...c, [k]: v })),
-      onSubmit, canSubmit, submitting, error: quoteError ?? submitError,
+      onSubmit, canSubmit, submitting, error: submitError,
       submitted,
     }),
   );
 }
 
-/** Traduce los códigos de /api/quote a algo que el cliente pueda accionar. */
-function mensajeDeCotizacion(data, garment) {
-  const primero = data.details?.[0]?.code;
-  if (primero === 'BELOW_MIN') return `El pedido mínimo es de ${garment.min_qty} piezas.`;
-  if (primero === 'ABOVE_MAX') return `El máximo por pedido es de ${garment.max_qty} piezas.`;
-  if (primero === 'UNKNOWN_SIZE') return 'Hay una talla que no aplica para esta prenda.';
-  if (data.error === 'PRICING_RULE_NOT_FOUND') return 'Esa combinación de prenda y técnica no está disponible por ahora.';
-  return 'No pudimos calcular el precio con esos datos.';
+/** 10 dígitos tras quitar +52/521 y separadores (mismo criterio que api/_lib/validation.js#isMxPhone). */
+function telefonoValido(valor) {
+  const d = String(valor ?? '').replace(/\D+/g, '');
+  const local = d.length === 12 && d.startsWith('52') ? d.slice(2)
+    : d.length === 13 && d.startsWith('521') ? d.slice(3) : d;
+  return /^\d{10}$/.test(local);
 }
 
 /**
@@ -659,10 +604,12 @@ function construirMensajeWhatsApp({ data, garment, variant, technique, breakdown
     `Color: ${variant?.color_name ?? ''}`,
     `Técnica: ${technique.name}`,
     `Tallas: ${breakdownToLabel(breakdown)}`,
-    `Total${data.is_placeholder ? ' de referencia' : ''}: ${formatCentsMXN(data.total_cents)}`,
     '',
     `Mi diseño: ${liga}`,
+    '',
+    `Soy ${customer.name.trim()}.`,
+    `Correo: ${customer.email.trim()}`,
+    `WhatsApp: ${customer.phone.trim()}`,
   ];
-  if (customer.name) lineas.push('', `Soy ${customer.name}.`);
   return `https://wa.me/525539014600?text=${encodeURIComponent(lineas.join('\n'))}`;
 }

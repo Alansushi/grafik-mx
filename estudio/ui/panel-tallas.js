@@ -58,7 +58,7 @@ function StepButton({ label, onClick, children }) {
 }
 
 export function PanelTallas({
-  allowedSizes, breakdown, minQty, maxQty, onChange,
+  allowedSizes, breakdown, onChange,
   // `rawSizes` es lo que el cliente tecleó y `rawErrors` los valores que
   // normalizeBreakdown rechazó. Sin estos dos, un valor no numérico —pegar
   // "1,000" desde Excel, por ejemplo— revertía el campo al valor anterior sin
@@ -83,8 +83,8 @@ export function PanelTallas({
   }, [breakdown]);
 
   const validation = useMemo(
-    () => validateBreakdown(breakdown, { allowedSizes, minTotal: minQty, maxTotal: maxQty }),
-    [breakdown, allowedSizes, minQty, maxQty],
+    () => validateBreakdown(breakdown, { allowedSizes }),
+    [breakdown, allowedSizes],
   );
 
   const fieldErrors = {};
@@ -176,14 +176,6 @@ export function PanelTallas({
 
   const generalErrorsId = 'es-tallas-general-errors';
 
-  // Barra de progreso hacia el mínimo. minQty es dato POR PRENDA
-  // (garment.min_qty, ver studio-app.js) — nunca una constante fija: una
-  // gorra y una playera pueden tener mínimos distintos. Guarda contra
-  // minQty ausente/0 para nunca dividir entre cero.
-  const minQtyValid = Number(minQty) > 0;
-  const progressPct = minQtyValid ? Math.min(100, (total / minQty) * 100) : 0;
-  const metaAlcanzada = minQtyValid && total >= minQty;
-
   return h(
     'fieldset',
     {
@@ -197,17 +189,6 @@ export function PanelTallas({
         { className: cx('es-tallas-grid', isSingleSize && 'es-tallas-grid--single'), key: 'grid' },
         sizesToRender.map(renderField),
       ),
-      minQtyValid
-        ? h('div', { className: 'es-tallas-progress', key: 'progress' }, [
-            h('div', { className: 'es-tallas-progress-track', key: 'track' },
-              h('div', {
-                className: cx('es-tallas-progress-fill', metaAlcanzada && 'is-ok'),
-                style: { width: `${progressPct}%` },
-              })),
-            h('p', { className: 'es-tallas-progress-label', key: 'label' },
-              metaAlcanzada ? `Mínimo alcanzado — ${total} piezas` : `${total} / ${minQty} piezas`),
-          ])
-        : null,
       h('div', { className: 'es-tallas-total', key: 'total' }, [
         h('span', { key: 'label' }, 'Total de piezas'),
         h('span', { key: 'value' }, String(total)),

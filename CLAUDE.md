@@ -127,7 +127,7 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
   ignora a propósito en la analítica.
 - **Embudo de `/estudio/`** (Fase 3): `analytics.js` se carga también en `estudio/index.html`, antes
   de `boot.js`; el `page_view` de `/estudio/` ya es "abrió el configurador". Eventos:
-  `studio_ready`, `studio_garment`, `studio_logo`, `studio_placed`, `studio_sizes`, `studio_quote`,
+  `studio_ready`, `studio_garment`, `studio_logo`, `studio_placed`, `studio_sizes`,
   `studio_submit` (lleva el `short_code`, que une con `orders`), `studio_lowres`,
   `studio_logo_rejected`, `studio_error{where,code}` y `studio_fallback{where}`. Se emiten con
   `track`/`trackOnce` (`estudio/ui/track.js`, no-op si `analytics.js` no está) y los valores cerrados
@@ -220,6 +220,7 @@ Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rom
    propia Layer y el snapshot sale de `composeLayer.toDataURL()`, no de `stage.toDataURL()`.
 7. **El precio lo calcula el servidor, siempre.** `/api/checkout` re-cotiza desde la base e
    ignora cualquier cifra del cliente. `pricing_rules` no tiene política RLS para `anon`.
+   *Etapa A (lanzamiento, 2026-10-04): el estudio sale **sin precios, mínimos ni máximos**. No existe `/api/quote`; `submit-quote` guarda el pedido con montos en NULL (migración 0015) y el cliente lo manda por WhatsApp con nombre, correo y teléfono (los tres obligatorios) para cotizarlo a mano. `pricing_rules` y `estudio/lib/pricing.js` quedan para la Etapa B. `v_studio_funnel.vio_precio` ya no se llena.*
 8. **Dinero en centavos enteros.** Ninguna función devuelve un float de dinero.
 
 ### Mockups de prenda

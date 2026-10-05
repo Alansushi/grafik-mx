@@ -14,15 +14,12 @@ import { validateBatch } from '../../api/_lib/events.js';
 
 const LOGO_PNG = fileURLToPath(new URL('../fixtures/logo-transparente.png', import.meta.url));
 
-const QUOTE_12 = {
-  currency: 'MXN', total_cents: 180000, is_placeholder: true,
-  items: [{
-    index: 0, garment_slug: 'playera', qty: 12,
-    unit_price_cents: 15000, subtotal_cents: 180000,
-    size_surcharge_cents: 0, total_cents: 180000,
-    lines: [{ label: 'Subtotal', qty: 12, unit_cents: 15000, amount_cents: 180000 }],
-  }],
-};
+/** Etapa A no cotiza: espera a que el total de piezas deje de ser 0. */
+const hayPiezas = (page) =>
+  page.waitForFunction(
+    () => document.querySelector('.es-tallas-total span:last-child')?.textContent !== '0',
+    null, { timeout: 10000 },
+  );
 
 // Ver el comentario de ESPERA en analytics.spec.js: expect.poll deja huecos.
 const ESPERA = { timeout: 6000, intervals: [150] };
@@ -36,10 +33,9 @@ const MAS_QUE_LA_COLA = 2600;
 async function preparar(page, opts = {}) {
   const {
     catalogStatus = 200,
-    quote = { status: 200, body: QUOTE_12 },
     submit = {
       status: 201,
-      body: { short_code: 'GK-7A3F1C', public_token: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', total_cents: 180000, currency: 'MXN', is_placeholder: true },
+      body: { short_code: 'GK-7A3F1C', public_token: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', },
     },
     bloquearKonva = false,
     bloquearAnalytics = false,
@@ -68,8 +64,6 @@ async function preparar(page, opts = {}) {
   await page.route('**/api/catalog', (r) => catalogStatus === 200
     ? r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) })
     : r.fulfill({ status: catalogStatus, contentType: 'application/json', body: '{"error":"boom"}' }));
-  await page.route('**/api/quote', (r) =>
-    r.fulfill({ status: quote.status, contentType: 'application/json', body: JSON.stringify(quote.body) }));
   await page.route('**/api/upload-url', async (r) => {
     const b = JSON.parse(r.request().postData() ?? '{}');
     await r.fulfill({
@@ -124,7 +118,8 @@ test.describe('estudio — embudo completo', () => {
     await subirLogo(page);
     await page.getByRole('button', { name: 'Ajustar al área' }).click();
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.waitForTimeout(500); // el debounce de studio_sizes (350 ms) debe asentarse antes de enviar
     await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
     await page.locator('#es-customer-phone').fill('5512345678');
@@ -132,13 +127,12 @@ test.describe('estudio — embudo completo', () => {
     await page.waitForFunction(() => window.__abierto !== null, null, { timeout: 15000 });
     await expect.poll(() => t.de('studio_submit').length, { timeout: 4000, intervals: [100] }).toBe(1);
 
-    const PASOS = ['studio_ready', 'studio_garment', 'studio_logo', 'studio_placed', 'studio_sizes', 'studio_quote', 'studio_submit'];
+    const PASOS = ['studio_ready', 'studio_garment', 'studio_logo', 'studio_placed', 'studio_sizes', 'studio_submit'];
     expect(t.nombres().filter((n) => PASOS.includes(n))).toEqual(PASOS);
 
     expect(t.de('studio_garment')[0].props).toEqual({ garment: 'gorra' });
     expect(t.de('studio_logo')[0].props).toEqual({ format: 'png', vector: false });
     expect(t.de('studio_sizes')[0].props).toEqual({ qty: 12 });
-    expect(t.de('studio_quote')[0].props).toEqual({ qty: 12 });
     expect(t.de('studio_submit')[0].props).toEqual({ short_code: 'GK-7A3F1C', qty: 12 });
 
     // Todo cuelga de /estudio/, y llegar a "listo" tiene un tiempo medible.
@@ -197,19 +191,15 @@ test.describe('estudio — embudo completo', () => {
 });
 
 test.describe('estudio — señales de fricción', () => {
-  test('E4. pedir menos del mínimo: se mide el código accionable (BELOW_MIN), una sola vez, y no hay studio_quote', async ({ page }) => {
-    const t = await preparar(page, {
-      quote: { status: 400, body: { error: 'INVALID_BREAKDOWN', details: [{ code: 'BELOW_MIN' }] } },
-    });
+  test('E4. sin mínimo: una pieza es válida, se mide la cantidad y no hay error ni cotización', async ({ page }) => {
+    const t = await preparar(page);
     await abrir(page);
-    await page.evaluate(() => window.__studioBridge.setSize('M', '3'));
-    await expect.poll(() => t.de('studio_error').length, ESPERA).toBe(1);
-    await page.evaluate(() => window.__studioBridge.setSize('M', '4')); // otra cotización, mismo error
+    await page.evaluate(() => window.__studioBridge.setSize('M', '1'));
+    await expect.poll(() => t.de('studio_sizes').length, ESPERA).toBe(1);
     await page.waitForTimeout(MAS_QUE_LA_COLA);
 
-    expect(t.de('studio_error').map((e) => e.props)).toEqual([{ where: 'quote', code: 'BELOW_MIN' }]);
-    expect(t.de('studio_sizes')[0].props).toEqual({ qty: 3 }); // llegó a poner tallas...
-    expect(t.de('studio_quote')).toHaveLength(0);              // ...pero nunca vio un precio
+    expect(t.de('studio_sizes')[0].props).toEqual({ qty: 1 });
+    expect(t.de('studio_error')).toHaveLength(0);
     t.validarContraServidor();
   });
 
@@ -262,8 +252,10 @@ test.describe('estudio — señales de fricción', () => {
     await abrir(page);
     await subirLogo(page);
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('5512345678');
     await page.locator('.es-resumen-submit').click();
     await expect.poll(() => t.de('studio_error').length, ESPERA).toBe(1);
 
@@ -284,8 +276,10 @@ test.describe('estudio — la medición nunca rompe un pedido', () => {
     await page.getByRole('radio', { name: /gorra/i }).click();
     await esperarStageLibre(page);
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('5512345678');
     await page.locator('.es-resumen-submit').click();
     await page.waitForFunction(() => window.__abierto !== null, null, { timeout: 15000 });
 
@@ -329,8 +323,10 @@ test.describe('estudio — degradaciones al arrancar', () => {
     await expect(page.locator('#es-app')).toHaveAttribute('data-state', 'ready');
     await subirLogo(page);
     await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
-    await page.waitForFunction(() => window.__studio.quote !== null, null, { timeout: 10000 });
+    await hayPiezas(page);
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('5512345678');
     await page.locator('.es-resumen-submit').click();
     await page.waitForFunction(() => window.__abierto !== null, null, { timeout: 15000 });
 

@@ -107,7 +107,7 @@
     }
 
     function pintar(p) {
-      const referencia = p.priced_with_placeholder
+      const referencia = p.total_cents != null && p.priced_with_placeholder
         ? '<p class="es-warning">Precio de referencia, sujeto a confirmación por parte de GRAFIK.</p>'
         : '';
 
@@ -124,8 +124,10 @@
             </dd>
             <dt>Técnica</dt><dd>${esc(it.technique)}</dd>
             <dt>Tallas</dt><dd>${esc(breakdownToLabel(it.size_breakdown))}</dd>
-            <dt>Precio unitario</dt><dd>${esc(formatCentsMXN(it.unit_price_cents))}</dd>
-            <dt>Subtotal</dt><dd>${esc(formatCentsMXN(it.subtotal_cents))}</dd>
+            ${it.unit_price_cents != null
+              ? `<dt>Precio unitario</dt><dd>${esc(formatCentsMXN(it.unit_price_cents))}</dd>
+            <dt>Subtotal</dt><dd>${esc(formatCentsMXN(it.subtotal_cents))}</dd>`
+              : ''}
           </dl>
           ${it.logo_url
             ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar el logo original</a>`
@@ -142,10 +144,12 @@
         </header>
         ${referencia}
         ${items}
-        <footer class="es-pedido-total">
+        ${p.total_cents != null
+          ? `<footer class="es-pedido-total">
           <span>Total</span>
           <strong>${esc(formatCentsMXN(p.total_cents))} ${esc(p.currency)}</strong>
-        </footer>
+        </footer>`
+          : '<p class="es-hint">Pedido sin cotizar: el precio se confirma con el cliente por WhatsApp.</p>'}
         <p class="es-disclaimer">
           El archivo que se manda a producción es el logo original, no la vista previa.
           El acabado final puede variar ligeramente según la técnica.

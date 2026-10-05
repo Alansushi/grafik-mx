@@ -1,7 +1,6 @@
 // estudio/lib/track-props.js — PURA.
 //
-// Convierte lo que hay en el estudio (un File, un Error, la respuesta de
-// /api/quote) en los valores CERRADOS que acepta el servidor de analítica
+// Convierte lo que hay en el estudio (un File, un Error) en los valores CERRADOS que acepta el servidor de analítica
 // (api/_lib/events.js, que importa de aquí: una sola fuente de verdad).
 //
 // Dos razones para que existan:
@@ -63,14 +62,6 @@ export function logoFormat(file) {
 /** `value` si tiene forma de código de error de la app; si no, `fallback`. */
 export function safeCode(value, fallback) {
   return typeof value === 'string' && ERROR_CODE_RE.test(value) ? value : fallback;
-}
-
-/**
- * Código de un fallo de /api/quote. Se prefiere el del primer detalle
- * (BELOW_MIN, ABOVE_MAX...) al genérico (INVALID_BREAKDOWN): es el accionable.
- */
-export function quoteErrorCode(data) {
-  return safeCode(data?.details?.[0]?.code, safeCode(data?.error, 'UNKNOWN'));
 }
 
 /**
