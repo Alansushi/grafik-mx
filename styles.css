@@ -822,8 +822,8 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  /* Duración proporcional al número de tarjetas: ~6.5s por foto (25 → 162s). */
-  animation: marquee-scroll 162s linear infinite;
+  /* Duración proporcional al número de tarjetas: ~6.5s por foto (26 → 169s). */
+  animation: marquee-scroll 169s linear infinite;
   will-change: transform;
 }
 @keyframes marquee-scroll {
@@ -1262,6 +1262,7 @@
 .cp-estudio-steps span { font-weight: 700; font-size: 16px; line-height: 1.2; }
 .cp-estudio-steps small { display: block; margin-top: 3px; font-weight: 400; font-size: 13.5px; color: var(--ink-70); }
 .cp-estudio-btn { font-size: 15px; padding: 18px 34px; }
+.cp-estudio-note { max-width: 460px; margin-top: 14px; font-size: 13.5px; line-height: 1.5; color: var(--ink-70); }
 .cp-studio {
   background: #101010;
   border: 1px solid rgba(240,240,238,0.16);
