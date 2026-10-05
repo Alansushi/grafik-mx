@@ -1205,3 +1205,26 @@ a { color: inherit; }
 .es-about-links { margin-top: 28px; }
 .es-about-links a { color: var(--es-plata); text-decoration: underline; text-underline-offset: 3px; }
 .es-about-links a:hover { color: var(--es-blanco); }
+
+/* ── Aviso "ábrelo en computadora" ───────────────────────────────────────── */
+.es-desktop-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(240, 240, 238, 0.18);
+  background: rgba(240, 240, 238, 0.04);
+  color: var(--es-plata);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.es-desktop-note strong { color: var(--es-blanco); font-weight: 600; }
+.es-desktop-note-ico { flex: none; margin-top: 1px; color: var(--es-rojo-texto); }
+@media (max-width: 960px), (pointer: coarse) {
+  .es-desktop-note {
+    border-color: var(--es-rojo);
+    background: rgba(208, 43, 52, 0.12);
+    font-size: 14px;
+  }
+}

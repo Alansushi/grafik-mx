@@ -41,8 +41,10 @@ Cuidados al tocar esta sección:
 
 - El marquee usa `<picture>` (`source` AVIF + `img` JPEG). El `img` **debe** llevar `width`/`height` de `tw`/`th`: con `height:100%; width:auto`, sin ellos la tarjeta mide 0 px de ancho hasta que carga y el track salta mientras la animación corre.
 - `w`/`h` y `tw`/`th` en `works` deben ser las dimensiones **reales** de los archivos — leerlas de `sips -g pixelWidth -g pixelHeight`, no calcularlas.
-- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (19 fotos → 124 s). Si no, añadir fotos acelera el desplazamiento.
+- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (26 fotos → 169 s). Si no, añadir fotos acelera el desplazamiento.
 - **Fotos de celular/cámara (no WhatsApp) traen EXIF orientation** (p. ej. `6`). `sips` conserva la etiqueta y el navegador gira la imagen aunque los píxeles estén "derechos" (ocurrió con `fotos reales 3`: todo salió girado 90° y los `w/h` invertidos). Antes de `sips`, hornear la rotación: `ImageOps.exif_transpose(Image.open(f)).save(...)` (Pillow) y verificar con `sips -g pixelWidth -g pixelHeight` y `getexif().get(274)` vacío.
+- **Comprobar que cada AVIF nuevo decodifica en el navegador** (no solo en `sips`): un AVIF con ancho impar (1153 px) salió *vacío* en Chrome sin ningún error (el `<picture>` no cae al JPEG). Receta: generar a ancho par y verificar con un canvas (`drawImage` + promedio de píxeles > 0). Los thumbs actuales ya se verificaron (33/33).
+- Las 4 fotos del hero llevan además una variante `-640` (`srcset`/`sizes` + `imagesrcset` en el preload).
 - Las fuentes suelen llegar como exports de WhatsApp (1280–1600 px). **Revisar cada foto antes de integrarla**: descartar capturas de pantalla de chats (llevan barra de estado y teléfonos de clientes).
 
 ## Catálogo

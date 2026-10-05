@@ -109,19 +109,18 @@ GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Ofrecemos l
 
 **¿Cuáles son los tipos de brazaletes Tyvek para eventos?**
 
-| Tipo | Uso | Color sugerido |
-|---|---|---|
-| VIP | Acceso prioritario y áreas exclusivas | Dorado / Negro |
-| General | Público general con acceso estándar | Cualquier color |
-| Staff | Personal y trabajadores del evento | Verde / Naranja |
-| 21+ | Control de edad mínima para consumo de alcohol | Rojo |
-| Acceso | Control genérico personalizable | A elección |
+| Tipo | Uso |
+|---|---|
+| VIP | Acceso prioritario y áreas exclusivas |
+| General | Público general con acceso estándar |
+| Staff | Personal y trabajadores del evento |
+| 21+ | Control de edad mínima para consumo de alcohol |
+| Acceso | Control genérico personalizable |
 
 **Características técnicas:**
 - Material: Tyvek (resistente al agua, transpirable, no transferible)
 - Impresión: full color o 1 tinta
 - Personalización: nombre del evento, fecha, QR, número de folio, logo
-- Seguridad: opción de perforación para cancelación
 
 **Tiempo de entrega:** Express disponible. Consultar disponibilidad según cantidad.
 
@@ -218,6 +217,7 @@ Pedidos producidos y entregados por GRAFIK (fotos reales, galería en https://ww
 - Brazaletes VIP numerados por mesa para el jaripeo de Rancho La Misión en San Antonio Nanahuatipam.
 - Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca.
 - Póster full color de rodeo baile Metepec Hidalgo con Los Buitres de Culiacán.
+- Lona full color a gran formato para una tienda de autoservicio.
 - Bolsas transparentes con logo y tarjetas de presentación a dos caras impresas para la clínica de la Dra. Ana Mora.
 - Diez brazaletes Tyvek de colores con logotipos institucionales del Gobierno de Morelos y folio consecutivo.
 - Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff.
@@ -229,7 +229,7 @@ Pedidos producidos y entregados por GRAFIK (fotos reales, galería en https://ww
 
 ## Estudio GRAFIK
 
-El Estudio GRAFIK (https://www.grafik.mx/estudio/) es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp.
+El Estudio GRAFIK (https://www.grafik.mx/estudio/) es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp. Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).
 
 1. **Elige tu prenda** — Playera o gorra, color y técnica de personalización (DTF, bordado o sublimación).
 2. **Sube tu logo** — Colócalo y ajusta el tamaño.

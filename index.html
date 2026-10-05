@@ -273,7 +273,8 @@
       { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-toluca.jpg", "caption": "Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff" },
       { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/boletos-texmola.jpg", "caption": "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz" },
       { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/figura-coroplast-just-married.jpg", "caption": "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
-      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/caballete-uniformes.jpg", "caption": "Caballete publicitario con diseño full color para Uniformes El General" }
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/caballete-uniformes.jpg", "caption": "Caballete publicitario con diseño full color para Uniformes El General" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/lona-gran-formato.jpg", "caption": "Lona full color a gran formato para una tienda de autoservicio" }
     ]
   }
   </script>
@@ -311,7 +312,7 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
   <!-- LCP del hero: la foto dominante (pulseras Tyvek). React/Babel la pintan tarde, así que se precarga. -->
-  <link rel="preload" href="/assets/hero/brazaletes-morelos.avif" as="image" type="image/avif" fetchpriority="high">
+  <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="/assets/hero/brazaletes-morelos-640.avif 633w, /assets/hero/brazaletes-morelos.avif 990w" imagesizes="(min-width: 961px) 400px, 88vw">
 </head>
 <body>
   <div id="root">
@@ -375,12 +376,13 @@
             <li><figure><img src="/assets/trabajos/boletos-texmola.jpg" width="788" height="1100" loading="lazy" alt="Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz" /><figcaption>Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz.</figcaption></figure></li>
             <li><figure><img src="/assets/trabajos/figura-coroplast-just-married.jpg" width="880" height="1100" loading="lazy" alt="Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" /><figcaption>Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married.</figcaption></figure></li>
             <li><figure><img src="/assets/trabajos/caballete-uniformes.jpg" width="626" height="1100" loading="lazy" alt="Caballete publicitario con diseño full color para Uniformes El General" /><figcaption>Caballete publicitario con diseño full color para Uniformes El General.</figcaption></figure></li>
+            <li><figure><img src="/assets/trabajos/lona-gran-formato.jpg" width="1100" height="687" loading="lazy" alt="Lona full color a gran formato para una tienda de autoservicio" /><figcaption>Lona full color a gran formato para una tienda de autoservicio.</figcaption></figure></li>
           </ul>
         </section>
 
         <section id="estudio">
           <h2>Antes de imprimirlo, míralo.</h2>
-          <p>El Estudio GRAFIK es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp. <a href="/estudio/">Abrir Estudio</a></p>
+          <p>El Estudio GRAFIK es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp. <a href="/estudio/">Abrir Estudio</a>. Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).</p>
           <ol>
             <li><strong>Elige tu prenda</strong> — Playera o gorra, color y técnica de personalización (DTF, bordado o sublimación).</li>
             <li><strong>Sube tu logo</strong> — Colócalo y ajusta el tamaño.</li>
@@ -434,7 +436,7 @@
 
         <section id="acabados">
           <h2>El acabado también comunica.</h2>
-          <p>Más de 20 materiales. Te ayudamos a elegir el que mejor funciona para tu proyecto:</p>
+          <p>Más de 20 materiales e impresoras de alta resolución (hasta 1440 DPI con tecnología HP Latex). Te ayudamos a elegir el que mejor funciona para tu proyecto:</p>
           <ul>
             <li><strong>Holográfico</strong> — sello de seguridad en tus boletos.</li>
             <li><strong>Bordado</strong> — tu logo bordado en prendas.</li>
@@ -566,10 +568,10 @@
     /* ── Hero C+ (Proof First) ──────────────── */
     /* Las fotos del hero son variantes de 1000 px (AVIF + JPEG) de assets/hero/. */
     const HERO_PHOTOS = {
-      main:   { base: "/assets/hero/brazaletes-morelos",           w: 990, h: 1000, alt: "Diez brazaletes Tyvek de colores con logotipos institucionales y folio consecutivo" },
-      figura: { base: "/assets/hero/figura-coroplast-just-married", w: 800, h: 1000, alt: "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
-      boletos:{ base: "/assets/hero/boletos-texmola",               w: 716, h: 1000, alt: "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo" },
-      zonas:  { base: "/assets/hero/brazaletes-toluca",             w: 562, h: 1000, alt: "Brazaletes Tyvek full color por zonas: Invitados, Prensa, Acceso total y Staff" },
+      main:   { base: "/assets/hero/brazaletes-morelos",           w: 990, w2: 633, sizes: "(min-width: 961px) 400px, 88vw", h: 1000, alt: "Diez brazaletes Tyvek de colores con logotipos institucionales y folio consecutivo" },
+      figura: { base: "/assets/hero/figura-coroplast-just-married", w: 800, w2: 512, sizes: "(min-width: 961px) 200px, 62vw", h: 1000, alt: "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
+      boletos:{ base: "/assets/hero/boletos-texmola",               w: 716, w2: 458, sizes: "(min-width: 961px) 250px, 76vw", h: 1000, alt: "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo" },
+      zonas:  { base: "/assets/hero/brazaletes-toluca",             w: 562, w2: 360, sizes: "(min-width: 961px) 170px, 56vw", h: 1000, alt: "Brazaletes Tyvek full color por zonas: Invitados, Prensa, Acceso total y Staff" },
     };
 
     const HeroPh = ({ k, cls, tag, eager }) => {
@@ -577,8 +579,9 @@
       return (
         <figure className={`cp-ph ${cls}`}>
           <picture>
-            <source srcSet={`${p.base}.avif`} type="image/avif" />
-            <img src={`${p.base}.jpg`} width={p.w} height={p.h} alt={p.alt}
+            <source srcSet={`${p.base}-640.avif ${p.w2}w, ${p.base}.avif ${p.w}w`} sizes={p.sizes} type="image/avif" />
+            <img src={`${p.base}.jpg`} srcSet={`${p.base}-640.jpg ${p.w2}w, ${p.base}.jpg ${p.w}w`} sizes={p.sizes}
+              width={p.w} height={p.h} alt={p.alt}
               decoding="async" {...(eager ? { fetchpriority: "high" } : {})} />
           </picture>
           {tag && <figcaption className="cp-tag">{tag}</figcaption>}
@@ -778,6 +781,7 @@
               <Ico id="i-arrow" w={20} h={20}/>
               Abrir Estudio
             </a>
+            <p className="cp-estudio-note">Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).</p>
           </div>
           <EstudioMock />
         </div>
@@ -821,7 +825,7 @@
        todavía no hay una foto real de lona en el repo. */
     const Productos = () => {
       const items = [
-        { t: "Lonas", servicio: "Lonas", ico: "i-lona",
+        { t: "Lonas", servicio: "Lonas", slug: "lona-gran-formato",
           d: "Para tus eventos en Lona Front, Mate, Mesh y más. Tenemos diferentes medidas.",
           tags: ["Lona Front", "Mate", "Mesh"] },
         { t: "Flyers", servicio: "Volantes", slug: "flyers-couche",
@@ -917,7 +921,7 @@
               <div>
                 <div className="sec-kicker">Materiales y acabados</div>
                 <h2 className="sec-title">El acabado <em>también comunica.</em></h2>
-                <p className="sec-desc">Más de 20 materiales. Te ayudamos a elegir el que mejor funciona para tu proyecto.</p>
+                <p className="sec-desc">Más de 20 materiales e impresoras de alta resolución (hasta 1440 DPI con tecnología HP Latex). Te ayudamos a elegir el que mejor funciona para tu proyecto.</p>
               </div>
             </div>
             <div className="cp-fin-grid">
@@ -1180,8 +1184,16 @@
       const [bubble, setBubble] = useState(false);
       React.useEffect(() => {
         try { if (sessionStorage.getItem(WA_BUBBLE_KEY)) return; } catch (e) {}
-        const t = setTimeout(() => setBubble(true), 4000);
-        return () => clearTimeout(t);
+        // Aparece a los 4 s y se retira sola a los ~10 s (no tapar botones/texto, sobre todo en móvil).
+        let hide;
+        const t = setTimeout(() => {
+          setBubble(true);
+          hide = setTimeout(() => {
+            setBubble(false);
+            try { sessionStorage.setItem(WA_BUBBLE_KEY, "1"); } catch (err) {}
+          }, 6000);
+        }, 4000);
+        return () => { clearTimeout(t); clearTimeout(hide); };
       }, []);
       const closeBubble = (e) => {
         e.stopPropagation();
@@ -1232,6 +1244,7 @@
       { slug: "chamarra-4ases",         cat: "Bordado",          w: 1100, h: 508,  tw: 1100, th: 508, alt: "Chamarra negra con logo bordado Los 4 Ases Bar Restaurante Cantina" },
       { slug: "brazaletes-toluca", cat: "Brazaletes", w: 618, h: 1100, tw: 405, th: 720, alt: "Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff" },
       { slug: "poster-huajuapan",       cat: "Pendones",         w: 618,  h: 1100, tw: 404,  th: 720, alt: "Pendón full color de jaripeo con Chuy Lizárraga y su Banda Tierra Sinaloense en la Expo Feria de Huajuapan de León, Oaxaca" },
+      { slug: "lona-gran-formato",       cat: "Lonas",            w: 1100, h: 687,  tw: 1152, th: 720, alt: "Lona full color a gran formato para una tienda de autoservicio" },
       { slug: "vasos-luis",             cat: "Promocionales",    w: 1100, h: 624,  tw: 1100, th: 624, alt: "Vasos de colores personalizados con sticker full color para fiesta de primer año" },
       { slug: "brazaletes-la-mision",   cat: "Brazaletes",       w: 825,  h: 1100, tw: 540,  th: 720, alt: "Brazaletes VIP numerados por mesa para el jaripeo de Rancho La Misión en San Antonio Nanahuatipam" },
       { slug: "gorra-rancho-ajil",      cat: "Gorra DTF",        w: 849,  h: 1100, tw: 555,  th: 720, alt: "Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca" },
