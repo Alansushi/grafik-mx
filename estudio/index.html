@@ -3,11 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Ruta escondida: sin enlazar desde el sitio público, fuera de sitemap.xml.
-       El header X-Robots-Tag (vercel.json) es la barrera fuerte; este meta es
-       la de respaldo para cuando el HTML se lee sin pasar por esos headers. -->
-  <meta name="robots" content="noindex, nofollow" />
-  <title>Configurador — GRAFIK</title>
+  <title>Diseña tu playera o gorra con tu logo | Estudio GRAFIK</title>
+  <meta name="description" content="Sube tu logo y mira cómo queda en una playera o gorra: elige color y técnica (DTF, bordado o sublimación) y cotiza por WhatsApp con GRAFIK, imprenta en CDMX." />
+  <link rel="canonical" href="https://www.grafik.mx/estudio/" />
+  <meta name="theme-color" content="#0C0C0C" />
+  <meta property="og:title" content="Diseña tu playera o gorra con tu logo | Estudio GRAFIK" />
+  <meta property="og:description" content="Sube tu logo, míralo en una playera o gorra y cotiza por WhatsApp. Imprenta y publicidad en CDMX." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.grafik.mx/estudio/" />
+  <meta property="og:image" content="https://www.grafik.mx/og-image.png?v=2" />
+  <meta property="og:locale" content="es_MX" />
+  <meta property="og:site_name" content="GRAFIK" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <!-- /estudio/ es indexable (oct 2026). /estudio/pedido/ NO: lleva un token en la URL y
+       sigue con noindex (meta + X-Robots-Tag en vercel.json). -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
   <!-- Mismas fuentes que el sitio público. Se cargan aparte porque /estudio/
@@ -32,6 +41,72 @@
        podría llevar una CSP más adelante. Razonamiento en estudio/ui/react.js. -->
   <!-- Konva: único motor de canvas del configurador (estudio/canvas/konva-adapter.js). -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/10.3.3/konva.min.js" integrity="sha384-mx78e7xNAuhEWxGDQZNlR9oNI6vtKvQUNiPZcntBLQhJHcPXNI+AzxLdTSWqoUyX" crossorigin="anonymous"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://www.grafik.mx/estudio/#app",
+        "name": "Estudio GRAFIK",
+        "url": "https://www.grafik.mx/estudio/",
+        "description": "Herramienta para subir tu logo y visualizar cómo se ve en una playera o gorra, con color y técnica (DTF, bordado o sublimación), antes de cotizar por WhatsApp.",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "es-MX",
+        "provider": {
+          "@id": "https://www.grafik.mx/#business"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Inicio",
+            "item": "https://www.grafik.mx/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Estudio GRAFIK",
+            "item": "https://www.grafik.mx/estudio/"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Puedo ver mi logo en una playera o gorra antes de imprimir?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. En el Estudio GRAFIK subes tu logo, lo colocas sobre una playera o gorra, eliges color y técnica de personalización y ves cómo quedaría antes de solicitar tu cotización."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué técnicas de personalización puedo elegir?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Puedes elegir DTF, bordado o sublimación. Las cantidades mínimas varían según el artículo y la técnica; las confirmamos por WhatsApp."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿El Estudio muestra precios?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. El Estudio es una vista previa: al terminar envías tu diseño por WhatsApp con tus datos de contacto y te cotizamos."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <noscript>
@@ -51,7 +126,7 @@
         <svg class="es-wordmark-mark" width="26" height="26" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
         GRAFIK
       </a>
-      <p class="es-context">Configurador — vista previa de tu logo sobre la prenda</p>
+      <h1 class="es-context">Diseña tu playera o gorra con tu logo — Estudio GRAFIK</h1>
       <!-- Punto de montaje del indicador de pasos (estudio/ui/step-indicator.js),
            vía createPortal desde studio-app.js. Vacío hasta que React monta. -->
       <div id="es-steps-mount"></div>
@@ -110,6 +185,28 @@
       </aside>
     </main>
   </div>
+
+
+  <!-- Contenido estático indexable (lo ven los crawlers sin JS). Mismo texto que el JSON-LD. -->
+  <section class="es-about" aria-labelledby="es-about-title">
+    <h2 id="es-about-title" class="es-about-title">¿Cómo funciona el Estudio GRAFIK?</h2>
+    <p class="es-about-lead">El Estudio GRAFIK es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: al terminar envías tu diseño por WhatsApp y te cotizamos.</p>
+    <ol class="es-about-steps">
+      <li><strong>Elige tu prenda</strong> — Playera o gorra, color y técnica de personalización (DTF, bordado o sublimación).</li>
+      <li><strong>Sube tu logo</strong> — Colócalo y ajusta el tamaño.</li>
+      <li><strong>Míralo y cotiza</strong> — Nos mandas el diseño por WhatsApp con tus datos de contacto.</li>
+    </ol>
+    <h2 class="es-about-title">Preguntas frecuentes</h2>
+    <dl class="es-about-faq">
+      <dt>¿Puedo ver mi logo en una playera o gorra antes de imprimir?</dt>
+      <dd>Sí. En el Estudio GRAFIK subes tu logo, lo colocas sobre una playera o gorra, eliges color y técnica de personalización y ves cómo quedaría antes de solicitar tu cotización.</dd>
+      <dt>¿Qué técnicas de personalización puedo elegir?</dt>
+      <dd>Puedes elegir DTF, bordado o sublimación. Las cantidades mínimas varían según el artículo y la técnica; las confirmamos por WhatsApp.</dd>
+      <dt>¿El Estudio muestra precios?</dt>
+      <dd>No. El Estudio es una vista previa: al terminar envías tu diseño por WhatsApp con tus datos de contacto y te cotizamos.</dd>
+    </dl>
+    <p class="es-about-links"><a href="/">Volver a GRAFIK, imprenta y publicidad en CDMX</a> · <a href="https://wa.me/525539014600">Cotizar por WhatsApp</a></p>
+  </section>
 
   <script>
     // Degradación si Konva no cargó del CDN (spec §7.4): no tiene caso

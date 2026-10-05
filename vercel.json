@@ -10,6 +10,9 @@
       "memory": 1024
     }
   },
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -28,16 +31,21 @@
       ]
     },
     {
-      "source": "/estudio",
+      "source": "/estudio/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/estudio/pedido",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" }
       ]
     },
     {
-      "source": "/estudio/(.*)",
+      "source": "/estudio/pedido/(.*)",
       "headers": [
-        { "key": "X-Robots-Tag",  "value": "noindex, nofollow, noarchive, nosnippet" },
-        { "key": "Cache-Control", "value": "no-store" }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" }
       ]
     },
     {

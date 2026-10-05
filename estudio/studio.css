@@ -108,6 +108,8 @@ a { color: inherit; }
 .es-context {
   color: var(--es-plata);
   font-size: 14px;
+  font-weight: 400;
+  margin: 0;
 }
 
 /* ---- Indicador de pasos (estudio/ui/step-indicator.js) ----
@@ -1176,3 +1178,30 @@ a { color: inherit; }
   text-transform: uppercase;
   color: var(--es-plata);
 }
+
+/* ── Contenido estático indexable bajo el configurador (SEO) ─────────────── */
+.es-about {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 8px 20px 72px;
+  color: var(--es-plata);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.es-about-title {
+  margin: 32px 0 12px;
+  color: var(--es-blanco);
+  font-family: var(--es-serif);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.es-about-lead { max-width: 640px; }
+.es-about-steps { margin: 16px 0 0 20px; display: grid; gap: 8px; max-width: 640px; }
+.es-about-steps strong { color: var(--es-blanco); }
+.es-about-faq { max-width: 640px; }
+.es-about-faq dt { margin-top: 14px; color: var(--es-blanco); font-weight: 600; }
+.es-about-links { margin-top: 28px; }
+.es-about-links a { color: var(--es-plata); text-decoration: underline; text-underline-offset: 3px; }
+.es-about-links a:hover { color: var(--es-blanco); }
