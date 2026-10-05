@@ -199,7 +199,7 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
 
 ## `/estudio/` — configurador de playeras y gorras (en construcción)
 
-Ruta **escondida** (sin enlazar, `noindex`, fuera de `sitemap.xml`) con un configurador
+Ruta **indexable desde oct 2026** (enlazada desde la landing, en `sitemap.xml`, con meta/JSON-LD propios y un bloque estático `.es-about` para crawlers; `/estudio/pedido/` SIGUE `noindex`, con meta y `X-Robots-Tag` en `vercel.json`) con un configurador
 self-service: preview del logo sobre la prenda, precio, cobro por Mercado Pago y panel
 de administración. Es un subsistema aparte del sitio de una página.
 
