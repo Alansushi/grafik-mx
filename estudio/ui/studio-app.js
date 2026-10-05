@@ -308,6 +308,22 @@ export function StudioApp({ catalog, stageContainer }) {
     stageRef.current?.setLogo({ image: null });
   }, []);
 
+  // Delete/Backspace quita el logo seleccionado en el lienzo. No actúa mientras
+  // se escribe en un campo (tallas, escala, rotación, formulario).
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (!stageRef.current?.isLogoSelected()) return;
+      e.preventDefault();
+      onRemoveLogo();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onRemoveLogo]);
+
   const onTransform = useCallback((partial) => {
     const s = stageRef.current;
     if (!s) return;

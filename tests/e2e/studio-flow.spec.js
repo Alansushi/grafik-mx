@@ -356,4 +356,92 @@ test.describe('flujo del configurador', () => {
     // ...pero sin hablar de dpi, que en un vector no significa nada.
     await expect(aviso).not.toContainText('dpi');
   });
+
+  // ── Interacción directa sobre el lienzo ──────────────────────────────────
+  // Se sube el logo por la UI real: con el logo inyectado en el stage, el
+  // dropzone (que React sigue mostrando) taparía el lienzo y se comería los clics.
+
+  async function conLogo(page) {
+    await abrir(page);
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+  }
+
+  /** Coordenadas de pantalla de un punto lógico del canvas. */
+  async function aPantalla(page, x, y) {
+    const box = await page.locator('#es-stage').boundingBox();
+    const { stageWidth, stageHeight } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    return { x: box.x + (x * box.width) / stageWidth, y: box.y + (y * box.height) / stageHeight };
+  }
+
+  const estado = (page) => page.evaluate(() => ({
+    sel: window.__studio.stage.isLogoSelected(),
+    ...window.__studio.stage.debugInfo(),
+  }));
+
+  test('F13. clic en el logo lo selecciona; clic fuera lo deselecciona; la guía del área no se oculta', async ({ page }) => {
+    await conLogo(page);
+    expect((await estado(page)).sel).toBe(true);
+
+    const fuera = await aPantalla(page, 8, 8);
+    await page.mouse.click(fuera.x, fuera.y);
+    let info = await estado(page);
+    expect(info.sel).toBe(false);
+    expect(info.transformerVisible).toBe(false);
+    expect(info.printAreaGuideVisible).toBe(true);
+
+    const t = await page.evaluate(() => window.__studio.stage.getTransform());
+    const dentro = await aPantalla(page, t.x, t.y);
+    await page.mouse.click(dentro.x, dentro.y);
+    info = await estado(page);
+    expect(info.sel).toBe(true);
+    expect(info.transformerVisible).toBe(true);
+    expect(info.printAreaGuideVisible).toBe(true);
+  });
+
+  test('F14. Delete quita el logo seleccionado; dentro de un campo no hace nada', async ({ page }) => {
+    await conLogo(page);
+
+    const campo = page.locator('input:not([type="file"])').first();
+    await campo.focus();
+    await page.keyboard.press('Backspace');
+    expect((await estado(page)).hasLogo).toBe(true);
+    await campo.evaluate((el) => el.blur());
+
+    await page.keyboard.press('Delete');
+    const info = await estado(page);
+    expect(info.hasLogo).toBe(false);
+    expect(info.transformerVisible).toBe(false);
+  });
+
+  test('F15. arrastrar cerca del centro se imanta y muestra las guías; al soltar se ocultan', async ({ page }) => {
+    await conLogo(page);
+    const { printArea } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const cx = printArea.x + printArea.width / 2;
+    const cy = printArea.y + printArea.height / 2;
+
+    // Primero lejos del centro, para que el imán no esté ya activo al empezar.
+    await page.evaluate(({ x, y }) => {
+      const s = window.__studio.stage;
+      s.setTransform({ ...s.getTransform(), x, y });
+    }, { x: cx - 30, y: cy + 20 });
+
+    const t = await page.evaluate(() => window.__studio.stage.getTransform());
+    const ini = await aPantalla(page, t.x, t.y);
+    const fin = await aPantalla(page, cx + 3, cy - 3);
+    await page.mouse.move(ini.x, ini.y);
+    await page.mouse.down();
+    await page.mouse.move((ini.x + fin.x) / 2, (ini.y + fin.y) / 2, { steps: 4 });
+    await page.mouse.move(fin.x, fin.y, { steps: 4 });
+    expect((await estado(page)).centerGuidesVisible).toEqual({ v: true, h: true });
+    await page.mouse.up();
+
+    const despues = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      g: window.__studio.stage.debugInfo().centerGuidesVisible,
+    }));
+    expect(despues.g).toEqual({ v: false, h: false });
+    expect(despues.t.x).toBeCloseTo(cx, 1);
+    expect(despues.t.y).toBeCloseTo(cy, 1);
+  });
 });

@@ -17,6 +17,7 @@
 //
 //   Layer "ui"       ← FUERA del snapshot
 //     · Transformer (los tiradores de escala y rotación)
+//     · Líneas guía de centrado (sólo mientras se arrastra y se engancha)
 //
 // El snapshot sale de composeLayer, NO de stage.toDataURL(): así los tiradores
 // del Transformer nunca entran a la imagen que aprueba el cliente.
@@ -48,6 +49,9 @@ const DEFAULT_FOLD_OPACITY = 0.35;
 // aplica a fitLogo() (botón "Ajustar al área"): ese sí debe maximizar de
 // verdad cuando el cliente lo pide explícitamente.
 const INITIAL_FIT_HEADROOM = 0.9;
+// Distancia (px lógicos del canvas) a la que el centro del logo se imanta al
+// centro del área imprimible mientras se arrastra.
+const CENTER_SNAP_PX = 6;
 
 /**
  * @param {{container: HTMLElement, width: number, height: number,
@@ -82,6 +86,22 @@ export function createStudioStage(opts) {
   // pisar el global aquí es seguro y no se filtra a nada más.
   window.Konva.pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 2), 3);
   const stage = new Konva.Stage({ container, width, height });
+
+  // studio.css fuerza `.konvajs-content` y los <canvas> a width/height:100%, así
+  // que el lienzo se ve más chico (o más grande) que su tamaño lógico. Konva
+  // calcula la escala del puntero como rect.width / content.clientWidth, y como
+  // el CSS iguala ambos siempre da 1: clics, arrastres y tiradores caían en un
+  // punto equivocado (en 552 px de pantalla, a 0.61× de donde el cliente tocaba).
+  // Se escala contra el tamaño lógico del stage, que es el que usa el modelo.
+  stage._getContentPosition = function getContentPosition() {
+    const rect = this.content.getBoundingClientRect();
+    return {
+      top: rect.top,
+      left: rect.left,
+      scaleX: rect.width / this.width() || 1,
+      scaleY: rect.height / this.height() || 1,
+    };
+  };
 
   // Una sola layer para todo lo que mezcla. Ver la nota de arriba.
   const composeLayer = new Konva.Layer({ name: 'compose' });
@@ -152,6 +172,15 @@ export function createStudioStage(opts) {
   });
   uiLayer.add(transformer);
 
+  // Guías de centrado: viven en uiLayer, así que nunca entran al snapshot.
+  const guideStyle = { stroke: '#D02B34', strokeWidth: 1, listening: false, visible: false };
+  const cx = printArea.x + printArea.width / 2;
+  const cy = printArea.y + printArea.height / 2;
+  const guideV = new Konva.Line({ ...guideStyle, points: [cx, printArea.y, cx, printArea.y + printArea.height] });
+  const guideH = new Konva.Line({ ...guideStyle, points: [printArea.x, cy, printArea.x + printArea.width, cy] });
+  uiLayer.add(guideV);
+  uiLayer.add(guideH);
+
   let naturalSize = null;
   let current = { x: printArea.x + printArea.width / 2, y: printArea.y + printArea.height / 2, scaleX: 1, scaleY: 1, rotation: 0 };
   // Techo de escala alcanzable AHORA MISMO (a la rotación actual del logo) —
@@ -167,6 +196,9 @@ export function createStudioStage(opts) {
   // (que setView mismo puede estar a punto de pisar).
   let hasLogo = false;
   let guideRequested = true;
+  // El Transformer sólo se ve con el logo seleccionado (clic en él); un clic en
+  // cualquier otro punto del lienzo lo deselecciona.
+  let selected = false;
   // Sólo "front" es imprimible (spec: left/right/back son vistas de
   // presentación, sin print_area ni logo propios). Empieza en true porque el
   // stage siempre se crea mostrando la vista front.
@@ -213,9 +245,49 @@ export function createStudioStage(opts) {
     };
   }
 
-  for (const ev of ['dragmove', 'dragend', 'transform', 'transformend']) {
+  function syncSelection() {
+    const show = printable && hasLogo && selected;
+    transformer.nodes(show ? [logoNode] : []);
+    transformer.visible(show);
+    uiLayer.batchDraw();
+  }
+
+  function hideCenterGuides() {
+    guideV.visible(false);
+    guideH.visible(false);
+  }
+
+  for (const ev of ['transform', 'transformend']) {
     logoNode.on(ev, () => commit(readFromNode()));
   }
+
+  logoNode.on('dragmove', () => {
+    const raw = readFromNode();
+    const snapX = Math.abs(raw.x - cx) <= CENTER_SNAP_PX;
+    const snapY = Math.abs(raw.y - cy) <= CENTER_SNAP_PX;
+    if (snapX) raw.x = cx;
+    if (snapY) raw.y = cy;
+    guideV.visible(snapX);
+    guideH.visible(snapY);
+    commit(raw);
+  });
+  logoNode.on('dragend', () => {
+    hideCenterGuides();
+    commit(readFromNode());
+  });
+
+  // Seleccionar: clic/tap en el logo (o empezar a arrastrarlo). Deseleccionar:
+  // clic/tap en cualquier otra cosa que no sea un tirador del Transformer.
+  const select = (value) => {
+    if (selected === value) return;
+    selected = value;
+    syncSelection();
+  };
+  logoNode.on('dragstart', () => select(true));
+  stage.on('mousedown touchstart', (e) => {
+    if (e.target === logoNode) select(true);
+    else if (e.target.getParent() !== transformer) select(false);
+  });
 
   const api = {
     /** Prenda base + color. `foldImage` null = sin sombra de pliegues. */
@@ -240,9 +312,10 @@ export function createStudioStage(opts) {
     setLogo({ image, naturalSize: ns }) {
       if (!image) {
         hasLogo = false;
+        selected = false;
         logoNode.visible(false);
-        transformer.nodes([]);
-        transformer.visible(false);
+        hideCenterGuides();
+        syncSelection();
         naturalSize = null;
         composeLayer.batchDraw();
         uiLayer.batchDraw();
@@ -257,8 +330,8 @@ export function createStudioStage(opts) {
       logoNode.visible(printable);
       logoGroup.visible(printable);
       foldGroup.visible(printable);
-      transformer.nodes(printable ? [logoNode] : []);
-      transformer.visible(printable);
+      selected = true;
+      syncSelection();
       // Headroom a propósito (ver INITIAL_FIT_HEADROOM): commit() ya
       // recalcula lastFitScale solo, así que aquí no hace falta tocarlo — y
       // no debe fijarse al valor SIN headroom de `fit`, o el % de Escala
@@ -318,11 +391,14 @@ export function createStudioStage(opts) {
       logoNode.draggable(printable);
       foldGroup.visible(printable && hasLogo);
       printAreaGuide.visible(printable && guideRequested);
-      transformer.nodes(printable && hasLogo ? [logoNode] : []);
-      transformer.visible(printable && hasLogo);
+      hideCenterGuides();
+      syncSelection();
 
       composeLayer.batchDraw();
-      uiLayer.batchDraw();
+    },
+
+    isLogoSelected() {
+      return printable && hasLogo && selected;
     },
 
     isPrintable() {
@@ -341,7 +417,16 @@ export function createStudioStage(opts) {
      */
     async snapshot({ pixelRatio = 1, mimeType = 'image/png', quality } = {}) {
       assertNotTainted(composeLayer.getCanvas()._canvas);
-      const canvas = composeLayer.toCanvas({ pixelRatio });
+      // La guía punteada del área imprimible es ayuda de edición: no debe
+      // quedar en el PNG que aprueba el cliente.
+      const guideWasVisible = printAreaGuide.visible();
+      printAreaGuide.visible(false);
+      let canvas;
+      try {
+        canvas = composeLayer.toCanvas({ pixelRatio });
+      } finally {
+        printAreaGuide.visible(guideWasVisible);
+      }
       return new Promise((resolve, reject) => {
         canvas.toBlob(
           (blob) => (blob
@@ -378,6 +463,10 @@ export function createStudioStage(opts) {
         // true = vista "front" activa (única imprimible). false = vista de
         // presentación (left/right/back): sin logo, sin guía, sin Transformer.
         printable,
+        hasLogo,
+        transformerVisible: transformer.visible(),
+        printAreaGuideVisible: printAreaGuide.visible(),
+        centerGuidesVisible: { v: guideV.visible(), h: guideH.visible() },
       };
     },
 
