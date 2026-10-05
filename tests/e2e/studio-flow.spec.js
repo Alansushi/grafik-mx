@@ -466,4 +466,17 @@ test.describe('flujo del configurador', () => {
     expect(b.anchor).toBeGreaterThanOrEqual(11.5);
     expect(Math.abs(b.anchor - a.anchor)).toBeLessThan(a.anchor * 0.15);
   });
+
+  test('F17. con logo el lienzo bloquea el scroll táctil; sin logo, no', async ({ page }) => {
+    await abrir(page);
+    const touchAction = () => page.locator('#es-stage').evaluate((el) => getComputedStyle(el).touchAction);
+    expect(await touchAction()).toBe('auto');
+
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+    expect(await touchAction()).toBe('none');
+
+    await page.keyboard.press('Delete');
+    expect(await touchAction()).toBe('auto');
+  });
 });

@@ -292,6 +292,12 @@ a { color: inherit; }
   height: 100% !important;
 }
 
+/* Con un logo colocado, arrastrarlo o escalarlo con el dedo no debe desplazar la
+   página: sin esto el navegador cancela el gesto (pointercancel) y se lleva el
+   scroll. Sólo aplica con logo (konva-adapter.js#syncSelection); sin él, la
+   prenda no captura gestos y se puede pasar de largo con el dedo. */
+.es-stage[data-editing="true"] { touch-action: none; }
+
 /* ---- Vista, superpuesta al canvas (estudio/ui/view-pill.js) ----
    Sólo se monta cuando la prenda trae vistas de presentación (gorra:
    izq/der; playera: espalda) — ver ViewPill, `if (!views.length) return null`.

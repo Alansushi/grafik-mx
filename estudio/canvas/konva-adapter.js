@@ -278,6 +278,10 @@ export function createStudioStage(opts) {
     const show = printable && hasLogo && selected;
     transformer.nodes(show ? [logoNode] : []);
     transformer.visible(show);
+    // Con un logo editable, los gestos sobre el lienzo son del logo y no deben
+    // hacer scroll de la página (ver `.es-stage[data-editing]` en studio.css).
+    // Sin logo el lienzo no captura nada y la página se desplaza con normalidad.
+    container.dataset.editing = String(printable && hasLogo);
     uiLayer.batchDraw();
   }
 
