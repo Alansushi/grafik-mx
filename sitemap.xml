@@ -1,46 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://grafik.mx/</loc>
+    <loc>https://www.grafik.mx/</loc>
     <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#servicios</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#proceso</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#faqs</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#trabajos</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#estudio</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://grafik.mx/#contacto</loc>
-    <lastmod>2026-10-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/boletos-vip-holo.jpg</image:loc>
+      <image:caption>Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/poster-rodeo-flyer.jpg</image:loc>
+      <image:caption>Póster de rodeo baile en gran formato junto a su flyer a escala</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/talonarios-numerados.jpg</image:loc>
+      <image:caption>Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/flyers-couche.jpg</image:loc>
+      <image:caption>Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/abanico-flyers.jpg</image:loc>
+      <image:caption>Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/boletos-arrolladora.jpg</image:loc>
+      <image:caption>Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/poster-papantla.jpg</image:loc>
+      <image:caption>Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/brazaletes-vip.jpg</image:loc>
+      <image:caption>Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/anuncio-luminoso.jpg</image:loc>
+      <image:caption>Anuncio luminoso circular retroiluminado personalizado para E&amp;M Affinity Studio</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/gorra-juchitan.jpg</image:loc>
+      <image:caption>Gorra trucker negra personalizada con impresión DTF Juchitán Oaxaca</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/banderas-ingrid-spa.jpg</image:loc>
+      <image:caption>Par de banderas tipo pluma personalizadas para Ingrid Beauty Spa, con servicios de pestañas, uñas y cejas</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/tote-juchitan.jpg</image:loc>
+      <image:caption>Bolsa tote de tela negra personalizada con impresión DTF Juchitán Oaxaca</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/brazaletes-jaripeo-vip.jpg</image:loc>
+      <image:caption>Brazaletes Tyvek VIP con folio consecutivo y código QR para control de acceso en jaripeo</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/chamarra-4ases.jpg</image:loc>
+      <image:caption>Chamarra negra con logo bordado Los 4 Ases Bar Restaurante Cantina</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/poster-huajuapan.jpg</image:loc>
+      <image:caption>Pendón full color de jaripeo con Chuy Lizárraga y su Banda Tierra Sinaloense en la Expo Feria de Huajuapan de León, Oaxaca</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/vasos-luis.jpg</image:loc>
+      <image:caption>Vasos de colores personalizados con sticker full color para fiesta de primer año</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/brazaletes-la-mision.jpg</image:loc>
+      <image:caption>Brazaletes VIP numerados por mesa para el jaripeo de Rancho La Misión en San Antonio Nanahuatipam</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/gorra-rancho-ajil.jpg</image:loc>
+      <image:caption>Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/poster-metepec.jpg</image:loc>
+      <image:caption>Póster full color de rodeo baile Metepec Hidalgo con Los Buitres de Culiacán</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/tarjetas-ana-mora.jpg</image:loc>
+      <image:caption>Bolsas transparentes con logo y tarjetas de presentación a dos caras impresas para la clínica de la Dra. Ana Mora</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/brazaletes-morelos.jpg</image:loc>
+      <image:caption>Diez brazaletes Tyvek de colores con logotipos institucionales del Gobierno de Morelos y folio consecutivo</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/brazaletes-toluca.jpg</image:loc>
+      <image:caption>Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/boletos-texmola.jpg</image:loc>
+      <image:caption>Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/figura-coroplast-just-married.jpg</image:loc>
+      <image:caption>Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/caballete-uniformes.jpg</image:loc>
+      <image:caption>Caballete publicitario con diseño full color para Uniformes El General</image:caption>
+    </image:image>
   </url>
 </urlset>
