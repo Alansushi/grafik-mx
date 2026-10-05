@@ -52,6 +52,17 @@ const INITIAL_FIT_HEADROOM = 0.9;
 // Distancia (px lógicos del canvas) a la que el centro del logo se imanta al
 // centro del área imprimible mientras se arrastra.
 const CENTER_SNAP_PX = 6;
+// Tamaños de la UI de edición en píxeles de PANTALLA (no del lienzo lógico).
+// El lienzo de 900 px lógicos se muestra a ~550 px en escritorio y ~350 px en
+// móvil, así que un tirador de 10 px lógicos medía ~4 px reales: imposible de
+// tocar con el dedo. applyUiScale() los convierte con la escala vigente.
+const UI_CSS_PX = {
+  anchor: 12,
+  anchorCoarse: 24, // puntero táctil
+  border: 1.5,
+  guide: 1.5,
+  rotateOffset: 28,
+};
 
 /**
  * @param {{container: HTMLElement, width: number, height: number,
@@ -180,6 +191,24 @@ export function createStudioStage(opts) {
   const guideH = new Konva.Line({ ...guideStyle, points: [printArea.x, cy, printArea.x + printArea.width, cy] });
   uiLayer.add(guideV);
   uiLayer.add(guideH);
+
+  // Escala pantalla/lógico vigente: el CSS reduce o amplía el lienzo (ver
+  // _getContentPosition más arriba) y cambia al redimensionar la ventana.
+  function applyUiScale() {
+    const rect = stage.content?.getBoundingClientRect?.();
+    const scale = rect && rect.width > 0 ? rect.width / width : 1;
+    const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    transformer.anchorSize((coarse ? UI_CSS_PX.anchorCoarse : UI_CSS_PX.anchor) / scale);
+    transformer.borderStrokeWidth(UI_CSS_PX.border / scale);
+    transformer.anchorStrokeWidth(UI_CSS_PX.border / scale);
+    transformer.rotateAnchorOffset(UI_CSS_PX.rotateOffset / scale);
+    guideV.strokeWidth(UI_CSS_PX.guide / scale);
+    guideH.strokeWidth(UI_CSS_PX.guide / scale);
+    uiLayer.batchDraw();
+  }
+  applyUiScale();
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(applyUiScale) : null;
+  resizeObserver?.observe(container);
 
   let naturalSize = null;
   let current = { x: printArea.x + printArea.width / 2, y: printArea.y + printArea.height / 2, scaleX: 1, scaleY: 1, rotation: 0 };
@@ -466,11 +495,14 @@ export function createStudioStage(opts) {
         hasLogo,
         transformerVisible: transformer.visible(),
         printAreaGuideVisible: printAreaGuide.visible(),
+        anchorSize: transformer.anchorSize(),
+        borderStrokeWidth: transformer.borderStrokeWidth(),
         centerGuidesVisible: { v: guideV.visible(), h: guideH.visible() },
       };
     },
 
     destroy() {
+      resizeObserver?.disconnect();
       listeners.clear();
       stage.destroy();
     },

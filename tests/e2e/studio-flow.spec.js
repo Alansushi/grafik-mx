@@ -444,4 +444,26 @@ test.describe('flujo del configurador', () => {
     expect(despues.t.x).toBeCloseTo(cx, 1);
     expect(despues.t.y).toBeCloseTo(cy, 1);
   });
+
+  test('F16. los tiradores y trazos miden lo mismo en pantalla sin importar la escala del lienzo', async ({ page }) => {
+    await conLogo(page);
+    const medir = async () => {
+      const box = await page.locator('#es-stage').boundingBox();
+      const i = await page.evaluate(() => window.__studio.stage.debugInfo());
+      const escala = box.width / i.stageWidth;
+      return { anchor: i.anchorSize * escala, borde: i.borderStrokeWidth * escala };
+    };
+    const a = await medir();
+    // Mínimo útil: ~12 px para ratón (24 con puntero táctil) y un trazo visible.
+    expect(a.anchor).toBeGreaterThanOrEqual(11.5);
+    expect(a.borde).toBeGreaterThanOrEqual(1);
+
+    // Al reducir la ventana el lienzo se achica y los tiradores deben seguir igual.
+    await page.setViewportSize({ width: 360, height: 780 });
+    await page.waitForFunction(() => document.querySelector('#es-stage').getBoundingClientRect().width < 350);
+    await page.waitForTimeout(100);
+    const b = await medir();
+    expect(b.anchor).toBeGreaterThanOrEqual(11.5);
+    expect(Math.abs(b.anchor - a.anchor)).toBeLessThan(a.anchor * 0.15);
+  });
 });
