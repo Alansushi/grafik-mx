@@ -21,7 +21,7 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 ## Secciones
 
-`Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Trabajos → Contacto → CtaFinal → Footer + FloatingWA`
+`Hero C+ → TrustStrip → Intencion (#crear) → Trabajos (casos + marquee) → EstudioTeaser (#estudio) → Proceso → Productos (#servicios) → Acabados → FAQs → Contacto → CtaFinal → Footer + FloatingWA` (landing «C+ Proof First»: primero prueba con fotos reales, luego catálogo). Las tarjetas de Intención/Productos preseleccionan chip y mensaje del formulario con `pickIntent` → evento `grafik:intent` que escucha `Contacto`. Hero con fotos de `assets/hero/` (AVIF+JPG ~1000 px); `EstudioMock` es un preview ilustrativo (no importa código de `/estudio/`). Acabados usa fotos a escala 1 (sin zoom) en 3 columnas explícitas; mate/brillante se añaden como tiles cuando haya close-ups reales. `EstudioMock` tiene selector Playera/Gorra (bases `assets/estudio-playera.avif`, `assets/estudio-gorra.avif`: escala de grises + alfa, teñidas por `mix-blend-mode: multiply`).
 
 **Trabajos**: marquee auto-desplazable de fotos reales. Los datos viven en el array `works` del babel script; al hacer clic abren un `Lightbox` (Esc/flechas/backdrop, con CTA a WhatsApp). Se pausa en hover y respeta `prefers-reduced-motion`.
 
@@ -41,15 +41,16 @@ Cuidados al tocar esta sección:
 
 - El marquee usa `<picture>` (`source` AVIF + `img` JPEG). El `img` **debe** llevar `width`/`height` de `tw`/`th`: con `height:100%; width:auto`, sin ellos la tarjeta mide 0 px de ancho hasta que carga y el track salta mientras la animación corre.
 - `w`/`h` y `tw`/`th` en `works` deben ser las dimensiones **reales** de los archivos — leerlas de `sips -g pixelWidth -g pixelHeight`, no calcularlas.
-- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (14 fotos → 92 s). Si no, añadir fotos acelera el desplazamiento.
+- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (19 fotos → 124 s). Si no, añadir fotos acelera el desplazamiento.
+- **Fotos de celular/cámara (no WhatsApp) traen EXIF orientation** (p. ej. `6`). `sips` conserva la etiqueta y el navegador gira la imagen aunque los píxeles estén "derechos" (ocurrió con `fotos reales 3`: todo salió girado 90° y los `w/h` invertidos). Antes de `sips`, hornear la rotación: `ImageOps.exif_transpose(Image.open(f)).save(...)` (Pillow) y verificar con `sips -g pixelWidth -g pixelHeight` y `getexif().get(274)` vacío.
 - Las fuentes suelen llegar como exports de WhatsApp (1280–1600 px). **Revisar cada foto antes de integrarla**: descartar capturas de pantalla de chats (llevan barra de estado y teléfonos de clientes).
 
 ## Catálogo
 
-7 servicios: Lonas · Flyers · Pósters · Boletos · Pendones · Brazaletes · Artículos Promocionales.
-Los chips del formulario añaden Stickers (8º, sin tarjeta propia).
+11 servicios: Lonas · Flyers · Pósters · Boletos · Pendones · Brazaletes · Artículos Promocionales · Stickers · Tarjetas de presentación · Caballetes · Figuras en coroplast.
+Los chips del formulario son los mismos (más "Volantes" como alias de Flyers).
 
-Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la tarjeta en el componente `Servicios`, la `Offer` del `hasOfferCatalog`, el `<li>` del `.ssr-fallback` y los archivos `llms.txt` / `llms-full.txt`.
+Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la tarjeta en el componente `Productos`, la `Offer` del `hasOfferCatalog`, el `<li>` del `.ssr-fallback` y los archivos `llms.txt` / `llms-full.txt`.
 
 ## SEO / AEO
 

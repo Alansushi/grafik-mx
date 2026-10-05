@@ -33,7 +33,7 @@ export const CTA_KINDS = ['whatsapp', 'tel', 'form'];
  * llevan id en el HTML (CTA final, footer) se marcan con data-section.
  */
 export const SECTIONS = [
-  'servicios', 'ventajas', 'proceso', 'faqs', 'trabajos', 'contacto', 'cta-final', 'footer',
+  'crear', 'trabajos', 'estudio', 'proceso', 'servicios', 'acabados', 'faqs', 'contacto', 'cta-final', 'footer',
 ];
 
 /**
