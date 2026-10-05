@@ -47,10 +47,10 @@ Cuidados al tocar esta sección:
 
 ## Catálogo
 
-7 servicios: Lonas · Flyers · Pósters · Boletos · Pendones · Brazaletes · Artículos Promocionales.
-Los chips del formulario añaden Stickers (8º, sin tarjeta propia).
+11 servicios: Lonas · Flyers · Pósters · Boletos · Pendones · Brazaletes · Artículos Promocionales · Stickers · Tarjetas de presentación · Caballetes · Figuras en coroplast.
+Los chips del formulario son los mismos (más "Volantes" como alias de Flyers).
 
-Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la tarjeta en el componente `Servicios`, la `Offer` del `hasOfferCatalog`, el `<li>` del `.ssr-fallback` y los archivos `llms.txt` / `llms-full.txt`.
+Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la tarjeta en el componente `Productos`, la `Offer` del `hasOfferCatalog`, el `<li>` del `.ssr-fallback` y los archivos `llms.txt` / `llms-full.txt`.
 
 ## SEO / AEO
 

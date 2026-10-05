@@ -809,8 +809,8 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  /* Duración proporcional al número de tarjetas: ~6.5s por foto (19 → 124s). */
-  animation: marquee-scroll 124s linear infinite;
+  /* Duración proporcional al número de tarjetas: ~6.5s por foto (25 → 162s). */
+  animation: marquee-scroll 162s linear infinite;
   will-change: transform;
 }
 @keyframes marquee-scroll {
