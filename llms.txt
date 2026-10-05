@@ -1,66 +1,40 @@
-# GRAFIK — Imprenta y Publicidad en CDMX
-# https://grafik.mx | Actualizado: 2026-10-05
+# GRAFIK
 
-About: GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Servicios: lonas, flyers, pósters, boletos personalizados, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. Más de 20 materiales. Entrega en 1–3 días hábiles, express disponible. Cotización inmediata por WhatsApp.
+> GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Imprime lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast, con más de 20 materiales, producción en 1 a 3 días hábiles y servicio express disponible. Cotización por WhatsApp: +52 55 3901 4600 (lunes a viernes, 9am a 6pm, hora de Ciudad de México).
 
-## Pages
+Datos de la entidad:
+- Nombre: GRAFIK (Imprenta y Publicidad)
+- Sitio: https://www.grafik.mx/
+- Ubicación y zona de servicio: Ciudad de México y área metropolitana; entrega a domicilio o recogida del pedido
+- Contacto: WhatsApp https://wa.me/525539014600 · Teléfono +52 55 3901 4600
+- Última actualización: 2026-10-05
+- Documento extendido: https://www.grafik.mx/llms-full.txt
 
-### Home — Impresión y Publicidad en CDMX
-URL: https://grafik.mx/
-Description: Página principal con trabajos reales producidos por GRAFIK, el Estudio para visualizar el diseño, productos, materiales y acabados, proceso de cotización, preguntas frecuentes y contacto directo por WhatsApp.
+## Servicios
+- [Lonas](https://www.grafik.mx/#servicios): Lona Front, Mate, Mesh y más; diferentes medidas.
+- [Flyers y volantes](https://www.grafik.mx/#servicios): 1/4 carta, 1/2 carta y carta completa en papel Couché o Bond.
+- [Pósters](https://www.grafik.mx/#servicios): 8 ctas, 4 ctas y Doble carta en Bond o Couché.
+- [Boletos personalizados](https://www.grafik.mx/#servicios): Couché, Boleto de Seguridad y papel tipo plástico; con holograma y folio consecutivo.
+- [Pendones](https://www.grafik.mx/#servicios): diferentes medidas, listos para colocar.
+- [Brazaletes para eventos](https://www.grafik.mx/#servicios): Tyvek VIP, General, Staff, 21+ y Acceso; full color o 1 tinta; express disponible.
+- [Artículos promocionales](https://www.grafik.mx/#servicios): tazas, gorras, bolsas, termos, plumas y camisas bordadas con tu logo.
+- [Stickers](https://www.grafik.mx/#servicios): impresos y troquelados con tu diseño.
+- [Tarjetas de presentación](https://www.grafik.mx/#servicios): a frente y reverso.
+- [Caballetes](https://www.grafik.mx/#servicios): publicitarios, listos para colocar.
+- [Figuras en coroplast](https://www.grafik.mx/#servicios): recortadas a la forma de tu diseño.
 
-### Trabajos reales
-Anchor: https://grafik.mx/#trabajos
-Boletos VIP holográficos con folio, póster + flyer, talonarios numerados, flyers frente y reverso, brazaletes, gorras DTF y más — fotos reales de pedidos producidos por GRAFIK.
+## Trabajos reales
+- [Galería de trabajos](https://www.grafik.mx/#trabajos): 25 pedidos producidos y entregados por GRAFIK, entre ellos boletos con holograma y folio (Totutla y Texmola, Veracruz), pósters y pendones (Papantla, Veracruz; Huajuapan de León, Oaxaca; Metepec, Hidalgo), brazaletes Tyvek (Gobierno de Morelos, Toluca, jaripeos), gorras y bolsas con DTF (Juchitán, Oaxaca), chamarra bordada (Los 4 Ases Bar Restaurante Cantina), anuncio luminoso (E&M Affinity Studio), caballete (Uniformes El General) y figura en coroplast.
 
-### Estudio GRAFIK (visualizador de playeras y gorras)
-Anchor: https://grafik.mx/#estudio
-Herramienta para subir tu logo y ver cómo se verá aplicado en una playera o gorra (color y técnica: DTF, bordado o sublimación) antes de solicitar la cotización.
+## Estudio GRAFIK
+- [Estudio GRAFIK](https://www.grafik.mx/estudio/): visualizador para subir tu logo y ver cómo queda en una playera o gorra (color y técnica: DTF, bordado o sublimación) antes de cotizar. No muestra precios; el diseño se envía por WhatsApp.
 
-### Servicios de Impresión y Publicidad en CDMX
-Anchor: https://grafik.mx/#servicios
-Services:
-- Lonas (Lona Front, Mate, Mesh y más) — diferentes medidas, alta resolución
-- Flyers y Volantes (1/4 carta, 1/2 carta, carta completa) — papel Couché y Bond
-- Pósters (Bond y Couché en 8 ctas, 4 ctas y Doble carta) — impresión de alta definición
-- Boletos personalizados (papel Couché, Boleto de Seguridad, papel tipo plástico) — control de acceso
-- Pendones (diferentes medidas, listos para colocar) — stands, eventos y puntos de venta
-- Brazaletes para Eventos CDMX (Tyvek: VIP, General, Staff, 21+, Acceso — full color o 1 tinta, express)
-- Artículos Promocionales en CDMX (tazas, gorras, bolsas, termos, plumas, camisas bordadas) — personalización con tu logo
-- Stickers personalizados (impresos y troquelados)
-- Tarjetas de presentación (frente y reverso)
-- Caballetes publicitarios (listos para colocar)
-- Figuras en coroplast (recortadas a la forma de tu diseño)
+## Preguntas frecuentes
+- [Preguntas frecuentes](https://www.grafik.mx/#faqs): tiempos (1 a 3 días hábiles, express), formatos de archivo (PDF, AI, CDR, PNG/PSD a 150 DPI mínimo), servicio de diseño gráfico, mínimos de artículos promocionales (varían por artículo y técnica), entregas en CDMX y área metropolitana, cómo cotizar y qué productos se pueden cotizar.
 
-### Proceso de Cotización
-Anchor: https://grafik.mx/#proceso
-1. Cuéntanos qué necesitas (WhatsApp o formulario: medidas, material, cantidad)
-2. Recibe tu cotización (precio + tiempo de entrega)
-3. Autoriza tu diseño (revisión conjunta antes de imprimir)
-4. Lo imprimimos (producción y entrega en el tiempo acordado)
+## Proceso
+- [Cómo cotizar](https://www.grafik.mx/#proceso): 1) Cuéntanos qué necesitas por WhatsApp o formulario; 2) Recibe tu cotización con precio, tiempo y opciones de entrega; 3) Autoriza tu diseño; 4) Lo imprimimos y entregamos.
 
-### Preguntas Frecuentes
-Anchor: https://grafik.mx/#faqs
-- Tiempo producción lonas: 1–3 días hábiles; express disponible
-- Formatos aceptados: PDF, AI, CDR, PNG/PSD (150 DPI mínimo)
-- Servicio de diseño gráfico disponible
-- Mínimos artículos promocionales: varían por artículo y técnica; cotizar por WhatsApp
-- Entregas: CDMX y zona metropolitana; también recogida en local
-- Cotización: WhatsApp 55 3901 4600 (respuesta en minutos)
-- Brazaletes: Tyvek VIP/General/Staff/21+/Acceso; full color o 1 tinta; express disponible
-
-### Contacto
-Anchor: https://grafik.mx/#contacto
-WhatsApp (recomendado): https://wa.me/525539014600
-Teléfono: +52 55 3901 4600
-Horarios: Lunes a viernes 9am–6pm (CDMX)
-
-## Contact
-WhatsApp: +52 55 3901 4600
-Service area: Ciudad de México y zona metropolitana
-
-## Keywords
-imprenta en CDMX, publicidad CDMX, impresión de lonas CDMX, pósters CDMX, flyers y volantes CDMX, boletos personalizados CDMX, pendones publicitarios CDMX, brazaletes para eventos CDMX, artículos promocionales personalizados CDMX, stickers CDMX
-
-## Last-Updated
-2026-10-05
+## Optional
+- [Contacto](https://www.grafik.mx/#contacto): WhatsApp y formulario de cotización.
+- [Documento extendido](https://www.grafik.mx/llms-full.txt): catálogo completo, materiales y preguntas frecuentes con respuestas.

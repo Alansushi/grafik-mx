@@ -69,6 +69,15 @@ Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la 
   (tipo MIME desconocido), Babel-standalone lo transforma y lo corre solo cuando los tres
   `defer` terminan. Un script nuevo que dependa de React/ReactDOM debe ir después de esos tres.
 
+### Host canónico, sitemap y activos SEO (oct 2026)
+
+- **Host canónico = `https://www.grafik.mx`.** Toda URL absoluta (canonical, hreflang, `og:*`, `@id`/`url` del JSON-LD, `sitemap.xml`, `robots.txt`, `llms*.txt`) usa `www`. El texto de marca visible "grafik.mx" (footer, mockup del Estudio) NO es una URL: no se toca. Verificación: `grep -c 'https://grafik\.mx'` debe dar 0 en esos archivos.
+- **`sitemap.xml` = una sola URL (`/`) + extensión de imágenes** (`image:image` con las fotos de Trabajos y su caption, generadas desde el `ImageGallery`). No añadir entradas `#fragmento`: Google las ignora. Al añadir/quitar una foto de Trabajos, regenerar también este bloque.
+- **El `.ssr-fallback` es lo que ven los crawlers de IA** (no ejecutan JS). Debe llevar: definición de entidad ("GRAFIK es una imprenta…"), tabla de variantes por producto, pasos del Estudio, lista de acabados, zona de servicio y horario, y fecha visible. Cualquier texto nuevo de la landing se refleja ahí.
+- **FAQs: 8** (React, `FAQPage` y SSR). Productos: **11** (React, `Offer` con `provider`, SSR, `llms*.txt`).
+- `og-image.png` (1200×630, <200 KB) se versiona con `?v=N` en `og:image`/`twitter:image` para invalidar cachés sociales. `404.html` es la página 404 de marca (`noindex`).
+- Datos que NO se pueden inventar y siguen pendientes del dueño: `sameAs` (redes, Google Business Profile), dirección física, fundador, reseñas verificables. No añadir `aggregateRating`, `priceRange` ni dirección sin fuente.
+
 ### Checklist al agregar o modificar una sección de la landing
 
 Una sección nueva, eliminada o reordenada puede desincronizar hasta 6 lugares. Repasar TODA
@@ -183,7 +192,7 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
 ## Pendientes
 
 - [x] Nombre de marca: **GRAFIK** — ya aplicado en `CONFIG.brand`, JSON-LD y SSR fallback
-- [x] Dominio resuelto: `grafik.mx` — ya aplicado en todos los archivos
+- [x] Dominio resuelto: **`www.grafik.mx`** es el host canónico (el apex `grafik.mx` redirige 308 a `www`) — aplicado en canonical, hreflang, og, JSON-LD, sitemap, robots y `llms*.txt`
 - [x] `og-image.png` (1200×630 px) — ya existe en la raíz
 - [ ] Añadir dirección física si se quiere mejorar el schema `LocalBusiness`
 - [ ] Íconos propios en `defs.svg` para Flyers, Pósters, Boletos y Pendones — hoy reusan `i-dtf`, `i-vinil`, `i-promo` y `i-lona`

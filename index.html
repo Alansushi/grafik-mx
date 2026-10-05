@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,31 +9,34 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/grafik-favicon-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/grafik-favicon-180.png">
 
-  <meta name="description" content="Imprenta y publicidad en Ciudad de México. Lonas, flyers, pósters, boletos, pendones, brazaletes para eventos y artículos promocionales. Cotización sin compromiso." />
+  <meta name="description" content="GRAFIK, imprenta y publicidad en CDMX: lonas, flyers, pósters, boletos, brazaletes Tyvek, caballetes, stickers y más. Cotiza por WhatsApp sin compromiso." />
   <meta name="keywords" content="imprenta CDMX, publicidad CDMX, impresión lonas, pósters CDMX, flyers volantes CDMX, boletos personalizados, pendones publicitarios, artículos promocionales CDMX, brazaletes eventos, stickers CDMX, tarjetas de presentación CDMX, caballetes publicitarios, figuras de coroplast" />
   <meta name="author" content="GRAFIK" />
   <meta name="robots" content="index, follow" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="geo.region" content="MX-CMX" />
   <meta name="geo.placename" content="Ciudad de México" />
-  <link rel="canonical" href="https://grafik.mx/" />
-  <link rel="alternate" hreflang="es-MX" href="https://grafik.mx/" />
-  <link rel="alternate" hreflang="x-default" href="https://grafik.mx/" />
+  <link rel="canonical" href="https://www.grafik.mx/" />
+  <link rel="alternate" hreflang="es-MX" href="https://www.grafik.mx/" />
+  <link rel="alternate" hreflang="x-default" href="https://www.grafik.mx/" />
   <link rel="llms.txt" href="/llms.txt" type="text/plain" />
 
   <meta property="og:title" content="GRAFIK | Imprenta y Publicidad en CDMX — Lonas y Pósters" />
-  <meta property="og:description" content="Lonas, flyers, pósters, boletos, pendones, brazaletes para eventos y artículos promocionales en CDMX. Cotización sin compromiso." />
+  <meta property="og:description" content="Lonas, flyers, pósters, boletos, pendones, brazaletes Tyvek, caballetes, stickers, tarjetas y figuras en coroplast en CDMX. Cotiza por WhatsApp sin compromiso." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://grafik.mx/" />
-  <meta property="og:image" content="https://grafik.mx/og-image.png" />
+  <meta property="og:url" content="https://www.grafik.mx/" />
+  <meta property="og:image" content="https://www.grafik.mx/og-image.png?v=2" />
+  <meta property="og:image:alt" content="GRAFIK, imprenta y publicidad en CDMX: brazaletes Tyvek, boletos holográficos y figuras en coroplast reales" />
+  <meta property="og:site_name" content="GRAFIK" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="es_MX" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="GRAFIK | Imprenta y Publicidad en CDMX" />
-  <meta name="twitter:description" content="Lonas, pósters, boletos, pendones, brazaletes y artículos promocionales en CDMX. Cotiza sin compromiso." />
-  <meta name="twitter:image" content="https://grafik.mx/og-image.png" />
+  <meta name="twitter:description" content="Lonas, pósters, boletos, brazaletes Tyvek, caballetes, stickers y más en CDMX. Cotiza por WhatsApp sin compromiso." />
+  <meta name="twitter:image" content="https://www.grafik.mx/og-image.png?v=2" />
+  <meta name="twitter:image:alt" content="GRAFIK, imprenta y publicidad en CDMX: brazaletes Tyvek, boletos holográficos y figuras en coroplast reales" />
 
   <!-- Schema.org · Organization -->
   <!-- TODO-AEO: Llenar sameAs con URLs reales de perfiles verificados (Instagram, Facebook, LinkedIn, Google Maps) -->
@@ -42,14 +45,14 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://grafik.mx/#org",
+    "@id": "https://www.grafik.mx/#org",
     "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
-    "url": "https://grafik.mx",
+    "url": "https://www.grafik.mx",
     "telephone": "+52-55-3901-4600",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://grafik.mx/assets/grafik-simbolo.svg",
+      "url": "https://www.grafik.mx/assets/grafik-favicon-512.png",
       "width": 512,
       "height": 512
     },
@@ -60,7 +63,12 @@
       "contactType": "sales",
       "availableLanguage": "Spanish",
       "areaServed": "MX",
-      "contactOption": "TollFree"
+      "hoursAvailable": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+        "opens": "09:00",
+        "closes": "18:00"
+      }
     },
     "address": {
       "@type": "PostalAddress",
@@ -70,24 +78,27 @@
     },
     "areaServed": [
       { "@type": "City", "name": "Ciudad de México" },
-      { "@type": "Country", "name": "Mexico" }
+      { "@type": "AdministrativeArea", "name": "Zona Metropolitana del Valle de México" }
     ]
   }
   </script>
 
-  <!-- Schema.org · LocalBusiness (PrintingService) -->
+  <!-- Schema.org · LocalBusiness (imprenta y publicidad) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "@id": "https://grafik.mx/#business",
+    "@type": ["LocalBusiness", "ProfessionalService"],
+    "@id": "https://www.grafik.mx/#business",
     "name": "GRAFIK",
     "alternateName": "Imprenta y Publicidad CDMX",
-    "organization": { "@id": "https://grafik.mx/#org" },
+    "organization": { "@id": "https://www.grafik.mx/#org" },
     "description": "Imprenta y publicidad en CDMX. Especialistas en impresión de lonas y pendones, flyers, pósters, boletos personalizados, brazaletes para control de acceso en eventos y artículos promocionales.",
-    "url": "https://grafik.mx",
+    "url": "https://www.grafik.mx",
     "telephone": "+52-55-3901-4600",
-    "priceRange": "$$",
+    "image": "https://www.grafik.mx/og-image.png?v=2",
+    "logo": "https://www.grafik.mx/assets/grafik-favicon-512.png",
+    "inLanguage": "es-MX",
+    "knowsAbout": ["Impresión de lonas", "Impresión de flyers y volantes", "Impresión de pósters", "Boletos personalizados con holograma y folio", "Brazaletes Tyvek para eventos", "Pendones y caballetes publicitarios", "Figuras en coroplast", "Stickers troquelados", "Tarjetas de presentación", "Artículos promocionales", "Personalización de playeras y gorras (DTF, bordado, sublimación)"],
     "sameAs": [],
     "address": {
       "@type": "PostalAddress",
@@ -97,7 +108,7 @@
     },
     "areaServed": [
       { "@type": "City", "name": "Ciudad de México" },
-      { "@type": "Country", "name": "Mexico" }
+      { "@type": "AdministrativeArea", "name": "Zona Metropolitana del Valle de México" }
     ],
     "openingHoursSpecification": [
       {
@@ -111,17 +122,17 @@
       "@type": "OfferCatalog",
       "name": "Servicios de Imprenta y Publicidad",
       "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Lonas", "description": "Lonas para eventos en Lona Front, Mate, Mesh y más. Diferentes medidas, alta resolución garantizada." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Flyers", "description": "Flyers y volantes en tamaños 1/4, 1/2 carta y carta completa. En papel Couché y Bond de alta calidad." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pósters", "description": "Pósters Bond y Couché en 8 ctas, 4 ctas y Doble carta. Impresión de alta definición para cualquier uso." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Boletos", "description": "Boletos en papel Couché, Boleto de Seguridad y papel tipo plástico para mayor resistencia y control de acceso." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Pendones", "description": "Pendones en diferentes medidas, listos para colocar. Ideales para stands, eventos y puntos de venta." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Brazaletes para Eventos", "description": "Brazaletes Tyvek para control de acceso en eventos: VIP, acceso general y diferentes zonas. Personalización en 1 tinta o full color. Entrega express disponible." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Artículos Promocionales", "description": "Tazas, gorras, bolsas, termos, plumas, camisas bordadas y más. Personalización con tu logo." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Stickers", "description": "Stickers impresos y troquelados con tu diseño, para producto, empaque, promociones y eventos." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tarjetas de presentación", "description": "Tarjetas de presentación impresas con tu diseño, a frente y reverso." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Caballetes", "description": "Caballetes publicitarios con tu diseño impreso, listos para colocar a la entrada de tu negocio o evento." }},
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Figuras en coroplast", "description": "Figuras e impresiones recortadas en coroplast con la forma de tu diseño, ideales para eventos, tiendas y fotos." }}
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Lonas", "description": "Lonas para eventos en Lona Front, Mate, Mesh y más. Diferentes medidas, alta resolución garantizada." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Flyers", "description": "Flyers y volantes en tamaños 1/4, 1/2 carta y carta completa. En papel Couché y Bond de alta calidad." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Pósters", "description": "Pósters Bond y Couché en 8 ctas, 4 ctas y Doble carta. Impresión de alta definición para cualquier uso." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Boletos", "description": "Boletos en papel Couché, Boleto de Seguridad y papel tipo plástico para mayor resistencia y control de acceso." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Pendones", "description": "Pendones en diferentes medidas, listos para colocar. Ideales para stands, eventos y puntos de venta." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Brazaletes para Eventos", "description": "Brazaletes Tyvek para control de acceso en eventos: VIP, acceso general y diferentes zonas. Personalización en 1 tinta o full color. Entrega express disponible." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Artículos Promocionales", "description": "Tazas, gorras, bolsas, termos, plumas, camisas bordadas y más. Personalización con tu logo." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Stickers", "description": "Stickers impresos y troquelados con tu diseño, para producto, empaque, promociones y eventos." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Tarjetas de presentación", "description": "Tarjetas de presentación impresas con tu diseño, a frente y reverso." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Caballetes", "description": "Caballetes publicitarios con tu diseño impreso, listos para colocar a la entrada de tu negocio o evento." }},
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "provider": { "@id": "https://www.grafik.mx/#business" }, "name": "Figuras en coroplast", "description": "Figuras e impresiones recortadas en coroplast con la forma de tu diseño, ideales para eventos, tiendas y fotos." }}
       ]
     }
   }
@@ -188,6 +199,14 @@
           "@type": "Answer",
           "text": "Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta con nombre del evento, fecha, QR, número de folio o logo. El material Tyvek es resistente al agua y no transferible, ideal para control de acceso en festivales, conciertos, conferencias y eventos corporativos. Entrega express disponible según cantidad."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Qué productos de imprenta y publicidad puedo cotizar en GRAFIK?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Puedes cotizar lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. Cotizamos por WhatsApp al 55 3901 4600; la producción suele tomar de 1 a 3 días hábiles, con servicio express disponible."
+        }
       }
     ]
   }
@@ -198,12 +217,12 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://grafik.mx/#website",
-    "url": "https://grafik.mx",
+    "@id": "https://www.grafik.mx/#website",
+    "url": "https://www.grafik.mx",
     "name": "GRAFIK — Imprenta y Publicidad",
-    "inLanguage": "es",
-    "dateModified": "2026-07-18",
-    "publisher": { "@id": "https://grafik.mx/#org" }
+    "inLanguage": "es-MX",
+    "dateModified": "2026-10-05",
+    "publisher": { "@id": "https://www.grafik.mx/#org" }
   }
   </script>
 
@@ -213,10 +232,7 @@
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://grafik.mx/" },
-      { "@type": "ListItem", "position": 2, "name": "Servicios de Impresión y Publicidad", "item": "https://grafik.mx/#servicios" },
-      { "@type": "ListItem", "position": 3, "name": "Preguntas Frecuentes", "item": "https://grafik.mx/#faqs" },
-      { "@type": "ListItem", "position": 4, "name": "Contacto", "item": "https://grafik.mx/#contacto" }
+      { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.grafik.mx/" }
     ]
   }
   </script>
@@ -226,38 +242,38 @@
   {
     "@context": "https://schema.org",
     "@type": "ImageGallery",
-    "@id": "https://grafik.mx/#trabajos",
+    "@id": "https://www.grafik.mx/#trabajos",
     "name": "Trabajos de GRAFIK — imprenta y publicidad en CDMX",
     "description": "Muestra de trabajos reales de impresión y publicidad producidos y entregados por GRAFIK: boletos, pósters, brazaletes, anuncios luminosos y artículos promocionales.",
-    "url": "https://grafik.mx/#trabajos",
-    "isPartOf": { "@id": "https://grafik.mx/#website" },
-    "about": { "@id": "https://grafik.mx/#business" },
+    "url": "https://www.grafik.mx/#trabajos",
+    "isPartOf": { "@id": "https://www.grafik.mx/#website" },
+    "about": { "@id": "https://www.grafik.mx/#business" },
     "associatedMedia": [
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/boletos-vip-holo.jpg", "caption": "Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-rodeo-flyer.jpg", "caption": "Póster de rodeo baile en gran formato junto a su flyer a escala" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/talonarios-numerados.jpg", "caption": "Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/flyers-couche.jpg", "caption": "Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/abanico-flyers.jpg", "caption": "Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/boletos-arrolladora.jpg", "caption": "Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-papantla.jpg", "caption": "Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-vip.jpg", "caption": "Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/anuncio-luminoso.jpg", "caption": "Anuncio luminoso circular retroiluminado personalizado para E&M Affinity Studio" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/gorra-juchitan.jpg", "caption": "Gorra trucker negra personalizada con impresión DTF Juchitán Oaxaca" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/banderas-ingrid-spa.jpg", "caption": "Par de banderas tipo pluma personalizadas para Ingrid Beauty Spa, con servicios de pestañas, uñas y cejas" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/tote-juchitan.jpg", "caption": "Bolsa tote de tela negra personalizada con impresión DTF Juchitán Oaxaca" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-jaripeo-vip.jpg", "caption": "Brazaletes Tyvek VIP con folio consecutivo y código QR para control de acceso en jaripeo" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/chamarra-4ases.jpg", "caption": "Chamarra negra con logo bordado Los 4 Ases Bar Restaurante Cantina" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-huajuapan.jpg", "caption": "Pendón full color de jaripeo con Chuy Lizárraga y su Banda Tierra Sinaloense en la Expo Feria de Huajuapan de León, Oaxaca" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/vasos-luis.jpg", "caption": "Vasos de colores personalizados con sticker full color para fiesta de primer año" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-la-mision.jpg", "caption": "Brazaletes VIP numerados por mesa para el jaripeo de Rancho La Misión en San Antonio Nanahuatipam" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/gorra-rancho-ajil.jpg", "caption": "Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-metepec.jpg", "caption": "Póster full color de rodeo baile Metepec Hidalgo con Los Buitres de Culiacán" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/tarjetas-ana-mora.jpg", "caption": "Bolsas transparentes con logo y tarjetas de presentación a dos caras impresas para la clínica de la Dra. Ana Mora" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-morelos.jpg", "caption": "Diez brazaletes Tyvek de colores con logotipos institucionales del Gobierno de Morelos y folio consecutivo" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-toluca.jpg", "caption": "Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/boletos-texmola.jpg", "caption": "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/figura-coroplast-just-married.jpg", "caption": "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
-      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/caballete-uniformes.jpg", "caption": "Caballete publicitario con diseño full color para Uniformes El General" }
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/boletos-vip-holo.jpg", "caption": "Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/poster-rodeo-flyer.jpg", "caption": "Póster de rodeo baile en gran formato junto a su flyer a escala" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/talonarios-numerados.jpg", "caption": "Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/flyers-couche.jpg", "caption": "Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/abanico-flyers.jpg", "caption": "Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/boletos-arrolladora.jpg", "caption": "Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/poster-papantla.jpg", "caption": "Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-vip.jpg", "caption": "Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/anuncio-luminoso.jpg", "caption": "Anuncio luminoso circular retroiluminado personalizado para E&M Affinity Studio" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/gorra-juchitan.jpg", "caption": "Gorra trucker negra personalizada con impresión DTF Juchitán Oaxaca" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/banderas-ingrid-spa.jpg", "caption": "Par de banderas tipo pluma personalizadas para Ingrid Beauty Spa, con servicios de pestañas, uñas y cejas" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/tote-juchitan.jpg", "caption": "Bolsa tote de tela negra personalizada con impresión DTF Juchitán Oaxaca" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-jaripeo-vip.jpg", "caption": "Brazaletes Tyvek VIP con folio consecutivo y código QR para control de acceso en jaripeo" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/chamarra-4ases.jpg", "caption": "Chamarra negra con logo bordado Los 4 Ases Bar Restaurante Cantina" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/poster-huajuapan.jpg", "caption": "Pendón full color de jaripeo con Chuy Lizárraga y su Banda Tierra Sinaloense en la Expo Feria de Huajuapan de León, Oaxaca" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/vasos-luis.jpg", "caption": "Vasos de colores personalizados con sticker full color para fiesta de primer año" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-la-mision.jpg", "caption": "Brazaletes VIP numerados por mesa para el jaripeo de Rancho La Misión en San Antonio Nanahuatipam" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/gorra-rancho-ajil.jpg", "caption": "Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/poster-metepec.jpg", "caption": "Póster full color de rodeo baile Metepec Hidalgo con Los Buitres de Culiacán" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/tarjetas-ana-mora.jpg", "caption": "Bolsas transparentes con logo y tarjetas de presentación a dos caras impresas para la clínica de la Dra. Ana Mora" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-morelos.jpg", "caption": "Diez brazaletes Tyvek de colores con logotipos institucionales del Gobierno de Morelos y folio consecutivo" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/brazaletes-toluca.jpg", "caption": "Brazaletes Tyvek full color para un evento en Toluca por zonas: Invitados, Prensa, Acceso total y Staff" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/boletos-texmola.jpg", "caption": "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo para un evento en Texmola, Veracruz" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/figura-coroplast-just-married.jpg", "caption": "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
+      { "@type": "ImageObject", "contentUrl": "https://www.grafik.mx/assets/trabajos/caballete-uniformes.jpg", "caption": "Caballete publicitario con diseño full color para Uniformes El General" }
     ]
   }
   </script>
@@ -268,10 +284,10 @@
   {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": "https://grafik.mx/#founder",
+    "@id": "https://www.grafik.mx/#founder",
     "name": "[NOMBRE DEL FOUNDER]",
     "jobTitle": "Fundador / Director",
-    "worksFor": { "@id": "https://grafik.mx/#org" },
+    "worksFor": { "@id": "https://www.grafik.mx/#org" },
     "sameAs": ["https://www.linkedin.com/in/[PERFIL]"]
   }
   </script>
@@ -282,9 +298,15 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha384-bm7MnzvK++ykSwVJ2tynSE5TRdN+xL418osEVF2DE/L/gfWHj91J2Sphe582B1Bh" crossorigin="anonymous"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js" integrity="sha384-1qlE7MZPM2pHD/pBZCU/yB8UCP52RYL8bge/qNdfNBCWToySp8/M+JL2waXU4hjJ" crossorigin="anonymous"></script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Fuentes autoalojadas (assets/fonts, @font-face en styles.css): se precargan las que usa la primera pantalla
+       (React tarda en pintar por Babel) para que el swap no mueva el layout (CLS). -->
+  <link rel="preload" href="/assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-condensed-700-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
@@ -310,6 +332,7 @@
         <section id="top">
           <p><strong>GRAFIK</strong> — Imprenta + Publicidad · CDMX</p>
           <h1>Tu idea merece verse <em>impresa</em> así de bien.</h1>
+          <p>GRAFIK es una imprenta y agencia de publicidad en Ciudad de México que imprime lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. Trabajamos con más de 20 materiales, producimos en 1 a 3 días hábiles con servicio express disponible y cotizamos por WhatsApp. <a href="#trabajos">Ver trabajos reales</a></p>
           <p>Boletos, flyers, pósters, lonas, pendones, brazaletes y promocionales. GRAFIK te ayuda a elegir el material, acabado y formato ideal para tu proyecto. Cotización sin compromiso, revisamos tu archivo antes de imprimir y hay servicio express disponible. Más de 20 materiales, cotización rápida por WhatsApp y producción en CDMX. WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a></p>
         </section>
 
@@ -317,7 +340,7 @@
           <h2>¿Qué quieres crear?</h2>
           <ul>
             <li><strong>Tengo un evento</strong> — Boletos, brazaletes, pósters, lonas y pendones.</li>
-            <li><strong>Quiero promocionar mi negocio</strong> — Flyers, pósters, lonas y publicidad impresa.</li>
+            <li><strong>Quiero promocionar mi negocio</strong> — Flyers, pósters, lonas, caballetes y publicidad impresa.</li>
             <li><strong>Quiero personalizar mi marca</strong> — Playeras, gorras, bolsas y promocionales. Pruébalo en el <a href="/estudio/">Estudio GRAFIK</a>.</li>
             <li><strong>Tengo algo especial en mente</strong> — Materiales, acabados y proyectos personalizados.</li>
           </ul>
@@ -357,7 +380,12 @@
 
         <section id="estudio">
           <h2>Antes de imprimirlo, míralo.</h2>
-          <p>Prueba tu diseño en nuestro Estudio y visualiza cómo se verá aplicado antes de solicitar tu cotización. Playeras y gorras: sube tu logo, elige color y técnica de personalización (DTF, bordado o sublimación). <a href="/estudio/">Abrir Estudio</a></p>
+          <p>El Estudio GRAFIK es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp. <a href="/estudio/">Abrir Estudio</a></p>
+          <ol>
+            <li><strong>Elige tu prenda</strong> — Playera o gorra, color y técnica de personalización (DTF, bordado o sublimación).</li>
+            <li><strong>Sube tu logo</strong> — Colócalo y ajusta el tamaño.</li>
+            <li><strong>Míralo y cotiza</strong> — Nos mandas el diseño por WhatsApp.</li>
+          </ol>
         </section>
 
         <section id="proceso">
@@ -385,11 +413,36 @@
             <li><strong>Caballetes publicitarios en CDMX</strong> — Caballetes con tu diseño impreso, listos para colocar a la entrada de tu negocio o evento.</li>
             <li><strong>Figuras en coroplast en CDMX</strong> — Figuras e impresiones recortadas en coroplast con la forma de tu diseño, ideales para eventos, tiendas y fotos.</li>
           </ul>
+          <table>
+            <caption>Variantes por producto en GRAFIK</caption>
+            <thead><tr><th>Producto</th><th>Variantes disponibles</th></tr></thead>
+            <tbody>
+              <tr><td>Lonas</td><td>Lona Front, Mate, Mesh y más; diferentes medidas</td></tr>
+              <tr><td>Flyers</td><td>1/4 carta, 1/2 carta y carta completa; papel Couché o Bond</td></tr>
+              <tr><td>Pósters</td><td>8 ctas, 4 ctas y Doble carta; papel Bond o Couché</td></tr>
+              <tr><td>Boletos</td><td>Papel Couché, Boleto de Seguridad y papel tipo plástico</td></tr>
+              <tr><td>Pendones</td><td>Diferentes medidas, listos para colocar</td></tr>
+              <tr><td>Brazaletes para eventos</td><td>Tyvek VIP, General, Staff, 21+ y Acceso; full color o 1 tinta; express disponible</td></tr>
+              <tr><td>Artículos promocionales</td><td>Tazas, gorras, bolsas, termos, plumas y camisas bordadas con tu logo</td></tr>
+              <tr><td>Stickers</td><td>Impresos y troquelados</td></tr>
+              <tr><td>Tarjetas de presentación</td><td>Frente y reverso</td></tr>
+              <tr><td>Caballetes</td><td>Publicitarios, listos para colocar</td></tr>
+              <tr><td>Figuras en coroplast</td><td>Recortadas a la forma de tu diseño</td></tr>
+            </tbody>
+          </table>
         </section>
 
         <section id="acabados">
           <h2>El acabado también comunica.</h2>
-          <p>Más de 20 materiales. Holográfico para boletos de seguridad, papel Couché para flyers y pósters, Tyvek resistente al agua en brazaletes, DTF full color en gorras, bolsas y playeras, bordado en prendas y numeración consecutiva en talonarios y boletos.</p>
+          <p>Más de 20 materiales. Te ayudamos a elegir el que mejor funciona para tu proyecto:</p>
+          <ul>
+            <li><strong>Holográfico</strong> — sello de seguridad en tus boletos.</li>
+            <li><strong>Bordado</strong> — tu logo bordado en prendas.</li>
+            <li><strong>Tyvek</strong> — brazaletes resistentes al agua.</li>
+            <li><strong>Couché</strong> — colores vivos en flyers y pósters.</li>
+            <li><strong>DTF</strong> — full color en gorras, bolsas y playeras.</li>
+            <li><strong>Numerado</strong> — folio consecutivo en talonarios y boletos.</li>
+          </ul>
         </section>
 
         <section id="faqs">
@@ -409,13 +462,17 @@
             <dd>La forma más rápida es escribirnos por WhatsApp al 55 3901 4600. Cuéntanos qué necesitas: tipo de material, medidas, cantidad y acabado deseado. Te respondemos en minutos.</dd>
             <dt>¿Cuáles son los tipos de brazaletes para eventos que ofrecen?</dt>
             <dd>Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta. Material Tyvek: resistente al agua, no transferible. Entrega express disponible.</dd>
+            <dt>¿Qué productos de imprenta y publicidad puedo cotizar en GRAFIK?</dt>
+            <dd>Puedes cotizar lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. Cotizamos por WhatsApp al 55 3901 4600; la producción suele tomar de 1 a 3 días hábiles, con servicio express disponible.</dd>
           </dl>
         </section>
 
         <section id="contacto">
           <h2>Solicita tu cotización</h2>
-          <p>WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a> · Lunes a viernes 9am–6pm · CDMX</p>
+          <p>WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a> · Lunes a viernes 9am–6pm (hora de Ciudad de México).</p>
+          <p>Entregamos en Ciudad de México y su área metropolitana, y también puedes pasar a recoger tu pedido.</p>
         </section>
+        <p><time datetime="2026-10-05">Actualizado: octubre de 2026</time></p>
       </main>
     </div>
   </div>
@@ -522,7 +579,7 @@
           <picture>
             <source srcSet={`${p.base}.avif`} type="image/avif" />
             <img src={`${p.base}.jpg`} width={p.w} height={p.h} alt={p.alt}
-              decoding="async" {...(eager ? { fetchpriority: "high" } : { loading: "lazy" })} />
+              decoding="async" {...(eager ? { fetchpriority: "high" } : {})} />
           </picture>
           {tag && <figcaption className="cp-tag">{tag}</figcaption>}
         </figure>
@@ -679,7 +736,7 @@
                 <img className="cp-tee-img" src={g.src} width="640" height="640" alt="" decoding="async" />
                 <span className="cp-tee-guide" aria-hidden="true"></span>
                 <span className="cp-tee-logo" style={{ color: darkTee ? "#F0F0EE" : "#0C0C0C" }} aria-hidden="true">
-                  <svg width="100%" height="100%"><use href="/defs.svg#mark"/></svg>
+                  <svg width="100%" height="100%" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
                 </span>
               </div>
               <div className="cp-studio-side">
@@ -918,6 +975,10 @@
           q: "¿Cuáles son los tipos de brazaletes para eventos que ofrecen?",
           a: "Ofrecemos brazaletes Tyvek en 5 categorías: VIP, General, Staff, 21+ y Acceso. Todos personalizables en full color o 1 tinta con nombre del evento, fecha, QR, número de folio o logo. Material Tyvek: resistente al agua y no transferible. Entrega express disponible según cantidad.",
         },
+        {
+          q: "¿Qué productos de imprenta y publicidad puedo cotizar en GRAFIK?",
+          a: "Puedes cotizar lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. Cotizamos por WhatsApp al 55 3901 4600; la producción suele tomar de 1 a 3 días hábiles, con servicio express disponible.",
+        },
       ];
 
       return (
@@ -930,7 +991,7 @@
                 <p className="sec-desc">¿Tienes más dudas? Escríbenos por WhatsApp y te respondemos de inmediato.</p>
               </div>
             </div>
-            <div className="faq-list" role="list">
+            <div className="faq-list">
               {faqs.map(f => (
                 <details key={f.q} className="faq-item" data-faq>
                   <summary>{f.q}</summary>
@@ -1263,7 +1324,6 @@
                 return (
                   <button key={c.slug} type="button" className={`cp-case ${c.cls}`}
                     data-work={c.slug} data-work-cat={w.cat}
-                    aria-label={`Ampliar imagen: ${w.alt}`}
                     onClick={() => setActive(idx)}>
                     <picture>
                       <source srcSet={`${w.thumb}.avif`} type="image/avif" />
@@ -1273,6 +1333,7 @@
                       <b>{c.t}</b>
                       <span>{c.d}</span>
                     </span>
+                    <span className="sr-only">. Ampliar imagen: {w.alt}</span>
                   </button>
                 );
               })}
@@ -1286,7 +1347,7 @@
                 const dup = i >= works.length;
                 return (
                   <button key={i} type="button" className="work-card" data-work={w.slug} data-work-cat={w.cat}
-                    aria-label={`Ampliar imagen: ${w.alt}`}
+                    aria-label={`${w.cat} — ampliar imagen: ${w.alt}`}
                     aria-hidden={dup ? 'true' : undefined}
                     tabIndex={dup ? -1 : 0}
                     onClick={() => setActive(idx)}>

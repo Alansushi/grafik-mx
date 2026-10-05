@@ -38,5 +38,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://grafik.mx/sitemap.xml
-Llms: https://grafik.mx/llms.txt
+Sitemap: https://www.grafik.mx/sitemap.xml
