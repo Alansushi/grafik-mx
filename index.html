@@ -229,6 +229,11 @@
     "isPartOf": { "@id": "https://grafik.mx/#website" },
     "about": { "@id": "https://grafik.mx/#business" },
     "associatedMedia": [
+      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/boletos-vip-holo.jpg", "caption": "Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina" },
+      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-rodeo-flyer.jpg", "caption": "Póster de rodeo baile en gran formato junto a su flyer a escala" },
+      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/talonarios-numerados.jpg", "caption": "Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados" },
+      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/flyers-couche.jpg", "caption": "Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante" },
+      { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/abanico-flyers.jpg", "caption": "Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel" },
       { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/boletos-arrolladora.jpg", "caption": "Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz" },
       { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/poster-papantla.jpg", "caption": "Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" },
       { "@type": "ImageObject", "contentUrl": "https://grafik.mx/assets/trabajos/brazaletes-vip.jpg", "caption": "Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos" },
@@ -273,6 +278,8 @@
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
+  <!-- LCP del hero: la foto dominante (boletos VIP). React/Babel la pintan tarde, así que se precarga. -->
+  <link rel="preload" href="/assets/hero/boletos-vip-holo.avif" as="image" type="image/avif" fetchpriority="high">
 </head>
 <body>
   <div id="root">
@@ -281,36 +288,39 @@
       <header>
         <strong>GRAFIK</strong> · Imprenta y Publicidad en CDMX
         <nav>
-          <a href="#servicios">Servicios</a>
-          <a href="#proceso">Proceso</a>
-          <a href="#faqs">FAQs</a>
           <a href="#trabajos">Trabajos</a>
+          <a href="#estudio">Estudio</a>
+          <a href="#proceso">Proceso</a>
+          <a href="#servicios">Productos</a>
+          <a href="#faqs">FAQs</a>
           <a href="#contacto">Contacto</a>
         </nav>
       </header>
       <main>
         <section id="top">
-          <h1>Impresión y <em>Publicidad</em> en CDMX</h1>
-          <p>Publicidad: pósters, volantes, boletos en diferentes materiales, lonas, pendones, brazaletes y más. Promocionales: playeras, gorras, plumas, tazas, agendas, termos, bolsas y más. Cotizaciones sin compromiso. WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a></p>
+          <h1>Tu idea merece verse <em>impresa</em> así de bien.</h1>
+          <p>Boletos, flyers, pósters, lonas, pendones, brazaletes y promocionales. Te ayudamos a elegir el material, acabado y formato ideal para tu proyecto. Cotización sin compromiso, revisamos tu archivo antes de imprimir y hay servicio express disponible. Más de 20 materiales, cotización rápida por WhatsApp y producción en CDMX. WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a></p>
         </section>
 
-        <section id="servicios">
-          <h2>¿Qué servicios de impresión y publicidad ofrecemos en CDMX?</h2>
+        <section id="crear">
+          <h2>¿Qué quieres crear?</h2>
           <ul>
-            <li><strong>Lonas en CDMX</strong> — Lonas para eventos en Lona Front, Mate, Mesh y más. Diferentes medidas, alta resolución garantizada.</li>
-            <li><strong>Flyers en CDMX</strong> — Flyers en tamaños 1/4, 1/2 carta y carta completa. En papel Couché y Bond de alta calidad.</li>
-            <li><strong>Pósters en CDMX</strong> — Pósters Bond y Couché en 8 ctas, 4 ctas y Doble carta. Impresión de alta definición.</li>
-            <li><strong>Boletos personalizados en CDMX</strong> — Boletos en papel Couché, Boleto de Seguridad y papel tipo plástico para control de acceso.</li>
-            <li><strong>Pendones en CDMX</strong> — Pendones en diferentes medidas, listos para colocar. Ideales para stands, eventos y puntos de venta.</li>
-            <li><strong>Brazaletes para Eventos en CDMX</strong> — Pulseras Tyvek para control de acceso: VIP, General, Staff, 21+, Acceso. Full color o 1 tinta. Entrega express disponible.</li>
-            <li><strong>Artículos Promocionales en CDMX</strong> — Tazas, gorras, bolsas, termos, plumas, camisas bordadas y más. Personalización con tu logo.</li>
+            <li><strong>Tengo un evento</strong> — Boletos, brazaletes, pósters, lonas y pendones.</li>
+            <li><strong>Quiero promocionar mi negocio</strong> — Flyers, pósters, lonas y publicidad impresa.</li>
+            <li><strong>Quiero personalizar mi marca</strong> — Playeras, gorras, bolsas y promocionales. Pruébalo en el <a href="/estudio/">Estudio GRAFIK</a>.</li>
+            <li><strong>Tengo algo especial en mente</strong> — Materiales, acabados y proyectos personalizados.</li>
           </ul>
         </section>
 
         <section id="trabajos">
-          <h2>Nuestro trabajo — trabajos reales para clientes reales</h2>
+          <h2>Hecho por GRAFIK. De verdad.</h2>
           <p>Una muestra de pedidos de imprenta y publicidad que hemos producido y entregado:</p>
           <ul>
+            <li><figure><img src="/assets/trabajos/boletos-vip-holo.jpg" width="1100" height="1100" loading="lazy" alt="Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina" /><figcaption>Boletos VIP — holográfico + folio.</figcaption></figure></li>
+            <li><figure><img src="/assets/trabajos/poster-rodeo-flyer.jpg" width="1100" height="1100" loading="lazy" alt="Póster de rodeo baile en gran formato junto a su flyer a escala" /><figcaption>Póster + flyer — una campaña, distintos formatos.</figcaption></figure></li>
+            <li><figure><img src="/assets/trabajos/talonarios-numerados.jpg" width="1100" height="1100" loading="lazy" alt="Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados" /><figcaption>Talonarios — numeración consecutiva.</figcaption></figure></li>
+            <li><figure><img src="/assets/trabajos/flyers-couche.jpg" width="1100" height="1100" loading="lazy" alt="Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante" /><figcaption>Flyers — frente y reverso.</figcaption></figure></li>
+            <li><figure><img src="/assets/trabajos/abanico-flyers.jpg" width="825" height="1100" loading="lazy" alt="Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel" /><figcaption>Flyers de rodeo baile y lucha libre a todo color.</figcaption></figure></li>
             <li><figure><img src="/assets/trabajos/boletos-arrolladora.jpg" width="508" height="1100" loading="lazy" alt="Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz" /><figcaption>Boletos con holograma de seguridad — rodeo baile de La Arrolladora, Totutla, Veracruz.</figcaption></figure></li>
             <li><figure><img src="/assets/trabajos/poster-papantla.jpg" width="508" height="1100" loading="lazy" alt="Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" /><figcaption>Póster full color gran formato — Expo Feria El Volador, Papantla, Veracruz.</figcaption></figure></li>
             <li><figure><img src="/assets/trabajos/brazaletes-vip.jpg" width="508" height="1100" loading="lazy" alt="Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos" /><figcaption>Brazaletes Tyvek VIP multicolor para control de acceso en eventos.</figcaption></figure></li>
@@ -328,24 +338,37 @@
           </ul>
         </section>
 
-        <section id="ventajas">
-          <h2>¿Por qué elegirnos?</h2>
-          <ul>
-            <li><strong>Calidad garantizada</strong> — Materiales de primera calidad e impresión de alta resolución.</li>
-            <li><strong>Entregas puntuales</strong> — Cumplimos los tiempos acordados; servicio express disponible.</li>
-            <li><strong>Más de 20 materiales</strong> — La variedad que necesitas para interiores, exteriores y eventos.</li>
-            <li><strong>Asesoría personalizada</strong> — Te orientamos para elegir el material y la técnica ideal para tu proyecto.</li>
-          </ul>
+        <section id="estudio">
+          <h2>Antes de imprimirlo, míralo.</h2>
+          <p>Prueba tu diseño en nuestro Estudio y visualiza cómo se verá aplicado antes de solicitar tu cotización. Playeras y gorras: sube tu logo, elige color y técnica de personalización (DTF, bordado o sublimación). <a href="/estudio/">Abrir Estudio</a></p>
         </section>
 
         <section id="proceso">
-          <h2>¿Cómo funciona?</h2>
+          <h2>Imprimir con GRAFIK es así de fácil</h2>
           <ol>
-            <li><strong>Compártenos tu idea</strong> — Escríbenos por WhatsApp o llena el formulario.</li>
-            <li><strong>Cotización en minutos</strong> — Te enviamos precio y tiempo de entrega al instante.</li>
-            <li><strong>Aprobamos el diseño</strong> — Sin sorpresas, revisamos el arte contigo.</li>
-            <li><strong>Producción y entrega</strong> — Fabricamos tu pedido y lo entregamos en tiempo.</li>
+            <li><strong>Cuéntanos qué necesitas</strong> — Por WhatsApp o con el formulario.</li>
+            <li><strong>Recibe tu cotización</strong> — Precio, tiempo y opciones de entrega.</li>
+            <li><strong>Autoriza tu diseño</strong> — Revisamos el arte contigo antes de imprimir.</li>
+            <li><strong>Lo imprimimos</strong> — Producción y entrega puntuales.</li>
           </ol>
+        </section>
+
+        <section id="servicios">
+          <h2>Productos de impresión y publicidad en CDMX</h2>
+          <ul>
+            <li><strong>Lonas en CDMX</strong> — Lonas para eventos en Lona Front, Mate, Mesh y más. Diferentes medidas, alta resolución garantizada.</li>
+            <li><strong>Flyers en CDMX</strong> — Flyers en tamaños 1/4, 1/2 carta y carta completa. En papel Couché y Bond de alta calidad.</li>
+            <li><strong>Pósters en CDMX</strong> — Pósters Bond y Couché en 8 ctas, 4 ctas y Doble carta. Impresión de alta definición.</li>
+            <li><strong>Boletos personalizados en CDMX</strong> — Boletos en papel Couché, Boleto de Seguridad y papel tipo plástico para control de acceso.</li>
+            <li><strong>Pendones en CDMX</strong> — Pendones en diferentes medidas, listos para colocar. Ideales para stands, eventos y puntos de venta.</li>
+            <li><strong>Brazaletes para Eventos en CDMX</strong> — Pulseras Tyvek para control de acceso: VIP, General, Staff, 21+, Acceso. Full color o 1 tinta. Entrega express disponible.</li>
+            <li><strong>Artículos Promocionales en CDMX</strong> — Tazas, gorras, bolsas, termos, plumas, camisas bordadas y más. Personalización con tu logo.</li>
+          </ul>
+        </section>
+
+        <section id="acabados">
+          <h2>El acabado también comunica.</h2>
+          <p>Más de 20 materiales. Holográfico para boletos de seguridad, papel Couché para flyers y pósters, Tyvek resistente al agua en brazaletes, DTF full color en gorras, bolsas y playeras, bordado en prendas y numeración consecutiva en talonarios y boletos.</p>
         </section>
 
         <section id="faqs">
@@ -397,9 +420,10 @@
     // Fuente única de los anchors de sección — la usan Nav y Footer.
     // Al añadir/quitar una sección con id propio, tocar sólo este array.
     const NAV_LINKS = [
-      ["Servicios",  "#servicios"],
       ["Trabajos",   "#trabajos"],
+      ["Estudio",    "#estudio"],
       ["Proceso",    "#proceso"],
+      ["Productos",  "#servicios"],
       ["FAQs",       "#faqs"],
       ["Contacto",   "#contacto"],
     ];
@@ -428,50 +452,13 @@
           </div>
           {open && (
             <nav className="nav-mobile" aria-label="Menú móvil">
-              {links.map(([label, href]) => (
+              {NAV_LINKS.map(([label, href]) => (
                 <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>
               ))}
             </nav>
           )}
         </header>
       );
-    };
-
-    /* ── Hero Background (dot grid animado) ─── */
-    const HeroBg = () => {
-      const ref = React.useRef(null);
-      React.useEffect(() => {
-        const canvas = ref.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let raf;
-        const mouse = { x: -9999, y: -9999 };
-        const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
-        resize();
-        const onMove = e => { const r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; };
-        const onLeave = () => { mouse.x = -9999; mouse.y = -9999; };
-        window.addEventListener('resize', resize);
-        canvas.addEventListener('mousemove', onMove);
-        canvas.addEventListener('mouseleave', onLeave);
-        const SP = 30, R = 2.2, REP = 85;
-        const tick = () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          for (let row = 0; row * SP < canvas.height + SP; row++) {
-            for (let col = 0; col * SP < canvas.width + SP; col++) {
-              let x = col * SP, y = row * SP;
-              const dx = x - mouse.x, dy = y - mouse.y;
-              const d = Math.hypot(dx, dy);
-              if (d < REP && d > 0) { const f = (1 - d/REP) * 22; x += dx/d*f; y += dy/d*f; }
-              ctx.beginPath(); ctx.arc(x, y, R, 0, 6.283);
-              ctx.fillStyle = 'rgba(184,184,184,0.12)'; ctx.fill();
-            }
-          }
-          raf = requestAnimationFrame(tick);
-        };
-        tick();
-        return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
-      }, []);
-      return <canvas ref={ref} className="hero-bg" aria-hidden="true" />;
     };
 
     /* ── Splash intro ───────────────────────── */
@@ -490,143 +477,297 @@
       );
     };
 
-    /* ── Hero ───────────────────────────────── */
+    /* Intención → formulario: las tarjetas que llevan a #contacto preseleccionan
+       chip y mensaje sin tocar el HTML del formulario (lo escucha Contacto). */
+    const pickIntent = (detail) => () =>
+      window.dispatchEvent(new CustomEvent('grafik:intent', { detail }));
+
+    /* ── Hero C+ (Proof First) ──────────────── */
+    /* Las fotos del hero son variantes de 1000 px (AVIF + JPEG) de assets/hero/. */
+    const HERO_PHOTOS = {
+      boletos:    { slug: "boletos-vip-holo",     w: 1000, h: 1000, alt: "Boletos VIP con sello holográfico, folio y desprendible, recién cortados en guillotina" },
+      poster:     { slug: "poster-rodeo-flyer",   w: 1000, h: 1000, alt: "Póster de rodeo baile en gran formato junto a su flyer a escala" },
+      abanico:    { slug: "abanico-flyers",       w: 750,  h: 1000, alt: "Abanico de flyers de rodeo baile y lucha libre impresos a todo color" },
+      talonarios: { slug: "talonarios-numerados", w: 1000, h: 1000, alt: "Talonarios con numeración consecutiva, uno abierto y varios apilados" },
+      disco:      { slug: "poster-disco70",       w: 640,  h: 640,  alt: "" },
+    };
+
+    const HeroPh = ({ k, cls, tag, eager }) => {
+      const p = HERO_PHOTOS[k];
+      return (
+        <figure className={`cp-ph ${cls}`} aria-hidden={p.alt ? undefined : "true"}>
+          <picture>
+            <source srcSet={`/assets/hero/${p.slug}.avif`} type="image/avif" />
+            <img src={`/assets/hero/${p.slug}.jpg`} width={p.w} height={p.h} alt={p.alt}
+              decoding="async" {...(eager ? { fetchpriority: "high" } : { loading: "lazy" })} />
+          </picture>
+          {tag && <figcaption className="cp-tag">{tag}</figcaption>}
+        </figure>
+      );
+    };
+
     const Hero = () => (
-      <section id="top" className="hero">
-        <HeroBg />
-        <div className="wrap">
-          <div className="hero-kicker">
-            <span className="badge badge-green">
-              <Ico id="i-lona" w={13} h={13}/>
-              Imprenta · Publicidad · CDMX
-            </span>
+      <section id="top" className="hero cp-hero">
+        <div className="wrap cp-hero-grid">
+          <div className="cp-hero-copy">
+            <div className="hero-kicker">
+              <span className="badge badge-green">
+                <Ico id="i-lona" w={13} h={13}/>
+                Imprenta + Publicidad · CDMX
+              </span>
+            </div>
+            <h1 className="cp-hero-h1">
+              Tu idea merece verse <em>impresa</em> así de bien.
+            </h1>
+            <p className="cp-hero-sub">
+              Boletos, flyers, pósters, lonas, pendones, brazaletes y promocionales. Te ayudamos a elegir el material, acabado y formato ideal para tu proyecto.
+            </p>
+            <div className="cp-hero-ctas">
+              <a data-cta="hero" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
+                <Ico id="i-wa" w={20} h={20}/>
+                Cotizar por WhatsApp
+              </a>
+              <a href="#trabajos" className="btn btn-primary">
+                <Ico id="i-arrow" w={18} h={18}/>
+                Ver trabajos reales
+              </a>
+            </div>
+            <ul className="cp-hero-trust">
+              <li><Ico id="i-check" w={14} h={14}/>Cotización sin compromiso</li>
+              <li><Ico id="i-check" w={14} h={14}/>Revisamos tu archivo antes de imprimir</li>
+              <li><Ico id="i-check" w={14} h={14}/>Servicio express disponible</li>
+            </ul>
           </div>
-          <h1 className="hero-headline">
-            Impresión y <em>Publicidad</em><br/>en CDMX
-          </h1>
-          <ul className="hero-sub hero-list">
-            <li><b>PUBLICIDAD:</b> Pósters, volantes, boletos en diferentes materiales, lonas, pendones, brazaletes y más.</li>
-            <li><b>PROMOCIONALES:</b> Playeras, gorras, plumas, tazas, agendas, termos, bolsas y más.</li>
-            <li><b>Cotizaciones sin compromiso.</b></li>
-          </ul>
-          <div className="hero-ctas">
-            <a data-cta="hero" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
-              <Ico id="i-wa" w={20} h={20}/>
-              Pide tu cotización
-            </a>
-            <a href="#servicios" className="btn btn-primary">
-              <Ico id="i-arrow" w={18} h={18}/>
-              Ver servicios
-            </a>
-          </div>
-          <div className="hero-trust">
-            <span className="badge"><Ico id="i-check" w={12} h={12}/>Entrega express disponible</span>
-            <span className="badge"><Ico id="i-check" w={12} h={12}/>Más de 20 materiales</span>
-            <span className="badge"><Ico id="i-check" w={12} h={12}/>Asesoría personalizada</span>
+          <div className="cp-hero-art">
+            <div className="cp-hero-label"><span aria-hidden="true"></span>Trabajos reales · Producidos por GRAFIK</div>
+            <HeroPh k="disco"      cls="cp-ph--disco" />
+            <HeroPh k="boletos"    cls="cp-ph--main"  tag="Holográfico" eager />
+            <HeroPh k="poster"     cls="cp-ph--poster" tag="Gran formato" />
+            <HeroPh k="talonarios" cls="cp-ph--tal"   tag="Numerado" />
+            <HeroPh k="abanico"    cls="cp-ph--fan"   tag="Full color" />
           </div>
         </div>
       </section>
     );
 
-    /* ── Stats bar ──────────────────────────── */
-    const StatsBar = () => {
-      const stats = [
-        { n: "+20",          d: "Materiales disponibles" },
-        { n: "1–3 días",     d: "Tiempo de producción" },
-        { n: "7",            d: "Tipos de servicios" },
-        { n: "Lun–Vie",     d: "Atención 9am–6pm" },
+    /* ── Trust strip (sustituye a StatsBar) ──── */
+    /* Sólo datos que el sitio ya respalda: +20 materiales, revisión previa del
+       arte, cotización por WhatsApp y producción en CDMX. Sin cifras nuevas. */
+    const TrustStrip = () => {
+      const items = [
+        { ico: "i-promo", t: "+20 materiales",       d: "Opciones para cada proyecto" },
+        { ico: "i-wa",    t: "Cotización rápida",    d: "Directamente por WhatsApp" },
+        { ico: "i-check", t: "Revisión antes de imprimir", d: "Validamos tu archivo" },
+        { ico: "i-tiempo", t: "Producción en CDMX",  d: "Impresión y entrega" },
       ];
       return (
-        <div className="stats-bar">
+        <div className="cp-trust">
           <div className="wrap">
-            <div className="stats-grid">
-              {stats.map(s => (
-                <div key={s.n} className="stat-item">
-                  <div className="stat-n">{s.n}</div>
-                  <div className="stat-d">{s.d}</div>
-                </div>
+            <ul className="cp-trust-grid">
+              {items.map(i => (
+                <li key={i.t}>
+                  <span className="cp-trust-ico"><Ico id={i.ico} w={20} h={20}/></span>
+                  <span><b>{i.t}</b><small>{i.d}</small></span>
+                </li>
               ))}
+            </ul>
+          </div>
+        </div>
+      );
+    };
+
+    /* ── ¿Qué quieres crear? (por intención) ── */
+    const Intencion = () => {
+      const items = [
+        { n: "01", slug: "boletos-vip-holo", t: "Tengo un evento",
+          d: "Boletos · brazaletes · pósters · lonas · pendones",
+          href: "#contacto", servicio: "Boletos",
+          detalle: "Tengo un evento y quiero cotizar: " },
+        { n: "02", slug: "flyers-couche", t: "Quiero promocionar mi negocio",
+          d: "Flyers · pósters · lonas · publicidad impresa",
+          href: "#contacto", servicio: "Volantes",
+          detalle: "Quiero promocionar mi negocio con: " },
+        { n: "03", slug: "gorra-juchitan", t: "Quiero personalizar mi marca",
+          d: "Playeras · gorras · bolsas · promocionales",
+          href: "/estudio/", cta: "Probar en el Estudio" },
+        { n: "04", slug: "anuncio-luminoso", t: "Tengo algo especial en mente",
+          d: "Materiales, acabados y proyectos personalizados",
+          href: "#contacto", servicio: "",
+          detalle: "Tengo algo especial en mente: " },
+      ];
+      return (
+        <section id="crear" className="section cp-crear">
+          <div className="wrap">
+            <div className="sec-hdr sec-hdr--solo">
+              <div>
+                <div className="sec-kicker">Empieza por aquí</div>
+                <h2 className="sec-title">¿Qué quieres <em>crear?</em></h2>
+                <p className="sec-desc">Cuéntanos para qué lo necesitas y te orientamos con el material y el formato.</p>
+              </div>
+            </div>
+            <div className="cp-intent-grid">
+              {items.map(i => (
+                <a key={i.n} href={i.href} className="cp-intent"
+                  onClick={i.href.startsWith('#') ? pickIntent({ servicio: i.servicio, detalle: i.detalle }) : undefined}>
+                  <Pic slug={i.slug} decor className="cp-intent-img" />
+                  <span className="cp-intent-n" aria-hidden="true">{i.n}</span>
+                  <span className="cp-intent-body">
+                    <h3>{i.t}</h3>
+                    <p>{i.d}</p>
+                    <span className="cp-intent-go">{i.cta || "Cotizar esto"}<Ico id="i-arrow" w={16} h={16}/></span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    /* ── Estudio GRAFIK (teaser) ────────────── */
+    /* Preview ilustrativo hecho con componentes de la landing (no es una captura):
+       usa la foto base de la playera del propio Estudio, teñida por multiplicación
+       igual que el configurador. No toca ni importa código de /estudio/. */
+    const TEE_COLORS = [
+      ["Blanco", "#f2f2f0"], ["Negro", "#151515"], ["Gris", "#9a9a9a"], ["Rojo", "#d02b34"],
+      ["Azul marino", "#1b2646"], ["Azul", "#2557b8"], ["Verde", "#1f6b3a"], ["Amarillo", "#f2c200"],
+    ];
+    const EstudioMock = () => {
+      const [ci, setCi] = useState(3);
+      const [name, color] = TEE_COLORS[ci];
+      const darkTee = [1, 4, 5, 6].includes(ci);
+      return (
+        <div className="cp-studio" role="group" aria-label="Vista previa ilustrativa del Estudio GRAFIK">
+          <div className="cp-studio-bar" aria-hidden="true"><i></i><i></i><i></i><b>grafik.mx/estudio</b></div>
+          <div className="cp-studio-body">
+            <ol className="cp-studio-steps">
+              <li className="is-done">Prenda</li><li>Logo</li><li>Tallas</li><li>Contacto</li>
+            </ol>
+            <div className="cp-studio-main">
+              <div className="cp-studio-stage" style={{ "--c": color }}>
+                <span className="cp-tee-color" aria-hidden="true"></span>
+                <img className="cp-tee-img" src="/assets/estudio-playera.avif?v=2" width="640" height="640" alt="" loading="lazy" decoding="async" />
+                <span className="cp-tee-guide" aria-hidden="true"></span>
+                <span className="cp-tee-logo" style={{ color: darkTee ? "#F0F0EE" : "#0C0C0C" }} aria-hidden="true">
+                  <svg width="100%" height="100%"><use href="/defs.svg#mark"/></svg>
+                </span>
+              </div>
+              <div className="cp-studio-side">
+                <div className="cp-studio-lbl">Color · <b>{name}</b></div>
+                <div className="cp-swatches" role="group" aria-label="Color de la playera">
+                  {TEE_COLORS.map(([n, col], i) => (
+                    <button key={n} type="button" aria-pressed={i === ci} aria-label={n}
+                      style={{ background: col }} onClick={() => setCi(i)} />
+                  ))}
+                </div>
+                <div className="cp-studio-lbl">Personalización</div>
+                <div className="cp-studio-chips"><span className="is-on">DTF</span><span>Bordado</span><span>Sublimación</span></div>
+              </div>
             </div>
           </div>
         </div>
       );
     };
 
-    /* ── Servicios ──────────────────────────── */
-    const Servicios = () => {
-      const items = [
-        {
-          iconId: "i-lona",
-          titulo: "Lonas",
-          desc: "Para tus eventos en Lona Front, Mate, Mesh y más. Tenemos diferentes medidas.",
-          tags: ["Lona Front", "Mate", "Mesh"],
-        },
-        {
-          iconId: "i-dtf",
-          titulo: "Flyers",
-          desc: "Flyers en tamaños 1/4, 1/2 carta y carta completa. En papel Couché y Bond de alta calidad.",
-          tags: ["1/4 Carta", "Couché", "Bond"],
-        },
-        {
-          iconId: "i-vinil",
-          titulo: "Pósters",
-          desc: "Pósters Bond y Couché en 8 ctas, 4 ctas y Doble carta. Impresión de alta definición para cualquier uso.",
-          tags: ["8 Ctas", "4 Ctas", "Doble Carta"],
-        },
-        {
-          iconId: "i-promo",
-          titulo: "Boletos",
-          desc: "Boletos en papel Couché, Boleto de Seguridad y papel tipo plástico para mayor resistencia y control de acceso.",
-          tags: ["Couché", "Seguridad", "Plástico"],
-        },
-        {
-          iconId: "i-lona",
-          titulo: "Pendones",
-          desc: "Pendones en diferentes medidas, listos para colocar. Ideales para stands, eventos y puntos de venta.",
-          tags: ["Diferentes medidas", "Listos para colocar"],
-        },
-        {
-          iconId: "i-brazalete",
-          titulo: "Brazaletes para Eventos",
-          desc: "Control de acceso con Tyvek resistente: VIP, Acceso General, diferentes zonas, etc. Full color o 1 tinta. Entrega express disponible.",
-          tags: ["VIP", "Staff", "Control acceso"],
-        },
-        {
-          iconId: "i-sublimacion",
-          titulo: "Artículos Promocionales",
-          desc: "Tazas, gorras, bolsas, termos, plumas, camisas bordadas y más. Personalización con tu logo.",
-          tags: ["Corporativo", "Eventos", "Regalos"],
-        },
-      ];
+    const EstudioTeaser = () => (
+      <section id="estudio" className="section cp-estudio">
+        <div className="wrap cp-estudio-grid">
+          <div>
+            <div className="sec-kicker">Estudio GRAFIK</div>
+            <h2 className="sec-title cp-estudio-title">Antes de imprimirlo, <em>míralo.</em></h2>
+            <p className="sec-desc">Prueba tu diseño en nuestro Estudio y visualiza cómo se verá aplicado antes de solicitar tu cotización.</p>
+            <ul className="cp-estudio-list">
+              <li><Ico id="i-check" w={14} h={14}/>Playeras y gorras</li>
+              <li><Ico id="i-check" w={14} h={14}/>Sube tu logo y colócalo</li>
+              <li><Ico id="i-check" w={14} h={14}/>Elige color y técnica de personalización</li>
+            </ul>
+            <a href="/estudio/" className="btn btn-green">
+              <Ico id="i-arrow" w={18} h={18}/>
+              Abrir Estudio
+            </a>
+          </div>
+          <EstudioMock />
+        </div>
+      </section>
+    );
 
+    /* ── Proceso ────────────────────────────── */
+    const Proceso = () => {
+      const pasos = [
+        { n: "01", ico: "i-chat",      titulo: "Cuéntanos qué necesitas", desc: "Por WhatsApp o con el formulario." },
+        { n: "02", ico: "i-wa",        titulo: "Recibe tu cotización",    desc: "Precio, tiempo y opciones de entrega." },
+        { n: "03", ico: "i-check",     titulo: "Autoriza tu diseño",      desc: "Revisamos el arte contigo antes de imprimir." },
+        { n: "04", ico: "i-brazalete", titulo: "Lo imprimimos",           desc: "Producción y entrega puntuales." },
+      ];
+      return (
+        <section id="proceso" className="section cp-proceso">
+          <div className="wrap">
+            <div className="sec-hdr sec-hdr--solo">
+              <div>
+                <div className="sec-kicker">Cómo funciona</div>
+                <h2 className="sec-title">Imprimir con GRAFIK es <em>así de fácil</em></h2>
+              </div>
+            </div>
+            <ol className="cp-steps">
+              {pasos.map(p => (
+                <li key={p.n} className="cp-step">
+                  <span className="cp-step-n" aria-hidden="true">{p.n}</span>
+                  <span className="cp-step-ico"><Ico id={p.ico} w={22} h={22}/></span>
+                  <h3 className="cp-step-t">{p.titulo}</h3>
+                  <p className="cp-step-d">{p.desc}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      );
+    };
+
+    /* ── Productos (el catálogo viene después de la prueba) ── */
+    /* Mismos 7 servicios del catálogo/JSON-LD. Sólo Lonas va sin foto: todavía no
+       hay una foto real de lona en el repo. */
+    const Productos = () => {
+      const items = [
+        { t: "Lonas",         d: "Front, mate y mesh en diferentes medidas.",             servicio: "Lonas", ico: "i-lona" },
+        { t: "Flyers",        d: "1/4, 1/2 carta y carta · Couché o Bond.",               servicio: "Volantes", slug: "flyers-couche" },
+        { t: "Pósters",       d: "Bond y Couché · 8 ctas, 4 ctas y doble carta.",         servicio: "Pósters", slug: "poster-metepec" },
+        { t: "Boletos",       d: "Couché, de seguridad con holograma o tipo plástico.",   servicio: "Boletos", slug: "boletos-arrolladora" },
+        { t: "Pendones",      d: "Diferentes medidas, listos para colocar.",              servicio: "Pendones", slug: "poster-huajuapan" },
+        { t: "Brazaletes",    d: "Tyvek para control de acceso · VIP, General, Staff.",   servicio: "Brazaletes", slug: "brazaletes-vip" },
+        { t: "Promocionales", d: "Tazas, gorras, bolsas, termos, plumas y más con tu logo.", servicio: "Artículos Promocionales", slug: "vasos-luis" },
+      ];
       return (
         <section id="servicios" className="section">
           <div className="wrap">
             <div className="sec-hdr sec-hdr--solo">
               <div>
-                <div className="sec-kicker">Lo que hacemos</div>
-                <h2 className="sec-title">¿Qué servicios de <em>impresión y publicidad</em> ofrecemos en CDMX?</h2>
-                <p className="sec-desc">Todo lo que necesitas para tu empresa, evento o proyecto en un solo lugar. Cotización sin compromiso.</p>
+                <div className="sec-kicker">Lo que imprimimos</div>
+                <h2 className="sec-title">Productos de <em>impresión y publicidad</em> en CDMX</h2>
+                <p className="sec-desc">Toca una categoría y la dejamos lista en tu cotización.</p>
               </div>
             </div>
-            <div className="svc-grid">
-              {items.map(item => (
-                <div key={item.titulo} className="svc-card">
-                  <div className="svc-ico"><Ico id={item.iconId} w={26} h={26}/></div>
-                  <div className="svc-title">{item.titulo}</div>
-                  <p className="svc-desc">{item.desc}</p>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginTop:"14px"}}>
-                    {item.tags.map(t => (
-                      <span key={t} className="badge badge-green" style={{fontSize:"10px"}}>{t}</span>
-                    ))}
-                  </div>
-                </div>
+            <div className="cp-prod-grid">
+              {items.map(i => (
+                <a key={i.t} href="#contacto" className="cp-prod" onClick={pickIntent({ servicio: i.servicio })}>
+                  <span className="cp-prod-media">
+                    {i.slug
+                      ? <Pic slug={i.slug} decor />
+                      : <span className="cp-prod-icon" aria-hidden="true"><Ico id={i.ico} w={56} h={56}/></span>}
+                  </span>
+                  <span className="cp-prod-body">
+                    <h3>{i.t}</h3>
+                    <p>{i.d}</p>
+                  </span>
+                </a>
               ))}
-            </div>
-            <div style={{marginTop:"32px",textAlign:"center"}}>
-              <a data-cta="servicios-bottom" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-green">
-                <Ico id="i-wa" w={18} h={18}/>
-                Cotiza tu proyecto ahora
+              <a data-cta="servicios-bottom" className="cp-prod cp-prod--all"
+                href={waLink("Hola, quiero ver todos los productos que manejan y cotizar. ¿Me pueden compartir el catálogo?")}
+                target="_blank" rel="noopener noreferrer">
+                <span className="cp-prod-all-body">
+                  <Ico id="i-wa" w={28} h={28}/>
+                  <h3>Ver todos los productos</h3>
+                  <p>Pídenos el catálogo completo por WhatsApp.</p>
+                </span>
               </a>
             </div>
           </div>
@@ -634,97 +775,51 @@
       );
     };
 
-    /* ── Por qué nosotros ───────────────────── */
-    const PorQueNosotros = () => {
-      const items = [
-        {
-          num: "01",
-          titulo: "Calidad en cada impresión",
-          desc: "Trabajamos con materiales de primera calidad e impresoras de alta resolución (hasta 1440 DPI con tecnología HP Latex) para garantizar un resultado profesional.",
-        },
-        {
-          num: "02",
-          titulo: "Entregas puntuales",
-          desc: "Cumplimos con los tiempos acordados. Si tu proyecto es urgente, consulta nuestro servicio de entrega express disponible para la mayoría de productos.",
-        },
-        {
-          num: "03",
-          titulo: "Amplia variedad de materiales",
-          desc: "Más de 20 materiales distintos: lonas, vinil, papel, canvas y materiales especiales para cualquier aplicación interior o exterior.",
-        },
-        {
-          num: "04",
-          titulo: "Asesoría en tu proyecto",
-          desc: "Te orientamos para elegir el material, la técnica de personalización y el acabado ideal para tu presupuesto y necesidad. Sin costo adicional.",
-        },
+    /* ── Materiales y acabados ──────────────── */
+    /* Los recortes son zoom (CSS) sobre fotos reales ya existentes. Mate y brillante
+       quedan como casillas vacías hasta tener close-ups reales: no se inventan. */
+    const Acabados = () => {
+      const tiles = [
+        { k: "holo", t: "Holográfico", d: "Sello de seguridad en tus boletos.", big: true,
+          img: "/assets/hero/boletos-vip-holo", w: 1000, h: 1000, o: "69% 55%", z: 2.4 },
+        { k: "couche", t: "Couché", d: "Colores vivos en flyers y pósters.",
+          img: "/assets/hero/flyers-couche", w: 1000, h: 1000, o: "46% 63%", z: 1.8 },
+        { k: "tyvek", t: "Tyvek", d: "Brazaletes resistentes al agua.",
+          img: "/assets/trabajos/thumb/brazaletes-vip", w: 332, h: 720, o: "50% 40%", z: 1.25 },
+        { k: "dtf", t: "DTF", d: "Full color en gorras, bolsas y playeras.",
+          img: "/assets/trabajos/thumb/gorra-juchitan", w: 332, h: 720, o: "50% 45%", z: 1.3 },
+        { k: "bordado", t: "Bordado", d: "Tu logo bordado en prendas.",
+          img: "/assets/trabajos/thumb/chamarra-4ases", w: 1100, h: 508, o: "50% 50%", z: 1.4 },
+        { k: "numerado", t: "Numerado", d: "Folio consecutivo en talonarios y boletos.", wide: true,
+          img: "/assets/hero/talonarios-numerados", w: 1000, h: 1000, o: "64% 60%", z: 2.1 },
+        { k: "mate", t: "Mate", d: "Sin brillo, elegante al tacto.", empty: true },
+        { k: "brillante", t: "Brillante", d: "Colores intensos y superficie lisa.", empty: true },
       ];
-
       return (
-        <section id="ventajas" className="section">
+        <section id="acabados" className="section cp-acabados">
           <div className="wrap">
             <div className="sec-hdr sec-hdr--solo">
               <div>
-                <div className="sec-kicker">¿Por qué elegirnos?</div>
-                <h2 className="sec-title">Calidad, variedad y <em>atención que se nota</em></h2>
-                <p className="sec-desc">No somos solo una imprenta — somos tu aliado de publicidad en CDMX.</p>
+                <div className="sec-kicker">Materiales y acabados</div>
+                <h2 className="sec-title">El acabado <em>también comunica.</em></h2>
+                <p className="sec-desc">Más de 20 materiales. Te ayudamos a elegir el que mejor funciona para tu proyecto.</p>
               </div>
             </div>
-            <div className="pillars-grid">
-              {items.map(item => (
-                <div key={item.num} className="pillar-card">
-                  <div className="pillar-n">{item.num}</div>
-                  <h3 className="pillar-title">{item.titulo}</h3>
-                  <p className="pillar-desc">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    };
-
-    /* ── Proceso ────────────────────────────── */
-    const Proceso = () => {
-      const pasos = [
-        {
-          n: "01",
-          titulo: "Compártenos tu idea",
-          desc: "Escríbenos por WhatsApp o llena el formulario. Cuéntanos qué necesitas: tipo de material, medidas, cantidad y uso.",
-        },
-        {
-          n: "02",
-          titulo: "Cotización en minutos",
-          desc: "Te enviamos precio, tiempo de producción y opciones de entrega. Sin sorpresas ni costos ocultos.",
-        },
-        {
-          n: "03",
-          titulo: "Aprobamos el arte",
-          desc: "Revisamos el diseño contigo antes de imprimir. Si no tienes arte, podemos apoyarte con el diseño.",
-        },
-        {
-          n: "04",
-          titulo: "Producción y entrega",
-          desc: "Tiempos de entrega flexbiles y puntuales. Si tienes alguna urgencia ¡cuenta con nosotros!",
-        },
-      ];
-
-      return (
-        <section id="proceso" className="section" style={{background:"var(--paper-2)"}}>
-          <div className="wrap">
-            <div className="sec-hdr sec-hdr--solo">
-              <div>
-                <div className="sec-kicker">Cómo funciona</div>
-                <h2 className="sec-title">De tu idea al <em>producto terminado</em></h2>
-                <p className="sec-desc">Un proceso simple y transparente para que obtengas exactamente lo que necesitas.</p>
-              </div>
-            </div>
-            <div className="proceso-grid">
-              {pasos.map(p => (
-                <div key={p.n} className="proceso-card">
-                  <div className="proceso-n">{p.n}</div>
-                  <div className="proceso-title">{p.titulo}</div>
-                  <p className="proceso-desc">{p.desc}</p>
-                </div>
+            <div className="cp-fin-grid">
+              {tiles.map(t => (
+                <article key={t.k} className={`cp-fin${t.big ? ' cp-fin--big' : ''}${t.wide ? ' cp-fin--wide' : ''}${t.empty ? ' cp-fin--empty' : ''}`}>
+                  {!t.empty && (
+                    <picture>
+                      <source srcSet={`${t.img}.avif`} type="image/avif" />
+                      <img src={`${t.img}.jpg`} width={t.w} height={t.h} alt="" loading="lazy" decoding="async"
+                        style={{ transformOrigin: t.o, "--z": t.z }} />
+                    </picture>
+                  )}
+                  <div className="cp-fin-cap">
+                    <h3>{t.t}</h3>
+                    <p>{t.empty ? "Foto próximamente" : t.d}</p>
+                  </div>
+                </article>
               ))}
             </div>
           </div>
@@ -793,6 +888,17 @@
       const [servicio, setServicio] = useState('');
       const [nombre, setNombre] = useState('');
       const [detalle, setDetalle] = useState('');
+
+      // Las tarjetas de intención/productos (pickIntent) preseleccionan chip y mensaje.
+      React.useEffect(() => {
+        const onIntent = (e) => {
+          const d = e.detail || {};
+          if (typeof d.servicio === 'string') setServicio(d.servicio);
+          if (d.detalle) setDetalle(d.detalle);
+        };
+        window.addEventListener('grafik:intent', onIntent);
+        return () => window.removeEventListener('grafik:intent', onIntent);
+      }, []);
 
       const chips = [
         "Lonas",
@@ -891,15 +997,21 @@
     const CtaFinal = () => (
       <section className="section" data-section="cta-final">
         <div className="wrap">
-          <div className="cta-block">
-            <h2>¿Listo para <em>cotizar</em> tu proyecto?</h2>
-            <p>Escríbenos por WhatsApp con los detalles de tu pedido — material, medidas, cantidad — y te respondemos en minutos con precio y tiempo de entrega.</p>
-            <div className="ctas">
-              <a data-cta="cta-final" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn">
-                <Ico id="i-wa" w={20} h={20}/>
-                Pide tu cotización
-              </a>
-              <a href="#faqs" className="btn btn-ghost">Ver preguntas frecuentes</a>
+          <div className="cta-block cp-cta">
+            <picture className="cp-cta-bg" aria-hidden="true">
+              <source srcSet="/assets/hero/poster-rodeo-flyer.avif" type="image/avif" />
+              <img src="/assets/hero/poster-rodeo-flyer.jpg" width="1000" height="1000" alt="" loading="lazy" decoding="async" />
+            </picture>
+            <div className="cp-cta-in">
+              <h2>¿Qué tienes <em>en mente?</em></h2>
+              <p>Cuéntanos tu idea y te ayudamos a convertirla en algo listo para imprimir.</p>
+              <div className="ctas">
+                <a data-cta="cta-final" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn">
+                  <Ico id="i-wa" w={20} h={20}/>
+                  Cotizar por WhatsApp
+                </a>
+                <a href="#faqs" className="btn btn-ghost">Ver preguntas frecuentes</a>
+              </div>
             </div>
           </div>
         </div>
@@ -975,6 +1087,11 @@
     /* `src` (JPEG 1100px) sólo lo carga el lightbox. El marquee carga `thumb`
        (720px de alto, AVIF con fallback JPEG). w/h y tw/th evitan el reflow. */
     const works = [
+      { slug: "boletos-vip-holo",      cat: "Boletos VIP",      w: 1100, h: 1100, tw: 720,  th: 720, alt: "Boletos VIP con sello holográfico, folio consecutivo y desprendible, recién cortados en guillotina" },
+      { slug: "poster-rodeo-flyer",     cat: "Póster + flyer",   w: 1100, h: 1100, tw: 720,  th: 720, alt: "Póster de rodeo baile en gran formato junto a su flyer a escala" },
+      { slug: "talonarios-numerados",   cat: "Talonarios",       w: 1100, h: 1100, tw: 720,  th: 720, alt: "Talonarios con numeración consecutiva para un festival de ska, uno abierto y varios apilados" },
+      { slug: "flyers-couche",          cat: "Flyers",           w: 1100, h: 1100, tw: 720,  th: 720, alt: "Flyers a todo color en papel couché con reverso en blanco y negro para un bar restaurante" },
+      { slug: "abanico-flyers",         cat: "Flyers",           w: 825,  h: 1100, tw: 540,  th: 720, alt: "Abanico de flyers de rodeo baile y lucha libre impresos a todo color sobre una pila de papel" },
       { slug: "boletos-arrolladora",    cat: "Boletos",          w: 508,  h: 1100, tw: 332,  th: 720, alt: "Boletos con holograma de seguridad para el rodeo baile de La Arrolladora en Totutla, Veracruz" },
       { slug: "poster-papantla",        cat: "Pósters",          w: 508,  h: 1100, tw: 332,  th: 720, alt: "Póster full color a gran formato para la Expo Feria El Volador en Papantla, Veracruz" },
       { slug: "brazaletes-vip",         cat: "Brazaletes",       w: 508,  h: 1100, tw: 332,  th: 720, alt: "Brazaletes Tyvek VIP multicolor personalizados para control de acceso en eventos" },
@@ -990,6 +1107,20 @@
       { slug: "gorra-rancho-ajil",      cat: "Gorra DTF",        w: 849,  h: 1100, tw: 555,  th: 720, alt: "Gorra negra personalizada con el logo de Rancho AJIL de los Hermanos Cortés Ramírez, Huajolotitlán, Oaxaca" },
       { slug: "poster-metepec",         cat: "Pósters",          w: 688,  h: 1100, tw: 450,  th: 720, alt: "Póster full color de rodeo baile Metepec Hidalgo con Los Buitres de Culiacán" },
     ].map(w => ({ ...w, src: `/assets/trabajos/${w.slug}.jpg`, thumb: `/assets/trabajos/thumb/${w.slug}` }));
+
+    const WORK_BY_SLUG = Object.fromEntries(works.map(w => [w.slug, w]));
+
+    /* Miniatura de un trabajo (AVIF + JPEG, con w/h reales). `decor` = decorativa. */
+    const Pic = ({ slug, decor, className }) => {
+      const w = WORK_BY_SLUG[slug];
+      return (
+        <picture>
+          <source srcSet={`${w.thumb}.avif`} type="image/avif" />
+          <img className={className} src={`${w.thumb}.jpg`} width={w.tw} height={w.th}
+            alt={decor ? '' : w.alt} loading="lazy" decoding="async" />
+        </picture>
+      );
+    };
 
     const Lightbox = ({ index, setIndex }) => {
       const open = index !== null;
@@ -1035,6 +1166,14 @@
       );
     };
 
+    /* Casos destacados: cada uno apunta a una foto de `works` (abre el Lightbox). */
+    const CASES = [
+      { slug: "boletos-vip-holo",     t: "Boletos VIP",   d: "Holográfico + folio",              cls: "cp-case--big" },
+      { slug: "poster-rodeo-flyer",   t: "Póster + flyer", d: "Una campaña, distintos formatos", cls: "" },
+      { slug: "talonarios-numerados", t: "Talonarios",    d: "Numeración consecutiva",           cls: "" },
+      { slug: "flyers-couche",        t: "Flyers",        d: "Frente y reverso",                 cls: "cp-case--wide" },
+    ];
+
     const Trabajos = () => {
       const [active, setActive] = useState(null);
       const loop = [...works, ...works];
@@ -1043,11 +1182,33 @@
           <div className="wrap">
             <div className="sec-hdr sec-hdr--solo">
               <div>
-                <div className="sec-kicker">Nuestro trabajo</div>
-                <h2 className="sec-title">Trabajos reales, <em>clientes reales</em></h2>
-                <p className="sec-desc">Una muestra de pedidos que hemos producido y entregado en CDMX y otros estados. Toca cualquier imagen para verla en grande.</p>
+                <div className="sec-kicker">Trabajos reales</div>
+                <h2 className="sec-title">Hecho por GRAFIK. <em>De verdad.</em></h2>
+                <p className="sec-desc">Pedidos que producimos y entregamos. Toca cualquier foto para verla en grande.</p>
               </div>
             </div>
+            <div className="cp-cases">
+              {CASES.map(c => {
+                const idx = works.findIndex(w => w.slug === c.slug);
+                const w = works[idx];
+                return (
+                  <button key={c.slug} type="button" className={`cp-case ${c.cls}`}
+                    data-work={c.slug} data-work-cat={w.cat}
+                    aria-label={`Ampliar imagen: ${w.alt}`}
+                    onClick={() => setActive(idx)}>
+                    <picture>
+                      <source srcSet={`${w.thumb}.avif`} type="image/avif" />
+                      <img src={`${w.thumb}.jpg`} width={w.tw} height={w.th} alt="" loading="lazy" decoding="async" />
+                    </picture>
+                    <span className="cp-case-cap">
+                      <b>{c.t}</b>
+                      <span>{c.d}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <h3 className="cp-more">Más trabajos</h3>
           </div>
           <div className="marquee" role="group" aria-label="Galería de trabajos recientes">
             <div className="marquee-track">
@@ -1090,11 +1251,13 @@
         <Nav />
         <main>
           <Hero />
-          <StatsBar />
-          <Servicios />
+          <TrustStrip />
+          <Intencion />
           <Trabajos />
-          <PorQueNosotros />
+          <EstudioTeaser />
           <Proceso />
+          <Productos />
+          <Acabados />
           <FAQs />
           <Contacto />
           <CtaFinal />

@@ -21,7 +21,7 @@ Una sola página (`index.html`) con React 18 + Babel-standalone desde CDN (con h
 
 ## Secciones
 
-`Hero → StatsBar → Servicios → PorQueNosotros → Proceso → FAQs → Trabajos → Contacto → CtaFinal → Footer + FloatingWA`
+`Hero C+ → TrustStrip → Intencion (#crear) → Trabajos (casos + marquee) → EstudioTeaser (#estudio) → Proceso → Productos (#servicios) → Acabados → FAQs → Contacto → CtaFinal → Footer + FloatingWA` (landing «C+ Proof First»: primero prueba con fotos reales, luego catálogo). Las tarjetas de Intención/Productos preseleccionan chip y mensaje del formulario con `pickIntent` → evento `grafik:intent` que escucha `Contacto`. Hero con fotos de `assets/hero/` (AVIF+JPG ~1000 px); `EstudioMock` es un preview ilustrativo (no importa código de `/estudio/`). Los slots Mate/Brillante de Acabados esperan close-ups reales.
 
 **Trabajos**: marquee auto-desplazable de fotos reales. Los datos viven en el array `works` del babel script; al hacer clic abren un `Lightbox` (Esc/flechas/backdrop, con CTA a WhatsApp). Se pausa en hover y respeta `prefers-reduced-motion`.
 
@@ -41,7 +41,7 @@ Cuidados al tocar esta sección:
 
 - El marquee usa `<picture>` (`source` AVIF + `img` JPEG). El `img` **debe** llevar `width`/`height` de `tw`/`th`: con `height:100%; width:auto`, sin ellos la tarjeta mide 0 px de ancho hasta que carga y el track salta mientras la animación corre.
 - `w`/`h` y `tw`/`th` en `works` deben ser las dimensiones **reales** de los archivos — leerlas de `sips -g pixelWidth -g pixelHeight`, no calcularlas.
-- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (14 fotos → 92 s). Si no, añadir fotos acelera el desplazamiento.
+- `marquee-scroll` en `styles.css` se recalibra con el número de tarjetas: ~6.5 s por foto (19 fotos → 124 s). Si no, añadir fotos acelera el desplazamiento.
 - Las fuentes suelen llegar como exports de WhatsApp (1280–1600 px). **Revisar cada foto antes de integrarla**: descartar capturas de pantalla de chats (llevan barra de estado y teléfonos de clientes).
 
 ## Catálogo

@@ -1,5 +1,5 @@
 # GRAFIK — Imprenta y Publicidad en CDMX
-# https://grafik.mx | Actualizado: 2026-09-23
+# https://grafik.mx | Actualizado: 2026-10-04
 
 About: GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Servicios: lonas, flyers, pósters, boletos personalizados, pendones, brazaletes para eventos y artículos promocionales. Más de 20 materiales. Entrega en 1–3 días hábiles, express disponible. Cotización inmediata por WhatsApp.
 
@@ -7,7 +7,15 @@ About: GRAFIK es una imprenta y agencia de publicidad en Ciudad de México. Serv
 
 ### Home — Impresión y Publicidad en CDMX
 URL: https://grafik.mx/
-Description: Página principal con catálogo completo de servicios, 20+ materiales, proceso de cotización, preguntas frecuentes y contacto directo por WhatsApp.
+Description: Página principal con trabajos reales producidos por GRAFIK, el Estudio para visualizar el diseño, productos, materiales y acabados, proceso de cotización, preguntas frecuentes y contacto directo por WhatsApp.
+
+### Trabajos reales
+Anchor: https://grafik.mx/#trabajos
+Boletos VIP holográficos con folio, póster + flyer, talonarios numerados, flyers frente y reverso, brazaletes, gorras DTF y más — fotos reales de pedidos producidos por GRAFIK.
+
+### Estudio GRAFIK (visualizador de playeras y gorras)
+Anchor: https://grafik.mx/#estudio
+Herramienta para subir tu logo y ver cómo se verá aplicado en una playera o gorra (color y técnica: DTF, bordado o sublimación) antes de solicitar la cotización.
 
 ### Servicios de Impresión y Publicidad en CDMX
 Anchor: https://grafik.mx/#servicios
@@ -23,10 +31,10 @@ Services:
 
 ### Proceso de Cotización
 Anchor: https://grafik.mx/#proceso
-1. Comparte tu idea por WhatsApp (medidas, material, cantidad)
-2. Cotización en minutos (precio + tiempo de entrega)
-3. Aprobación del arte (revisión conjunta sin sorpresas)
-4. Producción y entrega (tiempo acordado)
+1. Cuéntanos qué necesitas (WhatsApp o formulario: medidas, material, cantidad)
+2. Recibe tu cotización (precio + tiempo de entrega)
+3. Autoriza tu diseño (revisión conjunta antes de imprimir)
+4. Lo imprimimos (producción y entrega en el tiempo acordado)
 
 ### Preguntas Frecuentes
 Anchor: https://grafik.mx/#faqs
@@ -52,4 +60,4 @@ Service area: Ciudad de México y zona metropolitana
 imprenta en CDMX, publicidad CDMX, impresión de lonas CDMX, pósters CDMX, flyers y volantes CDMX, boletos personalizados CDMX, pendones publicitarios CDMX, brazaletes para eventos CDMX, artículos promocionales personalizados CDMX, stickers CDMX
 
 ## Last-Updated
-2026-09-23
+2026-10-04
