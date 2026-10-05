@@ -228,6 +228,7 @@
       text-decoration: none;
       transition: color .15s;
     }
+    .nav-link { padding: 8px 0; }
     .nav-link:hover { color: var(--rojo); }
     .nav-link--pill {
       color: var(--blanco);
@@ -982,7 +983,7 @@
 
 @media (max-width: 640px) {
   .work-card { height: clamp(210px, 40vh, 290px); }
-  .work-cat { font-size: 9.5px; padding: 5px 9px; left: 8px; bottom: 8px; }
+  .work-cat { font-size: 10.5px; padding: 5px 9px; left: 8px; bottom: 8px; }
   .lb-btn { width: 40px; height: 40px; font-size: 22px; }
   .lb-close { font-size: 18px; top: 12px; right: 12px; }
   .lb-prev { left: 8px; }
@@ -1316,10 +1317,10 @@
 }
 .cp-garments button[aria-pressed="true"] { background: var(--rojo-dark); border-color: var(--rojo); color: var(--blanco); }
 .cp-garments button:focus-visible { outline: 2px solid var(--blanco); outline-offset: 2px; }
-.cp-swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-width: 280px; }
+.cp-swatches { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 8px; max-width: 280px; }
 .cp-swatches button {
   aspect-ratio: 1 / 1; border-radius: 50%; cursor: pointer; padding: 0;
-  border: 2px solid rgba(240,240,238,0.22); min-width: 24px;
+  border: 2px solid rgba(240,240,238,0.22); min-width: 44px; min-height: 44px;
 }
 .cp-swatches button[aria-pressed="true"] { border-color: var(--rojo); box-shadow: 0 0 0 2px #101010, 0 0 0 4px var(--rojo); }
 .cp-swatches button:focus-visible { outline: 2px solid var(--blanco); outline-offset: 3px; }
@@ -1375,7 +1376,7 @@
 }
 .cp-prod-body p { font-size: 13.5px; line-height: 1.55; color: var(--ink-70); }
 .cp-prod-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.cp-prod-tags .badge { font-size: 10px; padding: 4px 9px; }
+.cp-prod-tags .badge { font-size: 11px; padding: 4px 9px; }
 .cp-prod--all { background: var(--rojo); border-color: var(--rojo-dark); justify-content: center; }
 .cp-prod--all:hover { background: var(--rojo-dark); }
 .cp-prod-all-body { display: grid; gap: 10px; padding: 28px 22px; align-content: center; flex: 1; }

@@ -312,7 +312,7 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
   <!-- LCP del hero: la foto dominante (pulseras Tyvek). React/Babel la pintan tarde, así que se precarga. -->
-  <link rel="preload" href="/assets/hero/brazaletes-morelos.avif" as="image" type="image/avif" fetchpriority="high">
+  <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="/assets/hero/brazaletes-morelos-640.avif 633w, /assets/hero/brazaletes-morelos.avif 990w" imagesizes="(min-width: 961px) 400px, 88vw">
 </head>
 <body>
   <div id="root">
@@ -568,10 +568,10 @@
     /* ── Hero C+ (Proof First) ──────────────── */
     /* Las fotos del hero son variantes de 1000 px (AVIF + JPEG) de assets/hero/. */
     const HERO_PHOTOS = {
-      main:   { base: "/assets/hero/brazaletes-morelos",           w: 990, h: 1000, alt: "Diez brazaletes Tyvek de colores con logotipos institucionales y folio consecutivo" },
-      figura: { base: "/assets/hero/figura-coroplast-just-married", w: 800, h: 1000, alt: "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
-      boletos:{ base: "/assets/hero/boletos-texmola",               w: 716, h: 1000, alt: "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo" },
-      zonas:  { base: "/assets/hero/brazaletes-toluca",             w: 562, h: 1000, alt: "Brazaletes Tyvek full color por zonas: Invitados, Prensa, Acceso total y Staff" },
+      main:   { base: "/assets/hero/brazaletes-morelos",           w: 990, w2: 633, sizes: "(min-width: 961px) 400px, 88vw", h: 1000, alt: "Diez brazaletes Tyvek de colores con logotipos institucionales y folio consecutivo" },
+      figura: { base: "/assets/hero/figura-coroplast-just-married", w: 800, w2: 512, sizes: "(min-width: 961px) 200px, 62vw", h: 1000, alt: "Figura impresa y recortada en coroplast con la forma de una pareja en moto y letrero Just Married" },
+      boletos:{ base: "/assets/hero/boletos-texmola",               w: 716, w2: 458, sizes: "(min-width: 961px) 250px, 76vw", h: 1000, alt: "Pila de boletos con sello holográfico de seguridad, preventa y folio consecutivo" },
+      zonas:  { base: "/assets/hero/brazaletes-toluca",             w: 562, w2: 360, sizes: "(min-width: 961px) 170px, 56vw", h: 1000, alt: "Brazaletes Tyvek full color por zonas: Invitados, Prensa, Acceso total y Staff" },
     };
 
     const HeroPh = ({ k, cls, tag, eager }) => {
@@ -579,8 +579,9 @@
       return (
         <figure className={`cp-ph ${cls}`}>
           <picture>
-            <source srcSet={`${p.base}.avif`} type="image/avif" />
-            <img src={`${p.base}.jpg`} width={p.w} height={p.h} alt={p.alt}
+            <source srcSet={`${p.base}-640.avif ${p.w2}w, ${p.base}.avif ${p.w}w`} sizes={p.sizes} type="image/avif" />
+            <img src={`${p.base}.jpg`} srcSet={`${p.base}-640.jpg ${p.w2}w, ${p.base}.jpg ${p.w}w`} sizes={p.sizes}
+              width={p.w} height={p.h} alt={p.alt}
               decoding="async" {...(eager ? { fetchpriority: "high" } : {})} />
           </picture>
           {tag && <figcaption className="cp-tag">{tag}</figcaption>}
@@ -1183,8 +1184,16 @@
       const [bubble, setBubble] = useState(false);
       React.useEffect(() => {
         try { if (sessionStorage.getItem(WA_BUBBLE_KEY)) return; } catch (e) {}
-        const t = setTimeout(() => setBubble(true), 4000);
-        return () => clearTimeout(t);
+        // Aparece a los 4 s y se retira sola a los ~10 s (no tapar botones/texto, sobre todo en móvil).
+        let hide;
+        const t = setTimeout(() => {
+          setBubble(true);
+          hide = setTimeout(() => {
+            setBubble(false);
+            try { sessionStorage.setItem(WA_BUBBLE_KEY, "1"); } catch (err) {}
+          }, 6000);
+        }, 4000);
+        return () => { clearTimeout(t); clearTimeout(hide); };
       }, []);
       const closeBubble = (e) => {
         e.stopPropagation();
