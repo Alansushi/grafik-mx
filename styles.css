@@ -407,12 +407,11 @@
     .proceso-grid {
       border: 1px solid rgba(240,240,238,0.08);
       background: rgba(240,240,238,0.08);
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 1px;
     }
     .proceso-card {
-      flex: 1 1 300px;
       padding: 28px 26px 30px;
       background: var(--carbon);
     }
@@ -440,13 +439,12 @@
     .pillars-grid {
       border: 1px solid rgba(240,240,238,0.08);
       background: rgba(240,240,238,0.08);
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 1px;
     }
     .pillar-card {
-      flex: 1 1 300px;
-      padding: 32px 28px;
+      padding: 32px 22px;
       background: var(--carbon);
       transition: background .15s;
     }
@@ -660,6 +658,7 @@
     }
     .footer-main {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       padding-bottom: 24px;
@@ -689,6 +688,23 @@
       margin: 0;
       padding-left: 46px;
     }
+    .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px 20px;
+    }
+    .footer-nav a {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-70);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .footer-nav a:hover { color: var(--rojo); }
     .footer-contact {
       display: flex;
       flex-direction: column;
@@ -723,16 +739,26 @@
     .footer-dev-link:hover { color: var(--rojo); }
     @media (max-width: 640px) {
       .footer-main { flex-direction: column; align-items: flex-start; }
+      .footer-nav { gap: 0 18px; }
       .footer-contact { align-items: flex-start; }
-      .footer-legal { flex-direction: column; gap: 4px; }
+      .footer-legal { flex-direction: column; gap: 4px; font-size: 11px; }
+      /* el botón flotante (con su globo, ~125px) no debe tapar el aviso legal al llegar al final */
+      .site-footer { padding-bottom: 132px; }
     }
 
     /* ---- Floating WhatsApp ---- */
-    .floating-wa {
+    .floating-wa-wrap {
       position: fixed;
       bottom: 24px;
       right: 24px;
       z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 14px;
+    }
+    .floating-wa {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 9px;
@@ -749,6 +775,87 @@
     }
     .floating-wa:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 rgba(0,0,0,.35); }
     .floating-wa-text { display: none; }
+    .floating-wa:focus-visible, .wa-bubble-close:focus-visible { outline: 2px solid var(--blanco); outline-offset: 2px; box-shadow: 0 0 0 4px var(--negro); }
+
+    .wa-bubble {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(280px, calc(100vw - 48px));
+      min-height: 44px;
+      padding: 12px 44px 12px 14px;
+      background: var(--blanco);
+      color: var(--negro);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 rgba(0,0,0,.35);
+      transform-origin: bottom right;
+      animation: wa-pop .45s cubic-bezier(.34,1.56,.64,1) both, wa-nudge 6s ease-in-out 1.5s infinite;
+    }
+    .wa-bubble::after {
+      content: "";
+      position: absolute;
+      right: 22px;
+      bottom: -8px;
+      width: 16px;
+      height: 16px;
+      background: var(--blanco);
+      transform: rotate(45deg);
+    }
+    .wa-bubble-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--wa); }
+    .wa-bubble-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 44px;
+      height: 100%;
+      min-height: 44px;
+      padding: 0 0 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: var(--plata-dim);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .wa-bubble-close:hover { color: var(--negro); }
+    .wa-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 5px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: var(--rojo);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      animation: wa-pulse 2s ease-out infinite;
+    }
+    @keyframes wa-pop {
+      from { opacity: 0; transform: translateY(10px) scale(.85); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes wa-nudge {
+      0%, 88%, 100% { transform: none; }
+      92% { transform: translateY(-5px); }
+      96% { transform: translateY(0); }
+    }
+    @keyframes wa-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(208,43,52,.55); }
+      70%, 100% { box-shadow: 0 0 0 9px rgba(208,43,52,0); }
+    }
 
     /* ---- SSR Fallback ---- */
     .ssr-fallback {
@@ -799,6 +906,7 @@
     @media (max-width: 960px) {
       :root { --gut: 28px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 20px 16px; }
+      .proceso-grid, .pillars-grid { grid-template-columns: repeat(2, 1fr); }
       .contacto-wrap { grid-template-columns: 1fr; }
       .contacto-left { border-right: none; border-bottom: 1px solid rgba(240,240,238,0.08); }
       .nav-links { display: none; }
@@ -809,6 +917,7 @@
       :root { --nav-h: 77px; }
       .nav-logo svg { width: 44px; height: 44px; }
       .nav-wordmark { font-size: 26px; }
+      .proceso-grid, .pillars-grid { grid-template-columns: 1fr; }
       .sec-hdr { grid-template-columns: 1fr; gap: 10px; }
       .sec-num { font-size: 48px; }
       .section { padding: 56px 0; }
@@ -826,7 +935,8 @@
       .stat-n { font-size: 1.6rem; }
       .ssr-fallback h1 { font-size: 30px; }
       .ssr-fallback h2 { font-size: 20px; }
-      .chip-btn { font-size: 10px; padding: 11px 14px; }
+      .chip-btn { font-size: 11px; padding: 11px 14px; }
+      .floating-wa-wrap { bottom: 16px; right: 16px; }
     }
 
 /* ── Splash intro ──────────────────────────── */
@@ -1052,4 +1162,14 @@
   .work-card img { transition: none; }
   .work-card:hover img, .work-card:focus-visible img { transform: none; }
   .lightbox { animation: none; }
+  .wa-bubble, .wa-badge { animation: none; }
+}
+
+/* Áreas táctiles ≥ 44px en pantallas táctiles y en tablet/móvil (≤ 960px, donde aparece el hamburguesa) */
+@media (pointer: coarse), (max-width: 960px) {
+  .chip-btn { min-height: 44px; }
+  .nav-toggle { min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
+  .footer-nav { gap: 0 18px; }
+  .footer-nav a, .footer-contact a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+  .footer-dev-link { display: inline-block; padding: 14px 0; margin: -14px 0; }
 }

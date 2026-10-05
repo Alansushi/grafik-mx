@@ -58,7 +58,43 @@ Cada servicio vive en **cuatro** lugares que hay que mantener sincronizados: la 
 - **Las FAQs están triplicadas** — acordeón React, `FAQPage` JSON-LD y `.ssr-fallback`. Google exige que el schema refleje lo visible: al tocar una, tocar las tres.
 - **La galería de Trabajos está triplicada** — array `works` (React), `ImageGallery` JSON-LD y las `<figure>` del `.ssr-fallback`. Al añadir/quitar una foto, tocar las tres.
 - `robots.txt` permite explícitamente crawlers IA (ClaudeBot, GPTBot, PerplexityBot, etc.)
-- `sitemap.xml` — actualizar `lastmod` después de cambios de contenido
+- `sitemap.xml` — actualizar `lastmod` después de cambios de contenido; si una sección nueva
+  tiene `id` propio, evaluar si amerita su propia entrada `#anchor`
+- HTTPS: además de la terminación TLS de Vercel, `vercel.json` fija `Strict-Transport-Security`
+  a mano (bloque `headers`, `source: "/(.*)"`) — no quitarlo al tocar ese archivo.
+- Scripts del CDN (React/ReactDOM/Babel-standalone en `index.html`) van con `defer`, en ese
+  orden, con `<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>` antes.
+  El script de la app (`type="text/babel"`) NO lleva `defer`: el navegador nunca lo ejecuta
+  (tipo MIME desconocido), Babel-standalone lo transforma y lo corre solo cuando los tres
+  `defer` terminan. Un script nuevo que dependa de React/ReactDOM debe ir después de esos tres.
+
+### Checklist al agregar o modificar una sección de la landing
+
+Una sección nueva, eliminada o reordenada puede desincronizar hasta 6 lugares. Repasar TODA
+esta lista, no sólo el punto que motivó el cambio:
+
+- **Jerarquía de encabezados**: un solo `h1` real (el del Hero) y sin saltos (`h2` → `h4` sin
+  pasar por `h3`). Revisar con `grep -n '<h[1-4]' index.html`.
+- **`id` propio → Nav + Footer + sitemap**: toda sección con anchor debe vivir en `NAV_LINKS`
+  (fuente única que usan `Nav` y `Footer`) y evaluar si amerita una entrada nueva en
+  `sitemap.xml`.
+- **Homologar el `id` entre React y `.ssr-fallback`**: mismo nombre en ambos lados. El
+  `.ssr-fallback` sigue sin participar en la analítica — se ignora a propósito — pero un `id`
+  distinto ahí solo genera confusión al leer el código.
+- **Cualquier conteo cuadra en 3 lugares — React, JSON-LD y `.ssr-fallback`**: la regla no es
+  solo de FAQs (`FAQPage`) y Trabajos (`ImageGallery`); aplica a cualquier colección repetida
+  en más de un formato (servicios, pasos del proceso, preguntas, imágenes).
+- **Imágenes nuevas fuera del pipeline de Trabajos**: mismo criterio de compresión y tamaño de
+  la tabla de arriba (`sips`, JPEG/AVIF, nunca ampliar el origen).
+- **Meta title/description**: si se tocan, mantener title ~50-60 caracteres visibles en el
+  SERP y description ~150-160. Contar caracteres es solo una aproximación — confirmar con una
+  vista previa de SERP en cambios grandes.
+- **Íconos decorativos**: todo `<svg>` que no use el helper `Ico` (aplica `aria-hidden="true"`
+  por defecto) necesita `aria-hidden="true"` a mano si es puramente decorativo y hay texto
+  adyacente que ya lo nombra (p. ej. el wordmark "GRAFIK" junto al logo del nav y del splash).
+- **`llms.txt` / `llms-full.txt`**: además de los "4 lugares" del catálogo (arriba), actualizar
+  la fecha ("Última actualización" / "Last-Updated") en AMBOS archivos cuando cambie el
+  contenido que describen — hay 4 ocurrencias de la fecha entre los dos archivos, no una.
 
 ## Analítica
 
@@ -87,7 +123,8 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
 - **Añadir una sección medible**: `id` (o `data-section`) en el HTML **y** en `SECTIONS`
   (`api/_lib/events.js`); si tiene un CTA, también en el `mapa` de `v_cta_exposure` (migración
   0011; un test lo cruza con `CTA_IDS`). Ojo: el `.ssr-fallback` declara sus propias
-  `<section id>` (a veces con otro nombre, `por-que` vs `ventajas`) y se ignora a propósito.
+  `<section id>` (deben homologarse con las de React — ver checklist en "## SEO / AEO") y se
+  ignora a propósito en la analítica.
 - **Embudo de `/estudio/`** (Fase 3): `analytics.js` se carga también en `estudio/index.html`, antes
   de `boot.js`; el `page_view` de `/estudio/` ya es "abrió el configurador". Eventos:
   `studio_ready`, `studio_garment`, `studio_logo`, `studio_placed`, `studio_sizes`, `studio_quote`,
