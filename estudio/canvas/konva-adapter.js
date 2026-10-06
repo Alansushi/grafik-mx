@@ -63,6 +63,10 @@ const UI_CSS_PX = {
   border: 1.5,
   guide: 1.5,
   rotateOffset: 28,
+  // Lado MÍNIMO de la zona sensible de cada tirador. El dibujo es de 12 px, pero
+  // acertar un blanco de 12 px con un trackpad exige buscarlo; 24 px es lo que
+  // piden las guías de accesibilidad táctil (WCAG 2.5.8) y sirve igual al ratón.
+  hit: 24,
 };
 
 /**
@@ -147,9 +151,9 @@ export function createStudioStage(opts) {
   // La guía se pinta SOBRE la prenda, así que su color tiene que depender del
   // color de la prenda. Con un trazo fijo casi blanco, sobre una playera blanca
   // o amarilla desaparecía por completo y el cliente dejaba de ver dónde puede
-  // colocar su logo. No se notaba con el mockup procedural (gris medio, donde
-  // un trazo claro siempre contrastaba); saltó al poner la foto real, que es de
-  // una playera blanca. isDarkColor ya existe y está probada en color.test.js.
+  // colocar su logo. No se notó mientras la prenda era un mockup gris medio
+  // (donde un trazo claro siempre contrastaba); saltó al poner la foto real, que
+  // es de una playera blanca. isDarkColor ya existe y está probada en color.test.js.
   const trazoGuia = (hex) => (isDarkColor(hex) ? 'rgba(240,240,238,0.45)' : 'rgba(12,12,12,0.45)');
 
   const printAreaGuide = new Konva.Rect({
@@ -195,9 +199,19 @@ export function createStudioStage(opts) {
 
   // Escala pantalla/lógico vigente: el CSS reduce o amplía el lienzo (ver
   // _getContentPosition más arriba) y cambia al redimensionar la ventana.
+  // Escala pantalla/lógico vigente, para que anchorStyleFunc dimensione la zona
+  // sensible con la misma cuenta que applyUiScale usa para el dibujo.
+  let uiScale = 1;
+  transformer.anchorStyleFunc((anchor) => {
+    // Konva suma `hitStrokeWidth` al lado del rectángulo al probar el impacto;
+    // sólo hace falta añadir lo que falte para llegar al mínimo.
+    anchor.hitStrokeWidth(Math.max(0, UI_CSS_PX.hit / uiScale - anchor.width()));
+  });
+
   function applyUiScale() {
     const rect = stage.content?.getBoundingClientRect?.();
     const scale = rect && rect.width > 0 ? rect.width / width : 1;
+    uiScale = scale;
     const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
     transformer.anchorSize((coarse ? UI_CSS_PX.anchorCoarse : UI_CSS_PX.anchor) / scale);
     transformer.borderStrokeWidth(UI_CSS_PX.border / scale);
@@ -205,6 +219,7 @@ export function createStudioStage(opts) {
     transformer.rotateAnchorOffset(UI_CSS_PX.rotateOffset / scale);
     guideV.strokeWidth(UI_CSS_PX.guide / scale);
     guideH.strokeWidth(UI_CSS_PX.guide / scale);
+    transformer.forceUpdate(); // vuelve a pasar los tiradores por anchorStyleFunc
     uiLayer.batchDraw();
   }
   applyUiScale();

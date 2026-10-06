@@ -17,7 +17,7 @@ import { LogoToolbar } from './logo-toolbar.js';
 import { StepIndicator } from './step-indicator.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
-import { renderProceduralBase, resolvePrintArea } from '../canvas/mockup.js';
+import { resolvePrintArea } from '../lib/geometry.js';
 import { loadImageFromUrl, loadImageFromFile } from '../canvas/image-loader.js';
 import { normalizeBreakdown } from '../lib/sizes.js';
 import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
@@ -25,7 +25,6 @@ import { breakdownToLabel } from '../lib/sizes.js';
 import { track, trackOnce } from './track.js';
 import { logoFormat, rejectedKind, safeCode, trackedQty } from '../lib/track-props.js';
 
-const PROCEDURAL_PREFIX = 'procedural:';
 const DEFAULT_CANVAS_SIZE = { width: 900, height: 900 };
 const SIZES_DEBOUNCE_MS = 350;
 
@@ -142,13 +141,11 @@ export function StudioApp({ catalog, stageContainer }) {
       const size = garment.canvas_size || DEFAULT_CANVAS_SIZE;
       const printArea = resolvePrintArea(garment.print_area, size);
 
-      const baseImage = garment.base_mockup_url.startsWith(PROCEDURAL_PREFIX)
-        ? renderProceduralBase(garment.base_mockup_url.slice(PROCEDURAL_PREFIX.length), size)
-        : await loadImageFromUrl(garment.base_mockup_url);
+      const baseImage = await loadImageFromUrl(garment.base_mockup_url);
 
       // Vistas no-front (presentación): pocas y ligeras, se precargan todas
       // de una vez para que el selector de vista no tenga que esperar red en
-      // cada clic. Nunca son 'procedural:' — sólo el front puede serlo hoy.
+      // cada clic.
       const extraViews = await Promise.all(
         (garment.views ?? []).map(async (v) => [v.slug, await loadImageFromUrl(v.base_mockup_url)]),
       );

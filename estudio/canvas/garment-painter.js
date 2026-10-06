@@ -38,8 +38,8 @@ function putCapped(cache, key, value) {
 }
 
 // Identidad estable de la imagen base, para que el cache no confunda la playera
-// con la gorra. Los canvas procedurales no tienen `src`, así que se les cuelga
-// un id la primera vez que se ven.
+// con la gorra. Un canvas (a diferencia de una <img>) no tiene `src`, así que se
+// le cuelga un id la primera vez que se ve.
 let sourceSeq = 0;
 function sourceId(img) {
   if (img.src) return img.src;

@@ -237,11 +237,10 @@ Reglas que NO se pueden romper (cada una protege algo que ya se rompió o se rom
 
 ### Mockups de prenda
 
-`garment_types.base_mockup_url` acepta dos formas y `estudio/ui/studio-app.js` ramifica sola:
-`procedural:tee` / `procedural:cap` (silueta calculada en `estudio/canvas/mockup.js`, hoy sin
-uso en producción — ver abajo) o una URL real, que pasa por `loadImageFromUrl`. Playera y
-gorra usan foto real para **varias vistas** (playera: front + back; gorra: front + left +
-right). `garment_types` representa **siempre la vista "front"** — la única imprimible: tiene
+`garment_types.base_mockup_url` es siempre una URL real, que pasa por `loadImageFromUrl`
+(el mockup procedural `procedural:tee`/`cap` y `estudio/canvas/mockup.js` se retiraron: no
+existían en producción y sólo servían de maqueta). Playera y gorra usan foto real para
+**varias vistas** (playera: front + back; gorra: front + left + right). `garment_types` representa **siempre la vista "front"** — la única imprimible: tiene
 `print_area`, logo, Transformer, y es la que entra a `order_items`. Las demás vistas son de
 **presentación** (giran la prenda teñida, sin logo ni área de impresión propia) y viven en
 `garment_type_views`, tabla hija de `garment_types` (mismo molde que `garment_variants`;
@@ -325,6 +324,19 @@ Dos trampas que ya costaron un bug cada una:
 `touch-action: none` sólo con logo (`[data-editing="true"]`), para no bloquear el scroll de la prenda vacía.
 Los tests que prueban gestos deben subir el logo por la UI (`input[type=file]`): inyectarlo con
 `stage.setLogo` deja el dropzone encima del lienzo y se come los clics.
+
+**Un test de gestos debe comprobar que algo cambió** (el logo se movió, la escala bajó): arrancar el
+arrastre en un punto donde no hay nada también "pasa". Así F4 estuvo en verde con el puntero roto.
+Los tiradores se dibujan de 12 px pero su zona sensible es de 24 px (`UI_CSS_PX.hit`, vía
+`anchorStyleFunc`); F21 agarra a ~9 px del centro en tres tamaños de ventana.
+
+**Fixtures con las fotos reales.** `tests/fixtures/catalog.js` replica `grafik.mx/api/catalog` y las
+fotos viven en `tests/fixtures/mockups/` (copias del bucket `mockups`, mismo nombre versionado). Al
+cambiar una foto en producción: traer el archivo nuevo, y copiar también `canvas_size`, `print_area`
+y `print_area_width_cm` (ver la tabla de columnas de arriba). Los tests de píxeles (C2/C3) barren la
+prenda en proporciones, así que no dependen de coordenadas fijas. El servidor de los tests es
+`tests/serve.py` (cola de conexiones amplia): con `python3 -m http.server` la ráfaga de ~25 módulos ES
+daba `ERR_CONNECTION_RESET` en ~1 de cada 60 arranques y el test parecía fallar por el código.
 
 Verificar siempre **mirando el render**, no sólo los números: así se encontró que la guía
 punteada del área imprimible (`konva-adapter.js`) era de un trazo fijo casi blanco y

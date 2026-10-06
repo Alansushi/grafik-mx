@@ -10,6 +10,7 @@ import {
   maxFitScaleFor,
   minScaleFor,
   MIN_SCALE_FRACTION,
+  resolvePrintArea,
   clampTransformToArea,
   fitTransformToArea,
   isTransformValid,
@@ -303,6 +304,17 @@ describe('geometry.js — maxFitScaleFor (export)', () => {
     const a = maxFitScaleFor({ x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
     const b = maxFitScaleFor({ x: 999, y: -400, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
     expect(a).toBeCloseTo(b, 9);
+  });
+});
+
+describe('geometry.js — resolvePrintArea', () => {
+  it('multiplica cada fracción por el lado que le toca (ancho para x/width, alto para y/height)', () => {
+    // Valores de la playera real de producción (964×900).
+    const a = resolvePrintArea({ x: 0.321, y: 0.19, width: 0.358, height: 0.3 }, { width: 964, height: 900 });
+    expect(a.x).toBeCloseTo(309.444, 3);
+    expect(a.y).toBeCloseTo(171, 6);
+    expect(a.width).toBeCloseTo(345.112, 3);
+    expect(a.height).toBeCloseTo(270, 6);
   });
 });
 

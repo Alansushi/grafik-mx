@@ -39,7 +39,8 @@ export default defineConfig({
   },
 
   webServer: {
-    command: `python3 -m http.server ${LOCAL_PORT}`,
+    // tests/serve.py y no `http.server` a secas: ver el motivo en ese archivo.
+    command: `python3 tests/serve.py ${LOCAL_PORT}`,
     url: `http://127.0.0.1:${LOCAL_PORT}/estudio/`,
     reuseExistingServer: !process.env.CI,
     timeout: 20_000,

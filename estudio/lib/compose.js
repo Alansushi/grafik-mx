@@ -12,8 +12,9 @@
 // Convención de este archivo: los "fold maps" y bases en escala de grises se
 // asumen puros (r === g === b); donde hace falta reducir un píxel a un solo
 // valor de gris se lee siempre el canal r como representante. Es una asunción
-// documentada, no un accidente — el resto del pipeline (garment-painter,
-// mockup procedural) garantiza que esos buffers siempre llegan así.
+// documentada, no un accidente — el resto del pipeline (garment-painter y
+// tools/mockup-cutout.swift, que deja las fotos en gris exacto) garantiza que
+// esos buffers siempre llegan así.
 //
 // @typedef {{r:number,g:number,b:number}} Rgb
 
