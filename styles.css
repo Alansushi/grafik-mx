@@ -481,7 +481,9 @@
       border-top: 3px solid var(--rojo);
       background: var(--carbon);
       padding: 40px var(--gut) 24px;
-      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      /* Colchón bajo la última línea: el botón flotante de WhatsApp (64 px de alto, a 24 px del
+         borde) nunca debe quedar encima del crédito al llegar al final de la página. */
+      padding-bottom: max(112px, calc(96px + env(safe-area-inset-bottom)));
     }
     .footer-main {
       display: flex;
@@ -564,13 +566,29 @@
       transition: color 0.2s;
     }
     .footer-dev-link:hover { color: var(--rojo); }
+    .footer-dev {
+      margin-top: 20px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--plata-dim);
+    }
     @media (max-width: 640px) {
       .footer-main { flex-direction: column; align-items: flex-start; }
       .footer-nav { gap: 0 18px; }
       .footer-contact { align-items: flex-start; }
       .footer-legal { flex-direction: column; gap: 4px; font-size: 11px; }
-      /* el botón flotante (con su globo, ~125px) no debe tapar el aviso legal al llegar al final */
-      .site-footer { padding-bottom: 148px; }
+      .footer-dev { font-size: 11px; }
+    }
+    /* El botón flotante de WhatsApp más su globo ("¿qué vas a imprimir hoy?", ~155 px de alto en
+       total) no deben tapar el aviso legal ni el crédito al llegar al final. En ≤ 900 px el globo
+       (hasta ~345 px, pegado a la derecha; ~190 px de alto con el botón en tablet) coincide con el
+       crédito centrado; por encima
+       de eso el colchón base de .site-footer basta. */
+    @media (max-width: 900px) {
+      .site-footer { padding-bottom: max(208px, calc(192px + env(safe-area-inset-bottom))); }
     }
 
     /* ---- Floating WhatsApp ---- */

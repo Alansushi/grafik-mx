@@ -374,4 +374,11 @@ Símbolo: defs.svg#mark · Favicon: favicon.svg
 - `960px`: nav links ocultos, hamburger visible; grids → 2 col
 - `640px`: grids → 1 col; CTAs se apilan; padding 80px → 56px; logo 68→44px
 
+**El botón flotante de WhatsApp no debe tapar la última línea del footer.** Es `position: fixed` abajo a la
+derecha (64 px de alto, + el globo "¿qué vas a imprimir hoy?" de ~190 px durante 6 s, una vez por sesión), así
+que lo que quede al final de la página a la derecha o abajo queda debajo. Por eso el crédito "Desarrollado por
+orkestalo.com" va en su propia línea, **centrada y la última**, y `.site-footer` lleva un colchón inferior
+(112 px; 208 px en ≤ 900 px, donde el globo coincide horizontalmente con el texto centrado). Al añadir algo al
+final del footer, comprobar el solape con `getBoundingClientRect` en 320–1920 px y con el globo visible.
+
 `--nav-h` debe coincidir con el alto real del navbar (símbolo + 32px de padding + 1px de borde). Alimenta el `min-height` del hero y el `scroll-padding-top` que evita que la barra sticky tape los anclajes.

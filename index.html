@@ -1170,8 +1170,10 @@
         <div className="footer-legal">
           <span>© {new Date().getFullYear()} {CONFIG.brand} · Ciudad de México</span>
           <span><time dateTime="2026-10-05">Actualizado: oct 2026</time> · Todos los derechos reservados</span>
-          <span>Desarrollado por <a href="https://orkestalo.com" target="_blank" rel="noopener noreferrer" className="footer-dev-link">orkestalo.com</a></span>
         </div>
+        {/* Crédito de desarrollo: última línea de la página y centrada. En la fila legal quedaba
+            a la derecha, justo bajo el botón flotante de WhatsApp, y se tapaba. */}
+        <p className="footer-dev">Desarrollado por <a href="https://orkestalo.com" target="_blank" rel="noopener noreferrer" className="footer-dev-link">orkestalo.com</a></p>
       </footer>
     );
 
