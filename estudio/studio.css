@@ -86,6 +86,29 @@ a { color: inherit; }
   border-bottom: 1px solid rgba(184, 184, 184, 0.15);
 }
 
+/* Fila del wordmark con la salida de ayuda a la derecha. */
+.es-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* CTA de ayuda / pedido especial (a un costado, no compite con el CTA del resumen). */
+.es-help-cta {
+  min-height: 44px; /* objetivo táctil, igual que el resto de controles (A3) */
+  padding: 8px 16px;
+  font-size: 12px;
+  text-align: left;
+}
+.es-help-cta svg { flex: none; }
+.es-help-cta-short { display: none; }
+@media (max-width: 640px) {
+  .es-help-cta { padding: 8px 14px; }
+  .es-help-cta-full { display: none; }
+  .es-help-cta-short { display: inline; }
+}
+
 .es-wordmark {
   display: inline-flex;
   align-items: center;
@@ -1190,11 +1213,40 @@ a { color: inherit; }
 .es-about {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 8px 20px 72px;
+  padding: 8px 20px 32px;
   color: var(--es-plata);
   font-size: 15px;
   line-height: 1.6;
 }
+/* Desplegable cerrado por defecto: ocupa una fila y no distrae del configurador. */
+.es-about-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(184, 184, 184, 0.15);
+  color: var(--es-plata);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+}
+.es-about-summary::-webkit-details-marker { display: none; }
+.es-about-summary::after {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.es-about[open] > .es-about-summary::after { transform: rotate(-135deg); }
+.es-about-summary:hover { color: var(--es-blanco); }
+.es-about-summary:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
 .es-about-title {
   margin: 32px 0 12px;
   color: var(--es-blanco);
@@ -1212,6 +1264,8 @@ a { color: inherit; }
 .es-about-links { margin-top: 28px; }
 .es-about-links a { color: var(--es-plata); text-decoration: underline; text-underline-offset: 3px; }
 .es-about-links a:hover { color: var(--es-blanco); }
+/* Misma anchura que la app en pantallas grandes (va después de .es-about: si no, la base le gana). */
+@media (min-width: 1100px) { .es-about { max-width: 1440px; } }
 
 /* ── Aviso "ábrelo en computadora" ───────────────────────────────────────── */
 .es-desktop-note {

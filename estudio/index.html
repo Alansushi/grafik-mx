@@ -122,10 +122,21 @@
   <div id="es-app" class="es-app" data-state="loading">
 
     <header class="es-header">
-      <a class="es-wordmark" href="/" aria-label="GRAFIK — imprenta y publicidad CDMX">
-        <svg class="es-wordmark-mark" width="26" height="26" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
-        GRAFIK
-      </a>
+      <div class="es-header-top">
+        <a class="es-wordmark" href="/" aria-label="GRAFIK — imprenta y publicidad CDMX">
+          <svg class="es-wordmark-mark" width="26" height="26" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
+          GRAFIK
+        </a>
+        <!-- Salida para quien necesita ayuda o un pedido que el estudio aún no cubre.
+             Siempre visible, pero a un costado: el CTA principal (enviar el diseño) sigue
+             en el resumen. Se mide con data-event="studio_help" (analytics.js), no con
+             data-cta: un id nuevo en CTA_IDS obliga a editar la migración 0011. -->
+        <a class="es-btn es-btn-wa es-help-cta" href="https://wa.me/525539014600?text=Hola%20GRAFIK%2C%20necesito%20ayuda%20con%20el%20Estudio%20o%20quiero%20cotizar%20un%20pedido%20especial." target="_blank" rel="noopener noreferrer" data-event="studio_help">
+          <svg width="18" height="18" aria-hidden="true"><use href="/defs.svg#i-wa"/></svg>
+          <span class="es-help-cta-full">¿Necesitas ayuda o un pedido especial?</span>
+          <span class="es-help-cta-short">Ayuda</span>
+        </a>
+      </div>
       <h1 class="es-context">Diseña tu playera o gorra con tu logo — Estudio GRAFIK</h1>
       <!-- Punto de montaje del indicador de pasos (estudio/ui/step-indicator.js),
            vía createPortal desde studio-app.js. Vacío hasta que React monta. -->
@@ -193,8 +204,14 @@
   </div>
 
 
-  <!-- Contenido estático indexable (lo ven los crawlers sin JS). Mismo texto que el JSON-LD. -->
-  <section class="es-about" aria-labelledby="es-about-title">
+  <!-- Contenido informativo indexable (lo ven los crawlers sin JS). Mismo texto que el
+       FAQPage del JSON-LD. Va en un <details> cerrado: el cliente que viene a diseñar no
+       se distrae, y el texto sigue en el HTML (Google indexa los acordeones, y el schema
+       sigue reflejando contenido que el usuario puede abrir). No se mueve a otra ruta a
+       propósito: /estudio/ se quedaría sin texto indexable y un enlace sacaría al cliente
+       del estudio perdiendo su logo. -->
+  <details class="es-about">
+    <summary class="es-about-summary">¿Cómo funciona el Estudio? · Preguntas frecuentes</summary>
     <h2 id="es-about-title" class="es-about-title">¿Cómo funciona el Estudio GRAFIK?</h2>
     <p class="es-about-lead">El Estudio GRAFIK es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: al terminar envías tu diseño por WhatsApp y te cotizamos. Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).</p>
     <ol class="es-about-steps">
@@ -212,7 +229,7 @@
       <dd>No. El Estudio es una vista previa: al terminar envías tu diseño por WhatsApp con tus datos de contacto y te cotizamos.</dd>
     </dl>
     <p class="es-about-links"><a href="/">Volver a GRAFIK, imprenta y publicidad en CDMX</a> · <a href="https://wa.me/525539014600">Cotizar por WhatsApp</a></p>
-  </section>
+  </details>
 
   <script>
     // Degradación si Konva no cargó del CDN (spec §7.4): no tiene caso
