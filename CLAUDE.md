@@ -199,7 +199,7 @@ Mide cuántas sesiones terminan en un clic para cotizar. Dos fuentes: **Vercel W
 - [ ] Añadir dirección física si se quiere mejorar el schema `LocalBusiness`
 - [ ] Íconos propios en `defs.svg` para Flyers, Pósters, Boletos y Pendones — hoy reusan `i-dtf`, `i-vinil`, `i-promo` y `i-lona`
 
-## `/estudio/` — configurador de playeras y gorras (en construcción)
+## `/estudio/` — configurador de playeras y gorras (en producción)
 
 Ruta **indexable desde oct 2026** (enlazada desde la landing, en `sitemap.xml`, con meta/JSON-LD propios y un `<details class="es-about">` cerrado al final de la página (el texto "¿Cómo funciona?" + FAQ que ven los crawlers sin JS y que respalda el `FAQPage`; ver más abajo); `/estudio/pedido/` SIGUE `noindex`, con meta y `X-Robots-Tag` en `vercel.json`) con un configurador
 self-service: preview del logo sobre la prenda, precio, cobro por Mercado Pago y panel

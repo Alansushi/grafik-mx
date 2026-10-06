@@ -11,3 +11,6 @@ playwright-report/
 .env
 .env.*
 !.env.example
+
+# Estado local del CLI de Supabase (project-ref, versiones, pooler): lo genera `supabase link`
+supabase/.temp/
