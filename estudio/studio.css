@@ -297,6 +297,7 @@ a { color: inherit; }
    scroll. Sólo aplica con logo (konva-adapter.js#syncSelection); sin él, la
    prenda no captura gestos y se puede pasar de largo con el dedo. */
 .es-stage[data-editing="true"] { touch-action: none; }
+.es-stage:focus-visible { outline: 2px solid var(--es-rojo); outline-offset: 2px; }
 
 /* ---- Vista, superpuesta al canvas (estudio/ui/view-pill.js) ----
    Sólo se monta cuando la prenda trae vistas de presentación (gorra:

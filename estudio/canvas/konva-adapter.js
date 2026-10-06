@@ -395,6 +395,12 @@ export function createStudioStage(opts) {
       commit(t);
     },
 
+    /** Mueve el logo `dx`/`dy` px lógicos (teclado). Pasa por el mismo clamp que arrastrar. */
+    nudge(dx, dy) {
+      if (!naturalSize || !printable) return;
+      commit({ ...current, x: current.x + dx, y: current.y + dy });
+    },
+
     fitLogo(mode = 'contain') {
       if (!naturalSize) return;
       // Sin headroom: a diferencia del fit automático de setLogo(), este es

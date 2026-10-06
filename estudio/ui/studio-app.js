@@ -308,17 +308,31 @@ export function StudioApp({ catalog, stageContainer }) {
     stageRef.current?.setLogo({ image: null });
   }, []);
 
-  // Delete/Backspace quita el logo seleccionado en el lienzo. No actúa mientras
-  // se escribe en un campo (tallas, escala, rotación, formulario).
+  // Teclado sobre el lienzo, con el logo seleccionado. No actúa mientras se
+  // escribe en un campo (tallas, escala, rotación, formulario).
+  //  · Delete/Backspace quita el logo.
+  //  · Flechas lo mueven 1 px (10 con Mayús), SÓLO con el foco dentro del lienzo:
+  //    con el logo seleccionado casi siempre, secuestrarlas en toda la página
+  //    impediría desplazarla con el teclado.
+  const FLECHAS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
   useEffect(() => {
     const onKeyDown = (e) => {
-      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const esBorrar = e.key === 'Delete' || e.key === 'Backspace';
+      const flecha = FLECHAS[e.key];
+      if (!esBorrar && !flecha) return;
       const t = e.target;
       if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-      if (!stageRef.current?.isLogoSelected()) return;
-      e.preventDefault();
-      onRemoveLogo();
+      const stage = stageRef.current;
+      if (!stage?.isLogoSelected()) return;
+      if (esBorrar) {
+        e.preventDefault();
+        onRemoveLogo();
+      } else if (t?.closest?.('#es-stage')) {
+        e.preventDefault();
+        const paso = e.shiftKey ? 10 : 1;
+        stage.nudge(flecha[0] * paso, flecha[1] * paso);
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

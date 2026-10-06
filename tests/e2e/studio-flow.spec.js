@@ -504,4 +504,37 @@ test.describe('flujo del configurador', () => {
     expect(t.scaleX).toBeLessThan(t0.scaleX); // sí encogió
     expect(t.scaleX).toBeGreaterThanOrEqual(0.2 * fit - 1e-6);
   });
+
+  test('F19. las flechas mueven el logo con el foco en el lienzo (1 px, 10 con Mayús) y respetan el área', async ({ page }) => {
+    await conLogo(page);
+    const pos = () => page.evaluate(() => window.__studio.stage.getTransform());
+
+    // Sin foco en el lienzo, las flechas no se tocan (la página sigue desplazándose).
+    const p0 = await pos();
+    await page.keyboard.press('ArrowRight');
+    expect((await pos()).x).toBe(p0.x);
+
+    // Un clic en el logo lo selecciona y deja el foco en el lienzo.
+    const dentro = await aPantalla(page, p0.x, p0.y);
+    await page.mouse.click(dentro.x, dentro.y);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    const p1 = await pos();
+    expect(p1.x).toBeCloseTo(p0.x + 3, 6);
+    expect(p1.y).toBeCloseTo(p0.y, 6);
+
+    await page.keyboard.press('Shift+ArrowDown');
+    const p2 = await pos();
+    expect(p2.y).toBeGreaterThan(p1.y);
+    expect(p2.y - p1.y).toBeLessThanOrEqual(10 + 1e-6);
+
+    // Contra el borde: nunca sale del área imprimible.
+    for (let i = 0; i < 40; i++) await page.keyboard.press('Shift+ArrowLeft');
+    const { t, printArea } = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      printArea: window.__studio.stage.debugInfo().printArea,
+    }));
+    expect(rectContains(printArea, rotatedAabb(t, { width: 200, height: 80 }), 0.01)).toBe(true);
+  });
 });
