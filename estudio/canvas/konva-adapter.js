@@ -151,9 +151,9 @@ export function createStudioStage(opts) {
   // La guía se pinta SOBRE la prenda, así que su color tiene que depender del
   // color de la prenda. Con un trazo fijo casi blanco, sobre una playera blanca
   // o amarilla desaparecía por completo y el cliente dejaba de ver dónde puede
-  // colocar su logo. No se notaba con el mockup procedural (gris medio, donde
-  // un trazo claro siempre contrastaba); saltó al poner la foto real, que es de
-  // una playera blanca. isDarkColor ya existe y está probada en color.test.js.
+  // colocar su logo. No se notó mientras la prenda era un mockup gris medio
+  // (donde un trazo claro siempre contrastaba); saltó al poner la foto real, que
+  // es de una playera blanca. isDarkColor ya existe y está probada en color.test.js.
   const trazoGuia = (hex) => (isDarkColor(hex) ? 'rgba(240,240,238,0.45)' : 'rgba(12,12,12,0.45)');
 
   const printAreaGuide = new Konva.Rect({

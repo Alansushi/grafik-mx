@@ -137,6 +137,16 @@ export function maxFitScaleFor(t, natural, area) {
   return Math.min(area.width / box1.width, area.height / box1.height);
 }
 
+/** Convierte un área en fracciones (0..1 del canvas) a píxeles reales. */
+export function resolvePrintArea(fractional, size) {
+  return {
+    x: fractional.x * size.width,
+    y: fractional.y * size.height,
+    width: fractional.width * size.width,
+    height: fractional.height * size.height,
+  };
+}
+
 /**
  * Fracción del techo (`maxFitScaleFor`) por debajo de la cual el logo se
  * considera imperceptible. Fuente única: el slider de Escala
