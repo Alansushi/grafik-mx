@@ -8,6 +8,8 @@ import {
   rectContains,
   clampScale,
   maxFitScaleFor,
+  minScaleFor,
+  MIN_SCALE_FRACTION,
   clampTransformToArea,
   fitTransformToArea,
   isTransformValid,
@@ -301,6 +303,23 @@ describe('geometry.js — maxFitScaleFor (export)', () => {
     const a = maxFitScaleFor({ x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
     const b = maxFitScaleFor({ x: 999, y: -400, scaleX: 1, scaleY: 1, rotation: 37 }, NATURAL_WIDE, AREA_WIDE);
     expect(a).toBeCloseTo(b, 9);
+  });
+});
+
+describe('geometry.js — minScaleFor', () => {
+  const NATURAL = { width: 400, height: 100 };
+  const AREA_W = { x: 0, y: 0, width: 300, height: 100 };
+
+  it('es MIN_SCALE_FRACTION del techo a esa rotación', () => {
+    for (const rotation of [0, 37, 90]) {
+      const t = { x: 150, y: 50, scaleX: 1, scaleY: 1, rotation };
+      expect(minScaleFor(t, NATURAL, AREA_W)).toBeCloseTo(MIN_SCALE_FRACTION * maxFitScaleFor(t, NATURAL, AREA_W), 9);
+    }
+  });
+
+  it('nunca supera el techo, así que subir a este piso no rompe el clamp', () => {
+    const t = { x: 150, y: 50, scaleX: 0.001, scaleY: 0.001, rotation: 15 };
+    expect(minScaleFor(t, NATURAL, AREA_W)).toBeLessThan(maxFitScaleFor(t, NATURAL, AREA_W));
   });
 });
 

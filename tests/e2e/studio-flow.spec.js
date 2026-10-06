@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { rotatedAabb, rectContains } from '../../estudio/lib/geometry.js';
+import { rotatedAabb, rectContains, logoCorners } from '../../estudio/lib/geometry.js';
 import { CATALOG_FIXTURE } from '../fixtures/catalog.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -356,4 +356,233 @@ test.describe('flujo del configurador', () => {
     // ...pero sin hablar de dpi, que en un vector no significa nada.
     await expect(aviso).not.toContainText('dpi');
   });
+
+  // ── Interacción directa sobre el lienzo ──────────────────────────────────
+  // Se sube el logo por la UI real: con el logo inyectado en el stage, el
+  // dropzone (que React sigue mostrando) taparía el lienzo y se comería los clics.
+
+  async function conLogo(page) {
+    await abrir(page);
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+  }
+
+  /** Coordenadas de pantalla de un punto lógico del canvas. */
+  async function aPantalla(page, x, y) {
+    const box = await page.locator('#es-stage').boundingBox();
+    const { stageWidth, stageHeight } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    return { x: box.x + (x * box.width) / stageWidth, y: box.y + (y * box.height) / stageHeight };
+  }
+
+  const estado = (page) => page.evaluate(() => ({
+    sel: window.__studio.stage.isLogoSelected(),
+    ...window.__studio.stage.debugInfo(),
+  }));
+
+  test('F13. clic en el logo lo selecciona; clic fuera lo deselecciona; la guía del área no se oculta', async ({ page }) => {
+    await conLogo(page);
+    expect((await estado(page)).sel).toBe(true);
+
+    const fuera = await aPantalla(page, 8, 8);
+    await page.mouse.click(fuera.x, fuera.y);
+    let info = await estado(page);
+    expect(info.sel).toBe(false);
+    expect(info.transformerVisible).toBe(false);
+    expect(info.printAreaGuideVisible).toBe(true);
+
+    const t = await page.evaluate(() => window.__studio.stage.getTransform());
+    const dentro = await aPantalla(page, t.x, t.y);
+    await page.mouse.click(dentro.x, dentro.y);
+    info = await estado(page);
+    expect(info.sel).toBe(true);
+    expect(info.transformerVisible).toBe(true);
+    expect(info.printAreaGuideVisible).toBe(true);
+  });
+
+  test('F14. Delete quita el logo seleccionado; dentro de un campo no hace nada', async ({ page }) => {
+    await conLogo(page);
+
+    const campo = page.locator('input:not([type="file"])').first();
+    await campo.focus();
+    await page.keyboard.press('Backspace');
+    expect((await estado(page)).hasLogo).toBe(true);
+    await campo.evaluate((el) => el.blur());
+
+    await page.keyboard.press('Delete');
+    const info = await estado(page);
+    expect(info.hasLogo).toBe(false);
+    expect(info.transformerVisible).toBe(false);
+  });
+
+  test('F15. arrastrar cerca del centro se imanta y muestra las guías; al soltar se ocultan', async ({ page }) => {
+    await conLogo(page);
+    const { printArea } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const cx = printArea.x + printArea.width / 2;
+    const cy = printArea.y + printArea.height / 2;
+
+    // Primero lejos del centro, para que el imán no esté ya activo al empezar.
+    await page.evaluate(({ x, y }) => {
+      const s = window.__studio.stage;
+      s.setTransform({ ...s.getTransform(), x, y });
+    }, { x: cx - 30, y: cy + 20 });
+
+    const t = await page.evaluate(() => window.__studio.stage.getTransform());
+    const ini = await aPantalla(page, t.x, t.y);
+    const fin = await aPantalla(page, cx + 3, cy - 3);
+    await page.mouse.move(ini.x, ini.y);
+    await page.mouse.down();
+    await page.mouse.move((ini.x + fin.x) / 2, (ini.y + fin.y) / 2, { steps: 4 });
+    await page.mouse.move(fin.x, fin.y, { steps: 4 });
+    expect((await estado(page)).centerGuidesVisible).toEqual({ v: true, h: true });
+    await page.mouse.up();
+
+    const despues = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      g: window.__studio.stage.debugInfo().centerGuidesVisible,
+    }));
+    expect(despues.g).toEqual({ v: false, h: false });
+    expect(despues.t.x).toBeCloseTo(cx, 1);
+    expect(despues.t.y).toBeCloseTo(cy, 1);
+  });
+
+  test('F16. los tiradores y trazos miden lo mismo en pantalla sin importar la escala del lienzo', async ({ page }) => {
+    await conLogo(page);
+    const medir = async () => {
+      const box = await page.locator('#es-stage').boundingBox();
+      const i = await page.evaluate(() => window.__studio.stage.debugInfo());
+      const escala = box.width / i.stageWidth;
+      return { anchor: i.anchorSize * escala, borde: i.borderStrokeWidth * escala };
+    };
+    const a = await medir();
+    // Mínimo útil: ~12 px para ratón (24 con puntero táctil) y un trazo visible.
+    expect(a.anchor).toBeGreaterThanOrEqual(11.5);
+    expect(a.borde).toBeGreaterThanOrEqual(1);
+
+    // Al reducir la ventana el lienzo se achica y los tiradores deben seguir igual.
+    await page.setViewportSize({ width: 360, height: 780 });
+    await page.waitForFunction(() => document.querySelector('#es-stage').getBoundingClientRect().width < 350);
+    await page.waitForTimeout(100);
+    const b = await medir();
+    expect(b.anchor).toBeGreaterThanOrEqual(11.5);
+    expect(Math.abs(b.anchor - a.anchor)).toBeLessThan(a.anchor * 0.15);
+  });
+
+  test('F17. con logo el lienzo bloquea el scroll táctil; sin logo, no', async ({ page }) => {
+    await abrir(page);
+    const touchAction = () => page.locator('#es-stage').evaluate((el) => getComputedStyle(el).touchAction);
+    expect(await touchAction()).toBe('auto');
+
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null, null, { timeout: 10000 });
+    expect(await touchAction()).toBe('none');
+
+    await page.keyboard.press('Delete');
+    expect(await touchAction()).toBe('auto');
+  });
+
+  test('F18. encoger con una esquina no baja del piso del slider', async ({ page }) => {
+    await conLogo(page);
+    // La esquina opuesta queda fija: para encoger de verdad hay que llevar la
+    // inferior derecha hacia la superior izquierda, y un poco más allá.
+    const esquinas = await page.evaluate(() => {
+      const tr = Konva.stages[0].find('Transformer')[0];
+      const pos = (n) => { const p = tr.findOne('.' + n).getAbsolutePosition(); return { x: p.x, y: p.y }; };
+      return { br: pos('bottom-right'), tl: pos('top-left') };
+    });
+    const t0 = await page.evaluate(() => window.__studio.stage.getTransform());
+    const ini = await aPantalla(page, esquinas.br.x, esquinas.br.y);
+    const fin = await aPantalla(page, esquinas.tl.x + 10, esquinas.tl.y + 10);
+    await page.mouse.move(ini.x, ini.y);
+    await page.mouse.down();
+    await page.mouse.move(fin.x, fin.y, { steps: 16 });
+    await page.mouse.up();
+
+    const { t, fit } = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      fit: window.__studio.stage.getFitScale(),
+    }));
+    expect(t.scaleX).toBeLessThan(t0.scaleX); // sí encogió
+    expect(t.scaleX).toBeGreaterThanOrEqual(0.2 * fit - 1e-6);
+  });
+
+  test('F19. las flechas mueven el logo con el foco en el lienzo (1 px, 10 con Mayús) y respetan el área', async ({ page }) => {
+    await conLogo(page);
+    const pos = () => page.evaluate(() => window.__studio.stage.getTransform());
+
+    // Sin foco en el lienzo, las flechas no se tocan (la página sigue desplazándose).
+    const p0 = await pos();
+    await page.keyboard.press('ArrowRight');
+    expect((await pos()).x).toBe(p0.x);
+
+    // Un clic en el logo lo selecciona y deja el foco en el lienzo.
+    const dentro = await aPantalla(page, p0.x, p0.y);
+    await page.mouse.click(dentro.x, dentro.y);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    const p1 = await pos();
+    expect(p1.x).toBeCloseTo(p0.x + 3, 6);
+    expect(p1.y).toBeCloseTo(p0.y, 6);
+
+    await page.keyboard.press('Shift+ArrowDown');
+    const p2 = await pos();
+    expect(p2.y).toBeGreaterThan(p1.y);
+    expect(p2.y - p1.y).toBeLessThanOrEqual(10 + 1e-6);
+
+    // Contra el borde: nunca sale del área imprimible.
+    for (let i = 0; i < 40; i++) await page.keyboard.press('Shift+ArrowLeft');
+    const { t, printArea } = await page.evaluate(() => ({
+      t: window.__studio.stage.getTransform(),
+      printArea: window.__studio.stage.debugInfo().printArea,
+    }));
+    expect(rectContains(printArea, rotatedAabb(t, { width: 200, height: 80 }), 0.01)).toBe(true);
+  });
+
+  for (const rotacion of [0, 30]) {
+    test(`F20. escalar desde una esquina no salta: la esquina opuesta queda fija (rotación ${rotacion}°)`, async ({ page }) => {
+      await conLogo(page);
+      const natural = { width: 200, height: 80 };
+      await page.evaluate((rotation) => {
+        const s = window.__studio.stage;
+        s.setTransform({ ...s.getTransform(), rotation });
+      }, rotacion);
+
+      const br = await page.evaluate(() => {
+        const p = Konva.stages[0].find('Transformer')[0].findOne('.bottom-right').getAbsolutePosition();
+        return { x: p.x, y: p.y };
+      });
+      const t0 = await page.evaluate(() => window.__studio.stage.getTransform());
+      const tl0 = logoCorners(t0, natural)[0];
+      // Hacia el centro del logo: encoge sin tocar el piso de escala.
+      const ini = await aPantalla(page, br.x, br.y);
+      const fin = await aPantalla(page, (br.x + t0.x) / 2, (br.y + t0.y) / 2);
+
+      await page.mouse.move(ini.x, ini.y);
+      await page.mouse.down();
+      const muestras = [];
+      const PASOS = 24;
+      for (let i = 1; i <= PASOS; i++) {
+        await page.mouse.move(ini.x + ((fin.x - ini.x) * i) / PASOS, ini.y + ((fin.y - ini.y) * i) / PASOS);
+        muestras.push(await page.evaluate(() => window.__studio.stage.getTransform()));
+      }
+      await page.mouse.up();
+      muestras.push(await page.evaluate(() => window.__studio.stage.getTransform()));
+
+      let maxDesvio = 0;
+      let maxSalto = 0;
+      let previa = t0.scaleX;
+      for (const t of muestras) {
+        const tl = logoCorners(t, natural)[0];
+        maxDesvio = Math.max(maxDesvio, Math.hypot(tl.x - tl0.x, tl.y - tl0.y));
+        maxSalto = Math.max(maxSalto, Math.abs(t.scaleX - previa));
+        // Encogiendo: la escala nunca debe volver a crecer entre muestras.
+        expect(t.scaleX, 'la escala no debe crecer mientras se encoge').toBeLessThanOrEqual(previa + 1e-6);
+        previa = t.scaleX;
+      }
+      const final = muestras[muestras.length - 1];
+      expect(final.scaleX).toBeLessThan(t0.scaleX * 0.8); // el gesto sí encogió
+      expect(maxDesvio, `la esquina opuesta se movió ${maxDesvio.toFixed(2)} px`).toBeLessThan(2);
+      expect(maxSalto, `salto de escala entre muestras: ${maxSalto.toFixed(3)}`).toBeLessThan(t0.scaleX * 0.2);
+    });
+  }
 });

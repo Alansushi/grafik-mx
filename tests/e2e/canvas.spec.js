@@ -171,7 +171,32 @@ test.describe('motor de canvas', () => {
     // El Transformer vive en la layer 'ui' y el snapshot sale de 'compose',
     // así que queda fuera por construcción, no por acordarse de ocultarlo.
     const info = await page.evaluate(() => window.__studio.stage.debugInfo());
-    expect(info.uiChildren).toBe(1);
+    // Transformer + las dos líneas guía de centrado.
+    expect(info.uiChildren).toBe(3);
+  });
+
+  test('C4b. el snapshot no incluye la guía punteada y la deja visible después', async ({ page }) => {
+    await openStudio(page);
+    const r = await page.evaluate(async () => {
+      const st = window.__studio.stage;
+      const { printArea, printAreaGuideVisible: antes } = st.debugInfo();
+      const blob = await st.snapshot({ pixelRatio: 2 });
+      const bmp = await createImageBitmap(blob);
+      const c = document.createElement('canvas');
+      c.width = bmp.width; c.height = bmp.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(bmp, 0, 0);
+      const fila = (y) => ctx.getImageData(Math.round(printArea.x * 2), y, Math.round(printArea.width * 2), 1).data;
+      const yEdge = Math.round(printArea.y * 2);
+      const a = fila(yEdge), b = fila(yEdge - 4);
+      let suma = 0, n = 0;
+      for (let i = 0; i < a.length; i += 4) { suma += Math.abs(a[i] - b[i]); n++; }
+      return { antes, despues: st.debugInfo().printAreaGuideVisible, diferenciaMedia: suma / n };
+    });
+    expect(r.antes).toBe(true);
+    expect(r.despues).toBe(true);
+    // Con el trazo punteado al 45 % esta media rondaría 50; sin él, ~0.
+    expect(r.diferenciaMedia).toBeLessThan(15);
   });
 
   test('C5. pixelRatio 2 duplica el lado del PNG', async ({ page }) => {

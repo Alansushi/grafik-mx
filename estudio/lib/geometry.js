@@ -138,6 +138,19 @@ export function maxFitScaleFor(t, natural, area) {
 }
 
 /**
+ * Fracción del techo (`maxFitScaleFor`) por debajo de la cual el logo se
+ * considera imperceptible. Fuente única: el slider de Escala
+ * (ui/logo-toolbar.js) y el gesto del Transformer (canvas/konva-adapter.js)
+ * comparten este piso, así que ningún camino lo encoge más que el otro.
+ */
+export const MIN_SCALE_FRACTION = 0.2;
+
+/** Escala mínima permitida a la rotación actual de `t`. */
+export function minScaleFor(t, natural, area) {
+  return MIN_SCALE_FRACTION * maxFitScaleFor(t, natural, area);
+}
+
+/**
  * Devuelve la escala (misma para ambos ejes) resultante de:
  *  1. Nunca exceder el área — si el logo no cabe, se encoge lo necesario.
  *  2. Nunca agrandar sólo porque "hay espacio de más" (si ya cabe, se

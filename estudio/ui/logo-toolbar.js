@@ -13,7 +13,7 @@
 // cambia cuándo se disparan, sólo dónde viven los botones que los llaman.
 
 import { h, cx } from './react.js';
-import { snapRotation } from '../lib/geometry.js';
+import { snapRotation, MIN_SCALE_FRACTION } from '../lib/geometry.js';
 
 const ROTATION_MIN = -180;
 const ROTATION_MAX = 180;
@@ -114,7 +114,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
   // en konva-adapter.js). fitScaleSafe evita dividir por 0/undefined antes
   // de que exista un fit.
   const fitScaleSafe = Number(fitScale) > 0 ? fitScale : (scale || 1);
-  const scaleMin = fitScaleSafe * 0.2;
+  const scaleMin = fitScaleSafe * MIN_SCALE_FRACTION;
   const scaleMax = fitScaleSafe;
   const scaleStep = fitScaleSafe / 100;
   const scalePercent = Math.round((scale / fitScaleSafe) * 100);
