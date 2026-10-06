@@ -266,6 +266,23 @@ test.describe('estudio — señales de fricción', () => {
   });
 });
 
+test.describe('estudio — salida de ayuda', () => {
+  test('E12. el clic en "¿Necesitas ayuda o un pedido especial?" se mide una vez y sin propiedades', async ({ page }) => {
+    const t = await preparar(page);
+    await abrir(page);
+    await page.locator('.es-help-cta').click();
+    await expect.poll(() => t.de('studio_help').length, ESPERA).toBe(1);
+    // Una vez por sesión: abrir WhatsApp tres veces no es tres veces más interés.
+    await page.locator('.es-help-cta').click();
+    await page.locator('.es-help-cta').click();
+    await page.waitForTimeout(300);
+
+    expect(t.de('studio_help')).toHaveLength(1);
+    expect(t.de('studio_help')[0].props ?? {}).toEqual({});
+    t.validarContraServidor(); // y el servidor lo acepta sin descartarlo
+  });
+});
+
 test.describe('estudio — la medición nunca rompe un pedido', () => {
   test('E11. si window.grafikTrack LANZA en cada llamada, el pedido igual se crea y se abre WhatsApp', async ({ page }) => {
     const t = await preparar(page);

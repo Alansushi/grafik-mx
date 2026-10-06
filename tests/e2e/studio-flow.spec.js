@@ -650,4 +650,47 @@ test.describe('flujo del configurador', () => {
       expect(despues.scaleX, `escala ${antes.scaleX} → ${despues.scaleX}`).toBeLessThan(antes.scaleX * 0.95);
     });
   }
+
+  // ── Texto informativo en un desplegable y salida de ayuda ────────────────
+
+  test('F22. "¿Cómo funciona?" está cerrado, se abre con teclado y dice EXACTAMENTE lo que el FAQPage del JSON-LD', async ({ page }) => {
+    await abrir(page);
+    const about = page.locator('details.es-about');
+    await expect(about).not.toHaveAttribute('open', '');
+    await expect(about.locator('dd').first()).toBeHidden(); // no distrae del configurador
+
+    await about.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(about).toHaveAttribute('open', '');
+    await expect(about.locator('dd').first()).toBeVisible();
+
+    // Google exige que el schema refleje el texto que el usuario puede ver.
+    const { schema, visible } = await page.evaluate(() => {
+      const ld = JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent);
+      const faq = ld['@graph'].find((n) => n['@type'] === 'FAQPage');
+      const norm = (t) => t.replace(/\s+/g, ' ').trim();
+      return {
+        schema: faq.mainEntity.map((q) => [q.name, q.acceptedAnswer.text]),
+        visible: [...document.querySelectorAll('.es-about-faq dt')].map((dt) => [norm(dt.textContent), norm(dt.nextElementSibling.textContent)]),
+      };
+    });
+    expect(schema.length).toBe(3);
+    expect(visible).toEqual(schema);
+  });
+
+  test('F23. el CTA de ayuda está en el encabezado, abre WhatsApp con mensaje prellenado y es táctil', async ({ page }) => {
+    await abrir(page);
+    const cta = page.locator('header.es-header a.es-help-cta');
+    await expect(cta).toBeVisible();
+    await expect(cta).toHaveAttribute('target', '_blank');
+    await expect(cta).toHaveAttribute('rel', /noopener/);
+
+    const href = await cta.getAttribute('href');
+    expect(href).toMatch(/^https:\/\/wa\.me\/525539014600\?text=/);
+    const mensaje = decodeURIComponent(href.split('text=')[1]);
+    expect(mensaje).toMatch(/ayuda/i);
+    expect(mensaje).toMatch(/pedido especial/i);
+
+    expect((await cta.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  });
 });

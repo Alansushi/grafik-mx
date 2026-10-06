@@ -328,11 +328,18 @@ describe('events.js — Fase 3: embudo de /estudio/', () => {
     ['studio_error', { where: 'submit', code: 'SUBMIT_FAILED' }],
     ['studio_error', { where: 'konva' }],
     ['studio_fallback', { where: 'catalog' }],
+    ['studio_help', {}],
   ])('33. %s válido se guarda tal cual', (name, props) => {
     const rows = filas(ev(name, props));
     expect(rows).toHaveLength(1);
     expect(rows[0].props).toEqual(props);
     expect(rows[0].path).toBe('/estudio/');
+  });
+
+  it('33b. studio_help no guarda ninguna propiedad aunque el cliente mande otras (nunca texto libre)', () => {
+    const rows = filas(ev('studio_help', { where: 'header', texto: 'Hola, soy Ana', cta_id: 'nav' }));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].props).toEqual({});
   });
 
   it('34. studio_error: `where` fuera de la lista descarta el evento; un `code` mal formado sólo se anula', () => {

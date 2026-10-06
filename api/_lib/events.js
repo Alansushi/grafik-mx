@@ -110,6 +110,11 @@ const EVENTS = {
   studio_submit: { fields: { short_code: shortCode, qty: QTY }, required: ['short_code'] },
   studio_error: { fields: { where: enumOf(STUDIO_ERROR_WHERE), code: errCode }, required: ['where'] },
   studio_fallback: { fields: { where: enumOf(STUDIO_FALLBACK_WHERE) }, required: ['where'] },
+  // Clic en "¿Necesitas ayuda o un pedido especial?" (encabezado del estudio): alguien
+  // que el configurador no cubre. Sin propiedades. Es un evento y no un `cta_click`
+  // porque un cta_id nuevo obliga a sincronizar la migración 0011 (v_cta_exposure) y
+  // esas vistas excluyen /estudio/*.
+  studio_help: { fields: {}, required: [] },
 };
 
 export const EVENT_NAMES = Object.keys(EVENTS);
