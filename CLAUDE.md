@@ -301,6 +301,31 @@ incluso sin retina) y techo 3 (memoria en 3x). Es seguro pisar el global porque 
 el único que toca Konva y sólo existe un stage a la vez. Verificado en navegador: pasarlo al
 config dejaba el backing-store en el `canvas_size` lógico sin multiplicar, a cualquier dpr.
 
+### Interacción directa sobre el lienzo
+
+Todo vive en `konva-adapter.js`. Con un logo: clic/tap lo selecciona (Transformer) y clic fuera lo
+deselecciona; arrastrar mueve con **imán y guías rojas al centro** del área (`CENTER_SNAP_PX`, en la
+`uiLayer`, nunca en el snapshot); esquinas escalan con proporción (piso `MIN_SCALE_FRACTION` de
+`geometry.js`, el mismo que el slider); el handle superior rota; Delete/Backspace quita el logo y las
+flechas lo mueven 1 px (10 con Mayús) **sólo con el foco en `#es-stage`**. El snapshot oculta la guía
+punteada del área antes de exportar.
+
+Dos trampas que ya costaron un bug cada una:
+
+- **El puntero se escala a mano.** `studio.css` fuerza `.konvajs-content` a `width:100%`, y Konva calcula
+  la escala del puntero como `rect.width / content.clientWidth` (siempre 1 con ese CSS). Sin el override
+  de `stage._getContentPosition` en el adaptador, clics y arrastres caen a 0.61× de donde se toca (a
+  552 px de pantalla; peor en móvil). Cualquier test con ratón real lo delata; uno que **no** empieza el
+  arrastre sobre el logo pasa en vacío (F4 lo hacía).
+- **La UI de edición se dimensiona en píxeles de PANTALLA.** `applyUiScale()` convierte tirador (12 px,
+  24 con `pointer: coarse`), bordes y guías con la escala vigente y se recalcula con `ResizeObserver`.
+  En lógico, el tirador medía ~4 px en móvil. La guía punteada del área **no** se escala: vive en
+  `composeLayer` y C2/C3 muestrean píxeles ahí.
+
+`touch-action: none` sólo con logo (`[data-editing="true"]`), para no bloquear el scroll de la prenda vacía.
+Los tests que prueban gestos deben subir el logo por la UI (`input[type=file]`): inyectarlo con
+`stage.setLogo` deja el dropzone encima del lienzo y se come los clics.
+
 Verificar siempre **mirando el render**, no sólo los números: así se encontró que la guía
 punteada del área imprimible (`konva-adapter.js`) era de un trazo fijo casi blanco y
 desaparecía sobre una playera blanca. Mismo principio detrás de `print_area` de la gorra en
