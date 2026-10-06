@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { rotatedAabb, rectContains } from '../../estudio/lib/geometry.js';
+import { rotatedAabb, rectContains, logoCorners } from '../../estudio/lib/geometry.js';
 import { CATALOG_FIXTURE } from '../fixtures/catalog.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -537,4 +537,52 @@ test.describe('flujo del configurador', () => {
     }));
     expect(rectContains(printArea, rotatedAabb(t, { width: 200, height: 80 }), 0.01)).toBe(true);
   });
+
+  for (const rotacion of [0, 30]) {
+    test(`F20. escalar desde una esquina no salta: la esquina opuesta queda fija (rotación ${rotacion}°)`, async ({ page }) => {
+      await conLogo(page);
+      const natural = { width: 200, height: 80 };
+      await page.evaluate((rotation) => {
+        const s = window.__studio.stage;
+        s.setTransform({ ...s.getTransform(), rotation });
+      }, rotacion);
+
+      const br = await page.evaluate(() => {
+        const p = Konva.stages[0].find('Transformer')[0].findOne('.bottom-right').getAbsolutePosition();
+        return { x: p.x, y: p.y };
+      });
+      const t0 = await page.evaluate(() => window.__studio.stage.getTransform());
+      const tl0 = logoCorners(t0, natural)[0];
+      // Hacia el centro del logo: encoge sin tocar el piso de escala.
+      const ini = await aPantalla(page, br.x, br.y);
+      const fin = await aPantalla(page, (br.x + t0.x) / 2, (br.y + t0.y) / 2);
+
+      await page.mouse.move(ini.x, ini.y);
+      await page.mouse.down();
+      const muestras = [];
+      const PASOS = 24;
+      for (let i = 1; i <= PASOS; i++) {
+        await page.mouse.move(ini.x + ((fin.x - ini.x) * i) / PASOS, ini.y + ((fin.y - ini.y) * i) / PASOS);
+        muestras.push(await page.evaluate(() => window.__studio.stage.getTransform()));
+      }
+      await page.mouse.up();
+      muestras.push(await page.evaluate(() => window.__studio.stage.getTransform()));
+
+      let maxDesvio = 0;
+      let maxSalto = 0;
+      let previa = t0.scaleX;
+      for (const t of muestras) {
+        const tl = logoCorners(t, natural)[0];
+        maxDesvio = Math.max(maxDesvio, Math.hypot(tl.x - tl0.x, tl.y - tl0.y));
+        maxSalto = Math.max(maxSalto, Math.abs(t.scaleX - previa));
+        // Encogiendo: la escala nunca debe volver a crecer entre muestras.
+        expect(t.scaleX, 'la escala no debe crecer mientras se encoge').toBeLessThanOrEqual(previa + 1e-6);
+        previa = t.scaleX;
+      }
+      const final = muestras[muestras.length - 1];
+      expect(final.scaleX).toBeLessThan(t0.scaleX * 0.8); // el gesto sí encogió
+      expect(maxDesvio, `la esquina opuesta se movió ${maxDesvio.toFixed(2)} px`).toBeLessThan(2);
+      expect(maxSalto, `salto de escala entre muestras: ${maxSalto.toFixed(3)}`).toBeLessThan(t0.scaleX * 0.2);
+    });
+  }
 });
