@@ -25,8 +25,21 @@ async function abrir(page) {
   await page.route('**/api/catalog', (r) =>
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CATALOG_FIXTURE) }));
 
+  // Si el arranque vence, el mensaje dice QUÉ quedó pendiente: un atasco de
+  // ~1 en 50 corridas dejaba la página en el esqueleto y no había forma de saber
+  // si era un script del CDN, una foto o el catálogo.
+  const pendientes = new Map();
+  page.on('request', (r) => pendientes.set(r, r.url()));
+  page.on('requestfinished', (r) => pendientes.delete(r));
+  page.on('requestfailed', (r) => { pendientes.delete(r); errors.push(`requestfailed ${r.url()} ${r.failure()?.errorText}`); });
+
   await page.goto('/estudio/?debug=1');
-  await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
+  try {
+    await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
+  } catch (err) {
+    const colgadas = [...pendientes.values()].map((u) => u.replace(/^https?:\/\/[^/]+/, (h) => h));
+    throw new Error(`El estudio no montó en 20 s. Peticiones sin terminar: ${JSON.stringify(colgadas)}. Errores: ${JSON.stringify(errors)}`, { cause: err });
+  }
   return errors;
 }
 
@@ -59,9 +72,20 @@ test.describe('flujo del configurador', () => {
 
     // El bug que arreglé del incremento 7: antes la gorra heredaba el área de
     // la playera y el logo quedaba colocado donde no se imprime.
-    // Fracciones del catálogo: playera y=0.26 h=0.34 · gorra y=0.38 h=0.20.
+    // Fracciones del catálogo real: playera y=0.19 h=0.30 · gorra y=0.37 h=0.16.
     expect(gorra.y).toBeGreaterThan(playera.y);
     expect(gorra.height).toBeLessThan(playera.height);
+
+    // Y el área en píxeles es EXACTAMENTE fracción × canvas_size del catálogo,
+    // no un valor aproximado: de ahí salen el clamp y el aviso de resolución.
+    for (const [slug, area] of [['playera', playera], ['gorra', gorra]]) {
+      const g = CATALOG_FIXTURE.garments.find((x) => x.slug === slug);
+      const { width: w, height: h } = g.canvas_size;
+      expect(area.x).toBeCloseTo(g.print_area.x * w, 1);
+      expect(area.y).toBeCloseTo(g.print_area.y * h, 1);
+      expect(area.width).toBeCloseTo(g.print_area.width * w, 1);
+      expect(area.height).toBeCloseTo(g.print_area.height * h, 1);
+    }
   });
 
   test('F3. subir un logo lo coloca dentro del área imprimible', async ({ page }) => {
@@ -280,8 +304,8 @@ test.describe('flujo del configurador', () => {
   });
 
   test('F10. la guía del área imprimible se adapta al color de la prenda', async ({ page }) => {
-    // El trazo era fijo, casi blanco. Con el mockup procedural (gris medio)
-    // siempre contrastaba, así que nadie lo notó; con la foto real de una
+    // El trazo era fijo, casi blanco. Con una prenda gris medio siempre
+    // contrastaba, así que nadie lo notó; con la foto real de una
     // playera BLANCA la guía desaparece y el cliente deja de ver dónde puede
     // colocar su logo. Se comprueba la DECISIÓN, no el píxel: el trazo es una
     // línea punteada de 1 px y muestrearla sería frágil.

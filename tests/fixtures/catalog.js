@@ -1,10 +1,18 @@
 // Respuesta de /api/catalog congelada para los tests del canvas.
 //
-// Los valores replican los del seed real (supabase/seed/0001_catalog_placeholder.sql)
-// para que el test hable de la misma prenda que el sistema de verdad, pero como
-// fixture: así el proyecto "canvas" de Playwright corre hermético, sin Supabase,
-// sin red y sin cuentas. Los ids son uuid fijos y no los reales de la base —
-// nada en el motor de canvas depende de su valor, sólo de su forma.
+// Replica el catálogo REAL de producción (grafik.mx/api/catalog): mismas fotos
+// (copias en tests/fixtures/mockups/), mismos canvas_size, print_area,
+// print_area_width_cm y colores. Los ids son uuid fijos y no los reales de la
+// base — nada en el motor de canvas depende de su valor, sólo de su forma.
+//
+// Las fotos son copias de las del bucket `mockups` de Supabase, con el mismo
+// nombre versionado. Al cambiar una foto en producción hay que traerla aquí y
+// copiar también canvas_size / print_area / print_area_width_cm (ver CLAUDE.md,
+// "Mockups de prenda"). El motor ya no tiene mockup procedural en los tests: la
+// silueta ilustrada no existe en producción y ocultaba problemas reales (otro
+// tamaño de lienzo, otra área imprimible, sombreado de una foto de verdad).
+
+const MOCKUPS = '/tests/fixtures/mockups';
 
 export const CATALOG_FIXTURE = {
   garments: [
@@ -12,20 +20,17 @@ export const CATALOG_FIXTURE = {
       id: '11111111-1111-4111-8111-111111111111',
       slug: 'playera',
       name: 'Playera cuello redondo',
-      base_mockup_url: 'procedural:tee',
-      print_area: { x: 0.3, y: 0.26, width: 0.4, height: 0.34 },
-      canvas_size: { width: 900, height: 900 },
+      base_mockup_url: `${MOCKUPS}/playera-front-v3.png`,
+      print_area: { x: 0.321, y: 0.19, width: 0.358, height: 0.3 },
+      canvas_size: { width: 964, height: 900 },
       print_area_width_cm: 31.6,
       allowed_sizes: ['S', 'M', 'L', 'XL', 'XXL'],
       min_qty: 12,
       max_qty: 1000,
       sort_order: 1,
       // Vista de presentación (espalda): sin print_area, no es imprimible.
-      // base_mockup_url apunta a un PNG chico servible por el
-      // `python3 -m http.server` del proyecto 'canvas' de Playwright — nunca
-      // 'procedural:', que sólo aplica a la vista front.
       views: [
-        { id: 'av1', garment_type_id: '11111111-1111-4111-8111-111111111111', slug: 'back', name: 'Espalda', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 1 },
+        { id: 'av1', garment_type_id: '11111111-1111-4111-8111-111111111111', slug: 'back', name: 'Espalda', base_mockup_url: `${MOCKUPS}/playera-back-v1.png`, canvas_size: { width: 964, height: 900 }, sort_order: 1 },
       ],
       variants: [
         { id: 'a1', garment_type_id: '11111111-1111-4111-8111-111111111111', color_hex: '#FFFFFF', color_name: 'Blanco', sort_order: 1 },
@@ -42,28 +47,31 @@ export const CATALOG_FIXTURE = {
       id: '22222222-2222-4222-8222-222222222222',
       slug: 'gorra',
       name: 'Gorra',
-      base_mockup_url: 'procedural:cap',
-      print_area: { x: 0.32, y: 0.38, width: 0.36, height: 0.2 },
-      canvas_size: { width: 900, height: 900 },
+      base_mockup_url: `${MOCKUPS}/gorra-front-v1.png`,
+      print_area: { x: 0.388, y: 0.37, width: 0.22, height: 0.16 },
+      canvas_size: { width: 1246, height: 700 },
       print_area_width_cm: 11.0,
       allowed_sizes: ['U'],
       min_qty: 12,
       max_qty: 1000,
       sort_order: 2,
       views: [
-        { id: 'bv1', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'left', name: 'Lado izquierdo', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 1 },
-        { id: 'bv2', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'right', name: 'Lado derecho', base_mockup_url: '/tests/fixtures/view-stub.png', canvas_size: { width: 900, height: 900 }, sort_order: 2 },
+        { id: 'bv1', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'left', name: 'Lado izquierdo', base_mockup_url: `${MOCKUPS}/gorra-left-v1.png`, canvas_size: { width: 1246, height: 700 }, sort_order: 1 },
+        { id: 'bv2', garment_type_id: '22222222-2222-4222-8222-222222222222', slug: 'right', name: 'Lado derecho', base_mockup_url: `${MOCKUPS}/gorra-right-v1.png`, canvas_size: { width: 1246, height: 700 }, sort_order: 2 },
       ],
       variants: [
         { id: 'b1', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#0C0C0C', color_name: 'Negro', sort_order: 1 },
         { id: 'b2', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#FFFFFF', color_name: 'Blanco', sort_order: 2 },
         { id: 'b3', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#1B2A4A', color_name: 'Azul Marino', sort_order: 3 },
+        { id: 'b4', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#C1272D', color_name: 'Rojo', sort_order: 4 },
+        { id: 'b5', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#9A9A9A', color_name: 'Gris Oxford', sort_order: 5 },
+        { id: 'b6', garment_type_id: '22222222-2222-4222-8222-222222222222', color_hex: '#C3B091', color_name: 'Caqui', sort_order: 6 },
       ],
     },
   ],
   techniques: [
-    { id: 't1', slug: 'dtf', name: 'DTF', notes: 'Full color, buen detalle.', sort_order: 1 },
-    { id: 't2', slug: 'bordado', name: 'Bordado', notes: 'La vista previa es referencial.', sort_order: 2 },
-    { id: 't3', slug: 'sublimacion', name: 'Sublimación', notes: 'Sólo sobre tela clara.', sort_order: 3 },
+    { id: 't1', slug: 'dtf', name: 'DTF', notes: 'Transferencia directa de película. Full color, buen detalle, sin mínimo de tintas.', sort_order: 1 },
+    { id: 't2', slug: 'bordado', name: 'Bordado', notes: 'Acabado en hilo. La vista previa es referencial: la textura real del bordado no se puede replicar en una imagen plana.', sort_order: 2 },
+    { id: 't3', slug: 'sublimacion', name: 'Sublimación', notes: 'Sólo sobre tela clara con alto contenido de poliéster. El color de la prenda condiciona el resultado.', sort_order: 3 },
   ],
 };
