@@ -91,11 +91,20 @@ test.describe('flujo del configurador', () => {
       s.setTransform({ ...s.getTransform(), rotation: 37 });
     });
 
+    // Se arranca SOBRE el logo (su centro real), no en un punto fijo del lienzo:
+    // con el puntero mal escalado un punto fijo caía fuera, no movía nada y el
+    // test pasaba en vacío. Por eso además se exige que el logo se haya movido.
+    const t0 = await page.evaluate(() => window.__studio.stage.getTransform());
     const caja = await page.locator('#es-stage').boundingBox();
-    await page.mouse.move(caja.x + caja.width / 2, caja.y + caja.height * 0.42);
+    const { stageWidth } = await page.evaluate(() => window.__studio.stage.debugInfo());
+    const k = caja.width / stageWidth;
+    const ini = { x: caja.x + t0.x * k, y: caja.y + t0.y * k };
+    await page.mouse.move(ini.x, ini.y);
     await page.mouse.down();
-    await page.mouse.move(caja.x + caja.width / 2 + 400, caja.y + caja.height * 0.42 + 400, { steps: 12 });
+    await page.mouse.move(ini.x + 400, ini.y + 400, { steps: 12 });
     await page.mouse.up();
+    const t1 = await page.evaluate(() => window.__studio.stage.getTransform());
+    expect(Math.hypot(t1.x - t0.x, t1.y - t0.y), 'el arrastre no movió el logo').toBeGreaterThan(5);
 
     const { transform, printArea } = await page.evaluate(() => ({
       transform: window.__studio.stage.getTransform(),
@@ -583,6 +592,38 @@ test.describe('flujo del configurador', () => {
       expect(final.scaleX).toBeLessThan(t0.scaleX * 0.8); // el gesto sí encogió
       expect(maxDesvio, `la esquina opuesta se movió ${maxDesvio.toFixed(2)} px`).toBeLessThan(2);
       expect(maxSalto, `salto de escala entre muestras: ${maxSalto.toFixed(3)}`).toBeLessThan(t0.scaleX * 0.2);
+    });
+  }
+
+  // El tirador se dibuja chico (12 px) pero debe poder agarrarse con holgura: en
+  // producción la zona sensible estaba desplazada (puntero mal escalado) y medía
+  // ~5 px, así que había que "buscar" el punto. Se prueba en tres tamaños de
+  // ventana porque el desfase dependía de cuánto se reducía el lienzo.
+  for (const [ancho, alto] of [[390, 844], [1280, 800], [1920, 1080]]) {
+    test(`F21. el tirador se agarra a ~9 px de su centro y escala de verdad (${ancho}×${alto})`, async ({ page }) => {
+      await page.setViewportSize({ width: ancho, height: alto });
+      await conLogo(page);
+      await page.locator('#es-stage').scrollIntoViewIfNeeded();
+      await page.evaluate(() => {
+        const s = window.__studio.stage;
+        const f = s.getFitScale();
+        s.setTransform({ ...s.getTransform(), scaleX: f * 0.6, scaleY: f * 0.6 });
+      });
+      const antes = await page.evaluate(() => window.__studio.stage.getTransform());
+      const br = await page.evaluate(() => {
+        const p = Konva.stages[0].find('Transformer')[0].findOne('.bottom-right').getAbsolutePosition();
+        return { x: p.x, y: p.y };
+      });
+      const centro = await aPantalla(page, br.x, br.y);
+      const ini = { x: centro.x + 9, y: centro.y + 9 }; // fuera del cuadro dibujado, dentro del área de agarre
+      await page.mouse.move(ini.x, ini.y);
+      await page.mouse.down();
+      await page.mouse.move(ini.x - 20, ini.y - 12, { steps: 6 });
+      await page.mouse.move(ini.x - 50, ini.y - 30, { steps: 6 });
+      await page.mouse.up();
+
+      const despues = await page.evaluate(() => window.__studio.stage.getTransform());
+      expect(despues.scaleX, `escala ${antes.scaleX} → ${despues.scaleX}`).toBeLessThan(antes.scaleX * 0.95);
     });
   }
 });

@@ -63,6 +63,10 @@ const UI_CSS_PX = {
   border: 1.5,
   guide: 1.5,
   rotateOffset: 28,
+  // Lado MÍNIMO de la zona sensible de cada tirador. El dibujo es de 12 px, pero
+  // acertar un blanco de 12 px con un trackpad exige buscarlo; 24 px es lo que
+  // piden las guías de accesibilidad táctil (WCAG 2.5.8) y sirve igual al ratón.
+  hit: 24,
 };
 
 /**
@@ -195,9 +199,19 @@ export function createStudioStage(opts) {
 
   // Escala pantalla/lógico vigente: el CSS reduce o amplía el lienzo (ver
   // _getContentPosition más arriba) y cambia al redimensionar la ventana.
+  // Escala pantalla/lógico vigente, para que anchorStyleFunc dimensione la zona
+  // sensible con la misma cuenta que applyUiScale usa para el dibujo.
+  let uiScale = 1;
+  transformer.anchorStyleFunc((anchor) => {
+    // Konva suma `hitStrokeWidth` al lado del rectángulo al probar el impacto;
+    // sólo hace falta añadir lo que falte para llegar al mínimo.
+    anchor.hitStrokeWidth(Math.max(0, UI_CSS_PX.hit / uiScale - anchor.width()));
+  });
+
   function applyUiScale() {
     const rect = stage.content?.getBoundingClientRect?.();
     const scale = rect && rect.width > 0 ? rect.width / width : 1;
+    uiScale = scale;
     const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
     transformer.anchorSize((coarse ? UI_CSS_PX.anchorCoarse : UI_CSS_PX.anchor) / scale);
     transformer.borderStrokeWidth(UI_CSS_PX.border / scale);
@@ -205,6 +219,7 @@ export function createStudioStage(opts) {
     transformer.rotateAnchorOffset(UI_CSS_PX.rotateOffset / scale);
     guideV.strokeWidth(UI_CSS_PX.guide / scale);
     guideH.strokeWidth(UI_CSS_PX.guide / scale);
+    transformer.forceUpdate(); // vuelve a pasar los tiradores por anchorStyleFunc
     uiLayer.batchDraw();
   }
   applyUiScale();
