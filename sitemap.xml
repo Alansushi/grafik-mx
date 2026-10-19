@@ -108,6 +108,18 @@
       <image:loc>https://www.grafik.mx/assets/trabajos/lona-gran-formato.jpg</image:loc>
       <image:caption>Lona full color a gran formato para una tienda de autoservicio</image:caption>
     </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/portarretrato-3d-calavera.jpg</image:loc>
+      <image:caption>Portarretrato 3D modelo calavera con flores naranjas y detalles morados, fabricado por GRAFIK</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/portarretrato-3d-gato.jpg</image:loc>
+      <image:caption>Portarretrato 3D modelo gato con orejas y bigotes, flores naranjas y detalles morados, fabricado por GRAFIK</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.grafik.mx/assets/trabajos/portarretrato-3d-perro.jpg</image:loc>
+      <image:caption>Portarretrato 3D modelo perro con orejas caídas, flores naranjas y detalles morados, fabricado por GRAFIK</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://www.grafik.mx/estudio/</loc>
