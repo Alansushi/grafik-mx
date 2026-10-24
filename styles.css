@@ -794,42 +794,6 @@
       .floating-wa-wrap { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: 14px; }
     }
 
-/* ── Splash intro ──────────────────────────── */
-@keyframes splash-exit {
-  0%   { opacity: 1; }
-  60%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-.splash {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: var(--negro);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  animation: splash-exit 2.5s ease-out forwards;
-}
-
-.splash-mark svg { color: var(--blanco); }
-
-.splash-wordmark {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: clamp(3rem, 12vw, 7rem);
-  letter-spacing: 0.05em;
-  color: var(--blanco);
-  text-transform: uppercase;
-  line-height: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .splash { animation-duration: 0.1s; }
-}
-
 /* ============================================================
    Trabajos — Marquee de fotos reales + Lightbox
    ============================================================ */
@@ -1117,6 +1081,8 @@
 }
 .cp-ph picture { display: block; width: 100%; height: 100%; }
 .cp-ph img { width: 100%; height: 100%; object-fit: cover; }
+.cp-ph:not(.cp-ph--main) img { opacity: 0; transition: opacity .35s ease-out; }
+.cp-ph.is-loaded img { opacity: 1; }
 .cp-ph--main   { left: 0; top: 6%; width: 66%; aspect-ratio: 3 / 2; --r: -1.5deg; z-index: 2; }
 .cp-ph--main img { object-position: 50% 50%; }
 .cp-ph--poster { right: 0; top: 0; width: 31%; aspect-ratio: 3 / 4; --r: 2.5deg; z-index: 3; animation-delay: -2s; }
@@ -1498,6 +1464,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .cp-ph { animation: none; }
+  .cp-ph:not(.cp-ph--main) img { transition: none; }
   .cp-intent-img, .cp-case img, .cp-prod-media img, .cp-fin img { transition: none; }
   .cp-intent:hover .cp-intent-img, .cp-case:hover img, .cp-prod:hover .cp-prod-media img { transform: none; }
   .cp-fin:hover img { transform: scale(var(--z, 1)); }

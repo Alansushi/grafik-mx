@@ -4,6 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0C0C0C" />
+  <style>
+    /* La cortinilla existe antes de React y no oculta el respaldo sin JavaScript. */
+    #boot-splash { display: none; position: fixed; inset: 0; z-index: 9999; background: #0C0C0C; color: #F0F0EE; align-items: center; justify-content: center; flex-direction: column; gap: 20px; opacity: 1; transition: opacity 250ms ease-out; }
+    #boot-splash svg { display: block; }
+    #boot-splash .splash-wordmark { font: 900 clamp(3rem, 12vw, 7rem)/1 'Barlow Condensed', sans-serif; letter-spacing: .05em; }
+    .js #boot-splash { display: flex; }
+    .js #root { visibility: hidden; }
+    .js.splash-exiting #root, .js.splash-done #root { visibility: visible; }
+    .js.splash-exiting #boot-splash { opacity: 0; }
+    .js.splash-done #boot-splash { display: none; }
+    @media (prefers-reduced-motion: reduce) { #boot-splash { transition: none; } }
+  </style>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const started = performance.now();
+      let exiting = false;
+      let minimumTimer;
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+      const exit = () => {
+        if (exiting) return;
+        exiting = true;
+        clearTimeout(minimumTimer);
+        root.classList.add('splash-exiting');
+        setTimeout(() => root.classList.add('splash-done'), reducedMotion.matches ? 0 : 250);
+      };
+      root.classList.add('js');
+      // El plazo corre desde el HTML inicial, incluso si React o la foto fallan.
+      setTimeout(exit, 3500);
+      window.grafikHeroReady = () => {
+        if (exiting) return;
+        minimumTimer = setTimeout(exit, Math.max(0, 350 - (performance.now() - started)));
+      };
+    })();
+  </script>
   <title>GRAFIK | Imprenta y Publicidad en CDMX — Lonas y Pósters</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/grafik-favicon-32.png">
@@ -306,12 +341,8 @@
   <!-- Fuentes autoalojadas (assets/fonts, @font-face en styles.css): se precargan las que usa la primera pantalla
        (React tarda en pintar por Babel) para que el swap no mueva el layout (CLS). -->
   <link rel="preload" href="/assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/barlow-condensed-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/barlow-condensed-700-italic.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
 
   <link rel="stylesheet" href="/styles.css">
   <link rel="preload" href="/defs.svg" as="image" type="image/svg+xml">
@@ -319,6 +350,17 @@
   <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="/assets/hero/brazaletes-morelos-640.avif 633w, /assets/hero/brazaletes-morelos.avif 990w" imagesizes="(min-width: 961px) 400px, 88vw">
 </head>
 <body>
+  <div id="boot-splash" role="status" aria-label="Cargando GRAFIK">
+    <svg width="120" height="120" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="47" stroke="#444" stroke-width="1.2" fill="none"/>
+      <circle cx="50" cy="50" r="38" stroke="#777" stroke-width="1.8" fill="none"/>
+      <circle cx="50" cy="50" r="28" stroke="#B8B8B8" stroke-width="2.5" fill="none"/>
+      <circle cx="50" cy="50" r="18" stroke="#D8D8D8" stroke-width="3.5" fill="none"/>
+      <circle cx="50" cy="50" r="10" fill="#D02B34"/>
+      <circle cx="50" cy="50" r="3.2" fill="#0C0C0C"/>
+    </svg>
+    <div class="splash-wordmark">GRAFIK</div>
+  </div>
   <div id="root">
     <!-- SSR Fallback: contenido completo para crawlers sin JS -->
     <div class="ssr-fallback">
@@ -553,22 +595,6 @@
       );
     };
 
-    /* ── Splash intro ───────────────────────── */
-    const SplashScreen = () => {
-      const [gone, setGone] = React.useState(false);
-      if (gone) return null;
-      return (
-        <div className="splash" onAnimationEnd={() => setGone(true)}>
-          <div className="splash-mark">
-            <svg width="120" height="120" color="currentColor" aria-hidden="true">
-              <use href="/defs.svg#mark"/>
-            </svg>
-          </div>
-          <div className="splash-wordmark">GRAFIK</div>
-        </div>
-      );
-    };
-
     /* Intención → formulario: las tarjetas que llevan a #contacto preseleccionan
        chip y mensaje sin tocar el HTML del formulario (lo escucha Contacto). */
     const pickIntent = (detail) => () =>
@@ -585,20 +611,47 @@
 
     const HeroPh = ({ k, cls, tag, eager }) => {
       const p = HERO_PHOTOS[k];
+      const [loaded, setLoaded] = React.useState(false);
+      const imgRef = React.useRef(null);
+      React.useEffect(() => {
+        if (imgRef.current?.complete && imgRef.current.naturalWidth) setLoaded(true);
+      }, []);
       return (
-        <figure className={`cp-ph ${cls}`}>
+        <figure className={`cp-ph ${cls}${loaded ? ' is-loaded' : ''}`}>
           <picture>
             <source srcSet={`${p.base}-640.avif ${p.w2}w, ${p.base}.avif ${p.w}w`} sizes={p.sizes} type="image/avif" />
-            <img src={`${p.base}.jpg`} srcSet={`${p.base}-640.jpg ${p.w2}w, ${p.base}.jpg ${p.w}w`} sizes={p.sizes}
+            <img ref={imgRef} onLoad={() => setLoaded(true)} src={`${p.base}.jpg`} srcSet={`${p.base}-640.jpg ${p.w2}w, ${p.base}.jpg ${p.w}w`} sizes={p.sizes}
               width={p.w} height={p.h} alt={p.alt}
-              decoding="async" {...(eager ? { fetchpriority: "high" } : {})} />
+              decoding="async" {...(eager ? { fetchpriority: "high", loading: "eager" } : { loading: "lazy" })} />
           </picture>
           {tag && <figcaption className="cp-tag">{tag}</figcaption>}
         </figure>
       );
     };
 
-    const Hero = () => (
+    const Hero = () => {
+      React.useEffect(() => {
+        const img = document.querySelector('.cp-ph--main img');
+        if (!img) return;
+        let cancelled = false;
+        const ready = () => {
+          if (cancelled) return;
+          if (img.decode) {
+            img.decode().then(() => {
+              if (!cancelled) window.grafikHeroReady?.();
+            }).catch(() => {});
+          } else if (img.complete && img.naturalWidth) {
+            window.grafikHeroReady?.();
+          }
+        };
+        if (img.complete && img.naturalWidth) ready();
+        else img.addEventListener('load', ready, { once: true });
+        return () => {
+          cancelled = true;
+          img.removeEventListener('load', ready);
+        };
+      }, []);
+      return (
       <section id="top" className="hero cp-hero">
         <div className="wrap cp-hero-grid">
           <div className="cp-hero-copy">
@@ -640,7 +693,8 @@
           </div>
         </div>
       </section>
-    );
+      );
+    };
 
     /* ── Trust strip (sustituye a StatsBar) ──── */
     /* Sólo datos que el sitio ya respalda: +20 materiales, revisión previa del
@@ -1409,7 +1463,6 @@
     /* ── App ────────────────────────────────── */
     const App = () => (
       <div>
-        <SplashScreen />
         <Nav />
         <main>
           <Hero />
