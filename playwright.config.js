@@ -85,6 +85,16 @@ export default defineConfig({
       fullyParallel: false,
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
+    {
+      name: 'hero-desktop',
+      testMatch: /[\\/]hero-loading\.spec\.js$/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
+      name: 'hero-mobile',
+      testMatch: /[\\/]hero-loading\.spec\.js$/,
+      use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
     ...(LIVE_BASE_URL
       ? [
           {
