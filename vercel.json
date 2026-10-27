@@ -6,11 +6,8 @@
   "outputDirectory": ".",
   "functions": {
     "api/**/*.js": {
-      "maxDuration": 20,
+      "maxDuration": 300,
       "memory": 1024
-    },
-    "api/send-reminders.js": {
-      "maxDuration": 300
     }
   },
   "redirects": [
