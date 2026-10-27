@@ -8,6 +8,9 @@
     "api/**/*.js": {
       "maxDuration": 20,
       "memory": 1024
+    },
+    "api/send-reminders.js": {
+      "maxDuration": 300
     }
   },
   "redirects": [

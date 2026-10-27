@@ -31,6 +31,8 @@ async function boot() {
   // pedir el catálogo si de todos modos no hay dónde dibujar.
   if (typeof window.Konva === 'undefined') return;
 
+  await requestAccess();
+
   const catalog = await fetchCatalog();
   if (!catalog) return; // fetchCatalog ya dejó la página en estado de error
 
@@ -50,6 +52,54 @@ async function boot() {
   // window.__studio, que es más preciso, pero esto deja un gancho para
   // cualquier integración futura que sólo necesite saber que ya arrancó.
   queueMicrotask(() => document.dispatchEvent(new CustomEvent('gk:ready')));
+}
+
+async function requestAccess() {
+  let enabled = false;
+  let privacy = null;
+  try {
+    const response = await fetch('/api/quote-intent');
+    const data = response.ok ? await response.json() : {};
+    enabled = data.enabled === true;
+    privacy = data.privacy;
+  } catch { /* Sin backend, conserva el flujo anterior. */ }
+  if (!enabled) return;
+  if (sessionStorage.getItem('grafik_studio_access')) return;
+
+  const gate = document.getElementById('es-access');
+  if (privacy) document.getElementById('es-access-summary').textContent =
+    `${privacy.controller}, con domicilio en ${privacy.address}, tratará tu nombre, correo y diseño para cotizar y dar seguimiento, incluido un recordatorio si dejas el diseño inconcluso. Puedes limitar el uso o ejercer derechos ARCO en ${privacy.email}. Las promociones requieren tu aceptación separada.`;
+  const form = document.getElementById('es-access-form');
+  gate.hidden = false;
+  setState('access');
+  trackOnce('studio_access', { step: 'view' }, 'access:view');
+  await new Promise((resolve) => {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      trackOnce('studio_access', { step: 'started' }, 'access:started');
+      const button = form.querySelector('button');
+      button.disabled = true;
+      const name = document.getElementById('es-access-name').value.trim();
+      const email = document.getElementById('es-access-email').value.trim();
+      const key = crypto.randomUUID();
+      try {
+        const response = await fetch('/api/quote-intent', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, action: 'start', channel: 'estudio', name, email,
+            marketingConsent: document.getElementById('es-access-consent').checked,
+            device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
+        });
+        if (!response.ok) throw new Error('access save failed');
+        sessionStorage.setItem('grafik_studio_access', JSON.stringify({ key, name, email }));
+        trackOnce('studio_access', { step: 'saved' }, 'access:saved');
+        gate.hidden = true;
+        resolve();
+      } catch {
+        document.getElementById('es-access-error').hidden = false;
+        trackOnce('studio_access', { step: 'error' }, 'access:error');
+      } finally { button.disabled = false; }
+    });
+  });
 }
 
 async function fetchCatalog() {

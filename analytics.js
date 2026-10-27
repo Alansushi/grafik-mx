@@ -132,7 +132,7 @@
     if (debug) console.info('[grafik:analytics]', ev);
     if (!canSend) return;
     queue.push(ev);
-    if (IMMEDIATE[name] || queue.length >= MAX_BATCH) flush();
+    if (IMMEDIATE[name] || (name === 'form_step' && ['submit_attempt', 'saved'].includes(props?.step)) || queue.length >= MAX_BATCH) flush();
     else if (!timer) timer = setTimeout(flush, 2000);
   }
 
@@ -172,6 +172,8 @@
     // Dentro de <header>/<nav> es la barra; fuera, un botón de la página
     // ("Ver servicios", "Ver preguntas frecuentes").
     track('nav_click', { target: target, from: a.closest('header, nav') ? 'nav' : 'page' });
+    const service = a.getAttribute('data-service-contact');
+    if (target === 'contacto' && service) track('service_contact', { servicio: service });
   }
 
   // Primer foco o clic dentro del formulario. No lee NADA de lo escrito.
@@ -191,6 +193,11 @@
 
     const cta = t.closest('[data-cta]');
     if (cta) { trackCta(cta); return; }
+
+    const studio = t.closest('a[href="/estudio/"]');
+    if (studio && !repeated('studio:' + (studio.getAttribute('data-studio-from') || 'ssr'))) {
+      track('studio_open', { where: studio.getAttribute('data-studio-from') || 'ssr' });
+    }
 
     // data-event="nombre" [data-where="dónde"]: un evento con una sola propiedad.
     const custom = t.closest('[data-event]');
@@ -323,6 +330,14 @@
   });
 
   window.grafikTrack = track;
+  const returnToken = params.get('r');
+  if (returnToken && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/.test(returnToken)) {
+    const clean = new URL(location.href);
+    clean.searchParams.delete('r');
+    history.replaceState(history.state, '', clean.pathname + clean.search + clean.hash);
+    fetch('/api/quote-return', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: returnToken }), keepalive: true }).catch(noop);
+  }
   track('page_view');
   watchSections();
 })();

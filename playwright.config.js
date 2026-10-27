@@ -80,6 +80,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {
+      name: 'quote-capture',
+      testMatch: /[\\/]quote-capture\.spec\.js$/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
+      name: 'quote-capture-mobile',
+      testMatch: /[\\/]quote-capture\.spec\.js$/,
+      use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
       name: 'studio-analytics',
       testMatch: /[\\/]studio-analytics\.spec\.js$/,
       fullyParallel: false,
