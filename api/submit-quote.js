@@ -22,6 +22,8 @@ import { json, requireMethod, readJsonBody, clientIp } from './_lib/http.js';
 import { buildPostgrestUrl, sbHeaders } from './_lib/supabase.js';
 import { logError } from './_lib/log.js';
 import { isUuid, isEmail, normalizeMxPhone, isMxPhone } from './_lib/validation.js';
+import { sendQuoteEmail } from './_lib/quote-mail.js';
+import { captureEnabled } from './_lib/capture-config.js';
 import { normalizeBreakdown, validateBreakdown, totalUnits } from '../estudio/lib/sizes.js';
 
 const MAX_ITEMS = 10;
@@ -53,7 +55,7 @@ export default async function handler(req, res) {
   const ip = clientIp(req);
 
   // ── Validación del cuerpo ────────────────────────────────────────────────
-  const { draftId, customer, items } = body ?? {};
+  const { draftId, intentKey, customer, items } = body ?? {};
 
   if (!isUuid(draftId)) return json(res, 400, { error: 'INVALID_DRAFT_ID' });
   if (!customer || !isEmail(customer.email)) return json(res, 400, { error: 'INVALID_EMAIL' });
@@ -165,6 +167,24 @@ export default async function handler(req, res) {
       await sbDelete(supabaseUrl, headers, 'orders', order.id).catch((e2) =>
         logError('submit-quote', e2, { huerfano: order.short_code }));
       throw err;
+    }
+
+    // El pedido ya existe: enlazar el intento es idempotente y no puede romper
+    // la cotización si una petición de analítica/seguimiento falla.
+    if (captureEnabled() && isUuid(intentKey)) {
+      try {
+        const matched = await sbGet(supabaseUrl, headers, 'quote_intents', {
+          select: 'id,status,email,name,channel,unsubscribed_at,unsubscribe_token', eq: { client_key: intentKey }, limit: 1,
+        });
+        if (matched[0]?.email === String(customer.email).trim().toLowerCase() && matched[0].status === 'started') {
+          const r = await fetch(buildPostgrestUrl(supabaseUrl, 'quote_intents', { eq: { id: matched[0].id, status: 'started' } }), {
+            method: 'PATCH', headers: sbHeaders({ key: serviceKey, prefer: 'return=minimal' }),
+            body: JSON.stringify({ status: 'completed', order_id: order.id, completed_at: new Date().toISOString() }),
+          });
+          if (!r.ok) throw new Error(`intent order link ${r.status}`);
+          await sendQuoteEmail(supabaseUrl, serviceKey, { ...matched[0], status: 'completed' }, 'confirmation');
+        }
+      } catch (error) { logError('submit-quote-intent', error); }
     }
 
     return json(res, 201, {

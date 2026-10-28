@@ -6,7 +6,7 @@
   "outputDirectory": ".",
   "functions": {
     "api/**/*.js": {
-      "maxDuration": 20,
+      "maxDuration": 300,
       "memory": 1024
     }
   },

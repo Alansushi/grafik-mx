@@ -149,6 +149,21 @@
       <span><strong>Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).</strong> En celular o tablet puedes verlo, pero el ajuste del logo es más preciso con mouse y pantalla grande.</span>
     </p>
 
+    <section id="es-access" class="es-access" hidden aria-labelledby="es-access-title">
+      <h2 id="es-access-title">Antes de diseñar, dinos cómo contactarte</h2>
+      <p id="es-access-summary">Guardaremos tu intento para dar seguimiento a la cotización.</p>
+      <p><a href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Lee el aviso de privacidad integral</a>.</p>
+      <form id="es-access-form">
+        <label for="es-access-name">Nombre *</label>
+        <input id="es-access-name" name="name" type="text" autocomplete="name" required minlength="2" maxlength="120" />
+        <label for="es-access-email">Correo *</label>
+        <input id="es-access-email" name="email" type="email" autocomplete="email" required maxlength="254" />
+        <label class="es-access-consent"><input id="es-access-consent" type="checkbox" /> Acepto recibir promociones por correo (opcional).</label>
+        <p id="es-access-error" role="alert" hidden>No pudimos guardar tus datos. Inténtalo de nuevo.</p>
+        <button type="submit" class="es-btn es-btn-wa">Continuar al Estudio</button>
+      </form>
+    </section>
+
     <!-- Skeleton: visible mientras carga el catálogo (data-state="loading"). -->
     <div id="es-skeleton" class="es-skeleton" aria-hidden="true">
       <div class="es-skeleton-stage"></div>

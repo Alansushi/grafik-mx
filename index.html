@@ -523,6 +523,7 @@
         <section id="contacto">
           <h2>Solicita tu cotización</h2>
           <p>WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a> · Lunes a viernes 9am–6pm (hora de Ciudad de México).</p>
+          <p>El formulario abre WhatsApp para enviar tu solicitud. Puedes indicar un correo y teléfono opcionales para que podamos dar seguimiento.</p>
           <p>Entregamos en Ciudad de México y su área metropolitana, y también puedes pasar a recoger tu pedido.</p>
         </section>
         <p><time datetime="2026-10-19">Actualizado: octubre de 2026</time></p>
@@ -753,7 +754,7 @@
             </div>
             <div className="cp-intent-grid">
               {items.map(i => (
-                <a key={i.n} href={i.href} className="cp-intent"
+                <a key={i.n} href={i.href} className="cp-intent" data-service-contact={i.servicio || undefined} data-studio-from={i.href === '/estudio/' ? 'intent' : undefined}
                   onClick={i.href.startsWith('#') ? pickIntent({ servicio: i.servicio, detalle: i.detalle }) : undefined}>
                   <Pic slug={i.slug} decor className="cp-intent-img" />
                   <span className="cp-intent-n" aria-hidden="true">{i.n}</span>
@@ -840,7 +841,7 @@
               <li><b>2</b><span>Sube tu logo<small>Colócalo y ajusta el tamaño.</small></span></li>
               <li><b>3</b><span>Míralo y cotiza<small>Nos mandas el diseño por WhatsApp.</small></span></li>
             </ol>
-            <a href="/estudio/" className="btn btn-green cp-estudio-btn">
+            <a href="/estudio/" data-studio-from="section" className="btn btn-green cp-estudio-btn">
               <Ico id="i-arrow" w={20} h={20}/>
               Abrir Estudio
             </a>
@@ -936,7 +937,7 @@
             </div>
             <div className="cp-prod-grid">
               {items.map(i => (
-                <a key={i.t} href="#contacto" className="cp-prod" onClick={pickIntent({ servicio: i.servicio })}>
+                <a key={i.t} href="#contacto" className="cp-prod" data-service-contact={i.servicio} onClick={pickIntent({ servicio: i.servicio })}>
                   <span className="cp-prod-media">
                     {i.slug
                       ? <Pic slug={i.slug} decor />
@@ -1077,7 +1078,26 @@
     const Contacto = () => {
       const [servicio, setServicio] = useState('');
       const [nombre, setNombre] = useState('');
+      const [correo, setCorreo] = useState('');
+      const [telefono, setTelefono] = useState('');
       const [detalle, setDetalle] = useState('');
+      const [promociones, setPromociones] = useState(false);
+      const [captureEnabled, setCaptureEnabled] = useState(false);
+      const [privacy, setPrivacy] = useState(null);
+      const quoteKey = React.useRef(null);
+      const trackedSteps = React.useRef(new Set());
+      if (!quoteKey.current) quoteKey.current = crypto.randomUUID();
+      const step = (name) => {
+        if (trackedSteps.current.has(name)) return;
+        trackedSteps.current.add(name);
+        window.grafikTrack?.('form_step', { step: name });
+      };
+      React.useEffect(() => {
+        fetch('/api/quote-intent').then(r => r.json()).then(d => {
+          setCaptureEnabled(d.enabled === true);
+          setPrivacy(d.privacy || null);
+        }).catch(() => {});
+      }, []);
 
       // Las tarjetas de intención/productos (pickIntent) preseleccionan chip y mensaje.
       React.useEffect(() => {
@@ -1089,6 +1109,20 @@
         window.addEventListener('grafik:intent', onIntent);
         return () => window.removeEventListener('grafik:intent', onIntent);
       }, []);
+
+      React.useEffect(() => {
+        if (!captureEnabled || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) return;
+        const timer = setTimeout(() => {
+          fetch('/api/quote-intent', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: quoteKey.current, action: 'start', channel: 'contacto',
+              name: nombre, email: correo, phone: telefono, service: servicio, details: detalle,
+              marketingConsent: promociones,
+              device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
+          }).catch(() => {});
+        }, 900);
+        return () => clearTimeout(timer);
+      }, [captureEnabled, nombre, correo, telefono, servicio, detalle, promociones]);
 
       const chips = [
         "Lonas",
@@ -1107,13 +1141,25 @@
 
       const handleSubmit = (e) => {
         e.preventDefault();
+        step('submit_attempt');
         const partes = [];
         if (nombre) partes.push(`Hola, soy ${nombre}.`);
         if (servicio) partes.push(`Me interesa cotizar: ${servicio}.`);
         if (detalle) partes.push(detalle);
+        if (correo) partes.push(`Correo: ${correo.trim()}.`);
+        if (telefono) partes.push(`Teléfono: ${telefono.trim()}.`);
         if (!partes.length) partes.push(CONFIG.waMsg);
         if (window.grafikTrack) window.grafikTrack('cta_click', { cta_id: 'contacto-form', kind: 'form', servicio: servicio || undefined });
         window.open(waLink(partes.join(' ')), '_blank', 'noopener,noreferrer');
+        if (captureEnabled && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+          fetch('/api/quote-intent', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+            body: JSON.stringify({ key: quoteKey.current, action: 'complete', channel: 'contacto',
+              name: nombre, email: correo, phone: telefono, service: servicio, details: detalle,
+              marketingConsent: promociones,
+              device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
+          }).then(r => { if (r.ok) { step('saved'); quoteKey.current = crypto.randomUUID(); } }).catch(() => {});
+        }
       };
 
       return (
@@ -1157,6 +1203,7 @@
                           className={`chip-btn${servicio === s ? ' chip-sel' : ''}`}
                           onClick={() => {
                             if (window.grafikTrack) window.grafikTrack('service_chip', { servicio: s, selected: servicio !== s });
+                            step('service');
                             setServicio(prev => prev === s ? '' : s);
                           }}>
                           {s}
@@ -1166,15 +1213,29 @@
                   </div>
                   <div className="form-field">
                     <label className="field-label" htmlFor="nombre">Tu nombre</label>
-                    <input id="nombre" className="field" type="text" placeholder="¿Cómo te llamas?"
-                      value={nombre} onChange={e => setNombre(e.target.value)} />
+                    <input id="nombre" name="name" autoComplete="name" className="field" type="text" placeholder="¿Cómo te llamas?"
+                      value={nombre} onChange={e => { setNombre(e.target.value); step('name'); }} />
+                  </div>
+                  <div className="form-field">
+                    <label className="field-label" htmlFor="correo">Tu correo (opcional)</label>
+                    <input id="correo" name="email" autoComplete="email" className="field" type="email" placeholder="nombre@ejemplo.com"
+                      value={correo} onChange={e => { setCorreo(e.target.value); step('email'); }} />
+                  </div>
+                  <div className="form-field">
+                    <label className="field-label" htmlFor="telefono">Tu teléfono (opcional)</label>
+                    <input id="telefono" name="tel" autoComplete="tel" className="field" type="tel" placeholder="55 1234 5678"
+                      value={telefono} onChange={e => { setTelefono(e.target.value); step('phone'); }} />
                   </div>
                   <div className="form-field">
                     <label className="field-label" htmlFor="detalle">Detalle de tu pedido</label>
                     <textarea id="detalle" className="field" rows={4}
                       placeholder="Ej: Necesito 5 lonas de 2×1m para evento este sábado..."
-                      value={detalle} onChange={e => setDetalle(e.target.value)} />
+                      value={detalle} onChange={e => { setDetalle(e.target.value); step('details'); }} />
                   </div>
+                  {captureEnabled && <div className="form-field">
+                    <p>{privacy?.controller}, con domicilio en {privacy?.address}, tratará tu nombre, correo, teléfono y detalle para cotizar y dar seguimiento, incluido un recordatorio si dejas la solicitud inconclusa. Puedes limitar el uso o ejercer derechos ARCO en {privacy?.email}. Las promociones requieren tu aceptación separada. <a href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Aviso de privacidad integral</a>.</p>
+                    <label><input type="checkbox" checked={promociones} onChange={e => setPromociones(e.target.checked)} /> Acepto recibir promociones por correo (opcional).</label>
+                  </div>}
                   <button type="submit" className="btn btn-green form-submit">
                     <Ico id="i-wa" w={18} h={18}/>
                     Enviar por WhatsApp

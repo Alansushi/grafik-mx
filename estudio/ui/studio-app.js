@@ -47,7 +47,12 @@ export function StudioApp({ catalog, stageContainer }) {
   const [fitScale, setFitScale] = useState(1);
   const [breakdown, setBreakdown] = useState({});
   const [rawSizes, setRawSizes] = useState({});
-  const [customer, setCustomer] = useState({ name: '', email: '', phone: '' });
+  const [customer, setCustomer] = useState(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('grafik_studio_access'));
+      return { name: saved?.name || '', email: saved?.email || '', phone: '' };
+    } catch { return { name: '', email: '', phone: '' }; }
+  });
   const [logoError, setLogoError] = useState(null);
   const [stageBusy, setStageBusy] = useState(true);
   // Si el stage no monta, la página se veía NORMAL: controles activos, canvas
@@ -423,6 +428,7 @@ export function StudioApp({ catalog, stageContainer }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           draftId,
+          intentKey: (() => { try { return JSON.parse(sessionStorage.getItem('grafik_studio_access'))?.key; } catch { return null; } })(),
           customer,
           items: [{
             garment_type_id: garment.id,

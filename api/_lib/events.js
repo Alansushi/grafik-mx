@@ -88,6 +88,9 @@ const EVENTS = {
   // Primer foco o clic dentro del formulario de contacto. Sin props: no se
   // registra NADA de lo escrito.
   form_start: { fields: {}, required: [] },
+  form_step: { fields: { step: enumOf(['service', 'name', 'email', 'phone', 'details', 'submit_attempt', 'saved']) }, required: ['step'] },
+  service_contact: { fields: { servicio: label }, required: ['servicio'] },
+  studio_open: { fields: { where: enumOf(['intent', 'section', 'ssr']) }, required: ['where'] },
   // `q` = texto de la pregunta convertido a slug, no su posición: las FAQs se reordenan.
   faq_open: { fields: { q: slug(60) }, required: ['q'] },
   work_open: { fields: { slug: slug(40), cat: label }, required: ['slug'] },
@@ -96,6 +99,7 @@ const EVENTS = {
   // El page_view de /estudio/ ya es "abrió el configurador"; estos son los pasos
   // siguientes. Ninguno lleva lo que el cliente escribe ni el nombre de su archivo.
   studio_ready: { fields: {}, required: [] },
+  studio_access: { fields: { step: enumOf(['view', 'started', 'saved', 'error']) }, required: ['step'] },
   studio_garment: { fields: { garment: slug(40) }, required: ['garment'] },
   studio_logo: { fields: { format: enumOf(LOGO_FORMATS), vector: bool }, required: ['format'] },
   // El cliente movió, escaló, rotó o reencajó el logo él mismo (no el ajuste automático).

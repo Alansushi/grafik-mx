@@ -160,6 +160,32 @@ select device,
 from v_studio_sessions
 group by device;
 
+-- Fase 4: trayecto servicio -> Contacto/Estudio y solicitudes reales.
+-- Ejecutar para los siete días completos previos al martes del corte.
+-- Las vistas de Supabase son la fuente de sesiones; copiar las cifras de
+-- visitantes/vistas de Vercel por separado y marcar «sin dato» si faltan.
+select (e.ts at time zone 'America/Mexico_City')::date as dia,
+       e.props->>'servicio' as servicio,
+       count(distinct e.sid) as sesiones_contacto
+from public.site_events e
+where e.event = 'service_contact'
+group by 1, 2 order by 1 desc, 3 desc;
+
+select s.dia, s.device,
+       coalesce(nullif(s.utm_source, ''), s.referrer_host, '(directo)') as fuente,
+       count(*) as sesiones,
+       count(*) filter (where exists (
+         select 1 from public.site_events e where e.sid = s.sid and e.event = 'studio_open'
+       )) as abrieron_estudio,
+       count(*) filter (where exists (
+         select 1 from public.site_events e where e.sid = s.sid and e.event = 'form_step'
+           and e.props->>'step' = 'submit_attempt'
+       )) as intentaron_enviar
+from public.v_sessions s
+group by 1, 2, 3 order by 1 desc, 4 desc;
+
+select * from public.v_quote_funnel order by dia desc, intentos desc;
+
 -- 22. Quien llegó al precio y NO envió, por dispositivo: el hueco más caro del embudo.
 select device,
        count(*) filter (where vio_precio and not envio) as vieron_precio_y_no_enviaron,

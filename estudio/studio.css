@@ -1289,3 +1289,10 @@ a { color: inherit; }
     font-size: 14px;
   }
 }
+.es-access { max-width: 540px; margin: 32px auto 64px; padding: 28px; background: #181818; border: 1px solid #2e2e2e; border-radius: 12px; }
+.es-access[hidden] { display: none; }
+.es-access h2 { margin: 0 0 12px; }
+.es-access form { display: grid; gap: 12px; margin-top: 20px; }
+.es-access input:not([type="checkbox"]) { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #777; font: inherit; }
+.es-access-consent { display: flex; align-items: flex-start; gap: 8px; }
+.es-app[data-state="access"] #es-skeleton, .es-app[data-state="access"] #es-main { display: none; }
