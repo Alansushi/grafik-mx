@@ -1233,7 +1233,7 @@
                       value={detalle} onChange={e => { setDetalle(e.target.value); step('details'); }} />
                   </div>
                   {captureEnabled && <div className="form-field">
-                    <p>{privacy?.controller}, con domicilio en {privacy?.address}, tratará tu nombre, correo, teléfono y detalle para cotizar y dar seguimiento, incluido un recordatorio si dejas la solicitud inconclusa. Puedes limitar el uso o ejercer derechos ARCO en {privacy?.email}. Las promociones requieren tu aceptación separada. <a href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Aviso de privacidad integral</a>.</p>
+                    <p>{privacy?.controller}, con domicilio en {privacy?.address}, tratará tu nombre, correo, teléfono y detalle para preparar y dar seguimiento a la cotización. Orkestalo recibe y atiende las solicitudes de GRAFIK. Al pulsar Enviar se abrirá WhatsApp con el mensaje preparado; debes enviarlo desde esa aplicación para que Orkestalo lo reciba. Puedes ejercer derechos ARCO en {privacy?.email}. Las promociones requieren tu aceptación separada. <a href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Aviso de privacidad integral</a>.</p>
                     <label><input type="checkbox" checked={promociones} onChange={e => setPromociones(e.target.checked)} /> Acepto recibir promociones por correo (opcional).</label>
                   </div>}
                   <button type="submit" className="btn btn-green form-submit">

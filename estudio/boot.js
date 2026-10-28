@@ -68,7 +68,7 @@ async function requestAccess() {
 
   const gate = document.getElementById('es-access');
   if (privacy) document.getElementById('es-access-summary').textContent =
-    `${privacy.controller}, con domicilio en ${privacy.address}, tratará tu nombre, correo y diseño para cotizar y dar seguimiento, incluido un recordatorio si dejas el diseño inconcluso. Puedes limitar el uso o ejercer derechos ARCO en ${privacy.email}. Las promociones requieren tu aceptación separada.`;
+    `${privacy.controller}, con domicilio en ${privacy.address}, tratará tu nombre, correo y diseño para preparar y dar seguimiento a la cotización. Orkestalo recibe y atiende las solicitudes de GRAFIK. Al finalizar, se abrirá WhatsApp con un mensaje preparado que debes enviar desde esa aplicación. Puedes ejercer derechos ARCO en ${privacy.email}. Las promociones requieren tu aceptación separada.`;
   const form = document.getElementById('es-access-form');
   gate.hidden = false;
   setState('access');
