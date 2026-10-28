@@ -42,7 +42,7 @@ export async function sendQuoteEmail(base, serviceKey, intent, kind) {
     : link;
   const subject = kind === 'confirmation' ? 'Recibimos tu solicitud de cotización | GRAFIK' : '¿Quieres terminar tu cotización? | GRAFIK';
   const body = kind === 'confirmation'
-    ? 'Hola. Guardamos tu solicitud de cotización. Te responderemos por los datos que compartiste.'
+    ? 'Hola. Guardamos los datos de la solicitud que preparaste. Si la iniciaste por WhatsApp, recuerda enviar el mensaje desde esa aplicación para que Orkestalo lo reciba. Orkestalo atiende las solicitudes de cotización de GRAFIK.'
     : 'Hola. Tu cotización sigue pendiente. Puedes continuar desde el siguiente enlace. Si usaste el Estudio, el enlace abre la herramienta de nuevo, pero no restaura el diseño anterior.';
   const payload = {
     from: process.env.EMAIL_FROM,
