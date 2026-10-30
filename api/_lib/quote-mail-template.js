@@ -29,7 +29,7 @@ export function renderQuoteMail({ kind, intent, baseUrl = 'https://www.grafik.mx
     eyebrow: 'SOLICITUD GUARDADA',
     title: 'Gracias por elegir GRAFIK.',
     intro: 'Guardamos los datos de la solicitud que preparaste.',
-    detail: 'Si abriste WhatsApp para cotizar, todavía necesitas revisar y enviar el mensaje desde WhatsApp para que Orkestalo lo reciba. Orkestalo atiende las solicitudes de cotización de GRAFIK.',
+    detail: 'Si abriste WhatsApp para cotizar, todavía necesitas revisar y enviar el mensaje desde WhatsApp para que el equipo de GRAFIK lo reciba.',
     button: studio ? 'Volver al Estudio' : 'Visitar GRAFIK',
     note: '¿Tienes otra idea en mente? Conoce más formas de imprimir y personalizar con GRAFIK.',
   } : studio ? {
@@ -40,14 +40,14 @@ export function renderQuoteMail({ kind, intent, baseUrl = 'https://www.grafik.mx
     intro: 'Puedes volver al Estudio y preparar tu cotización cuando quieras.',
     detail: 'El enlace abre la herramienta de nuevo, pero no recupera tu diseño anterior. Tendrás que volver a subir tu logo y configurar el producto.',
     button: 'Volver al Estudio',
-    note: 'Si prefieres, también puedes escribirnos por WhatsApp y contarnos qué necesitas.',
+    note: 'Si prefieres, también puedes escribirle al equipo de GRAFIK por WhatsApp y contarnos qué necesitas.',
   } : {
     subject: '¿Quieres terminar tu cotización? | GRAFIK',
     preheader: 'Tu solicitud quedó pendiente. Retómala desde el formulario de contacto.',
     eyebrow: 'TU COTIZACIÓN TE ESPERA',
     title: 'Sigamos con tu proyecto.',
     intro: 'Tu solicitud de cotización quedó pendiente. Puedes retomarla desde el formulario de contacto.',
-    detail: 'Cuéntanos qué necesitas y, al terminar, revisa y envía el mensaje desde WhatsApp para que Orkestalo lo reciba.',
+    detail: 'Cuéntanos qué necesitas y, al terminar, revisa y envía el mensaje desde WhatsApp para que el equipo de GRAFIK lo reciba.',
     button: 'Retomar mi cotización',
     note: 'Estamos para ayudarte con impresión y publicidad en CDMX.',
   };
