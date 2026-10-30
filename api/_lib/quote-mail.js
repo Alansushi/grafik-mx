@@ -2,6 +2,7 @@
 import { buildPostgrestUrl, sbHeaders } from './supabase.js';
 import { logError } from './log.js';
 import { captureEnabled } from './capture-config.js';
+import { renderQuoteMail } from './quote-mail-template.js';
 
 export async function sendQuoteEmail(base, serviceKey, intent, kind) {
   if (!captureEnabled() || !process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) return false;
@@ -35,21 +36,14 @@ export async function sendQuoteEmail(base, serviceKey, intent, kind) {
     if (!claimed) return false;
   }
 
-  const baseUrl = (process.env.PUBLIC_BASE_URL || 'https://www.grafik.mx').replace(/\/+$/, '');
-  const link = intent.channel === 'estudio' ? `${baseUrl}/estudio/` : `${baseUrl}/`;
-  const trackedLink = kind === 'reminder' && intent.return_token
-    ? `${link}?r=${intent.return_token}${intent.channel === 'contacto' ? '#contacto' : ''}`
-    : link;
-  const subject = kind === 'confirmation' ? 'Recibimos tu solicitud de cotización | GRAFIK' : '¿Quieres terminar tu cotización? | GRAFIK';
-  const body = kind === 'confirmation'
-    ? 'Hola. Guardamos los datos de la solicitud que preparaste. Si la iniciaste por WhatsApp, recuerda enviar el mensaje desde esa aplicación para que Orkestalo lo reciba. Orkestalo atiende las solicitudes de cotización de GRAFIK.'
-    : 'Hola. Tu cotización sigue pendiente. Puedes continuar desde el siguiente enlace. Si usaste el Estudio, el enlace abre la herramienta de nuevo, pero no restaura el diseño anterior.';
+  const { subject, html } = renderQuoteMail({
+    kind, intent, baseUrl: process.env.PUBLIC_BASE_URL || 'https://www.grafik.mx',
+  });
   const payload = {
     from: process.env.EMAIL_FROM,
     to: [intent.email], subject,
-    html: `<p>${body}</p><p><a href="${trackedLink}">${kind === 'confirmation' ? 'Visitar GRAFIK' : 'Volver a mi cotización'}</a></p><p>GRAFIK · CDMX</p>`,
+    html,
   };
-  if (intent.unsubscribe_token) payload.html += `<p><a href="${baseUrl}/api/unsubscribe?t=${intent.unsubscribe_token}">No recibir más correos de seguimiento ni promociones</a></p>`;
 
   try {
     const response = await fetch('https://api.resend.com/emails', {

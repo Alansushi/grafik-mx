@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     for (const row of claimed) {
       // El estado puede haber cambiado entre el reclamo en SQL y esta lectura.
       const freshRes = await fetch(buildPostgrestUrl(base, 'quote_intents', {
-        select: 'id,email,channel,status,unsubscribed_at,unsubscribe_token,return_token', eq: { id: row.id }, limit: 1,
+        select: 'id,email,name,channel,status,unsubscribed_at,unsubscribe_token,return_token', eq: { id: row.id }, limit: 1,
       }), { headers });
       if (!freshRes.ok) throw new Error(`read intent ${freshRes.status}`);
       const [fresh] = await freshRes.json();
