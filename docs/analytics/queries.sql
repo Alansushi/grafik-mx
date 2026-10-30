@@ -192,3 +192,55 @@ select device,
        count(*) filter (where envio)                    as enviaron
 from v_studio_sessions
 group by device;
+
+-- 23. Seguimiento de correos por cohorte de envío (día CDMX y tipo).
+-- Cambiar fechas, IDs de prueba y tracking_habilitado antes de ejecutar.
+-- La cohorte usa quote_email_log.created_at: los eventos posteriores se
+-- atribuyen al día del envío, no al día en que llegó el webhook.
+-- "Aceptados" exige provider_id: Resend devolvió un ID y quedó registrado.
+-- Entrega, rebote y clic cuentan un correo una sola vez aunque haya varios
+-- eventos. El regreso es sólo del recordatorio y returned_at no prueba envío
+-- de WhatsApp. Cada porcentaje divide entre aceptados de la misma cohorte.
+-- Si no se ha comprobado el tracking del dominio, dejar false: clics y su
+-- tasa salen NULL (= no disponible), no cero. La entrega puede llegar tarde.
+with parametros as (
+  select '2026-10-01'::date as desde,
+         '2026-11-01'::date as hasta_exclusiva,
+         false::boolean as tracking_habilitado,
+         array[]::uuid[] as ids_prueba -- agregar aquí los IDs de pruebas reales
+), correos as (
+  select l.id, l.kind, l.provider_id,
+         (l.created_at at time zone 'America/Mexico_City')::date as dia,
+         (i.returned_at is not null and l.kind = 'reminder') as regreso,
+         exists (select 1 from public.quote_email_events e
+                 where e.provider_id = l.provider_id and e.event = 'delivered') as entregado,
+         exists (select 1 from public.quote_email_events e
+                 where e.provider_id = l.provider_id and e.event = 'bounced') as rebotado,
+         exists (select 1 from public.quote_email_events e
+                 where e.provider_id = l.provider_id and e.event = 'clicked') as clic
+  from public.quote_email_log l
+  join public.quote_intents i on i.id = l.intent_id
+  cross join parametros p
+  where l.created_at >= (p.desde::timestamp at time zone 'America/Mexico_City')
+    and l.created_at < (p.hasta_exclusiva::timestamp at time zone 'America/Mexico_City')
+    and not (l.intent_id = any(p.ids_prueba))
+), agregado as (
+  select dia, kind,
+         count(*) filter (where provider_id is not null) as aceptados,
+         count(*) filter (where provider_id is not null and entregado) as entregados,
+         count(*) filter (where provider_id is not null and rebotado) as rebotes,
+         count(*) filter (where provider_id is not null and clic) as clics,
+         count(*) filter (where provider_id is not null and regreso) as regresos
+  from correos group by dia, kind
+)
+select a.dia, a.kind, a.aceptados, a.entregados, a.rebotes,
+       case when p.tracking_habilitado then a.clics end as clics,
+       case when a.kind = 'reminder' then a.regresos end as regresos,
+       round(100.0 * a.entregados / nullif(a.aceptados, 0), 1) as pct_entrega,
+       round(100.0 * a.rebotes / nullif(a.aceptados, 0), 1) as pct_rebote,
+       case when p.tracking_habilitado
+            then round(100.0 * a.clics / nullif(a.aceptados, 0), 1) end as pct_clic,
+       case when a.kind = 'reminder'
+            then round(100.0 * a.regresos / nullif(a.aceptados, 0), 1) end as pct_regreso
+from agregado a cross join parametros p
+order by a.dia desc, a.kind;
