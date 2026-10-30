@@ -20,7 +20,7 @@ Se enviaron dos solicitudes de prueba con `info@orkestalo.com`, sin abrir WhatsA
 
 | Tipo | ID de solicitud | Estado observado | ID de Resend | Evento de entrega | Resultado pendiente |
 |---|---|---|---|---|---|
-| Completada, Contacto | `ed05ebe7-4298-4d1b-872c-2171f49587a7` | `completed`; una fila `confirmation`, `delivered` | `01a18e57-c1c8-7c4f-b7be-90e4e61a57f5` | 1 `delivered`, 0 `bounced` | Confirmar presencia en el buzón de `info@orkestalo.com`; la entrega del servidor no demuestra carpeta de entrada. |
+| Completada, Contacto | `ed05ebe7-4298-4d1b-872c-2171f49587a7` | `completed`; una fila `confirmation`, `delivered` | `01a18e57-c1c8-7c4f-b7be-90e4e61a57f5` | 1 `delivered`, 0 `bounced` | La persona responsable confirmó que recibió el correo en `info@orkestalo.com` el 30 de octubre. |
 | Iniciada, Contacto | `d9cac76e-1faa-4a6b-b4d5-793b5182dd3c` | `started`; sin correo prematuro | Pendiente | Pendiente | Verificar tras las 19:44 UTC del 31 de octubre de 2026 y la siguiente ejecución del cron de 15 minutos. |
 
 Ambos IDs están excluidos del reporte agregado en `queries.sql`. Cuando llegue el recordatorio, comprobar que haya una sola fila `reminder` con ID de Resend y un evento `delivered`, sin rebote. Abrir su enlace y contrastar `returned_at` antes y después de abrirlo dos veces: sólo debe pasar de `NULL` a una marca de tiempo. La visita no confirma una cotización completada ni un mensaje de WhatsApp enviado.
