@@ -207,7 +207,10 @@ with parametros as (
   select '2026-10-01'::date as desde,
          '2026-11-01'::date as hasta_exclusiva,
          false::boolean as tracking_habilitado,
-         array[]::uuid[] as ids_prueba -- agregar aquí los IDs de pruebas reales
+         array[
+           'ed05ebe7-4298-4d1b-872c-2171f49587a7', -- confirmación 2026-10-30
+           'd9cac76e-1faa-4a6b-b4d5-793b5182dd3c'  -- recordatorio pendiente 2026-10-31
+         ]::uuid[] as ids_prueba -- agregar aquí los IDs de futuras pruebas
 ), correos as (
   select l.id, l.kind, l.provider_id,
          (l.created_at at time zone 'America/Mexico_City')::date as dia,
