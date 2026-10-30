@@ -14,7 +14,7 @@ describe('plantillas de correo de cotización', () => {
     expect(preheader).toContain('WhatsApp');
     expect(html).toContain('enviar el mensaje desde WhatsApp');
     expect(html).toContain('Visitar GRAFIK');
-    expect(html).not.toContain('Orkestalo lo recibi');
+    expect(html).toContain('equipo de GRAFIK lo reciba');
   });
 
   it('da un retorno distinto para Contacto y Estudio, y aclara la pérdida del diseño', () => {
@@ -69,5 +69,19 @@ describe('plantillas de correo de cotización', () => {
     expect(hrefs).toContain('https://wa.me/525539014600');
     expect(hrefs.every((url) => url.startsWith('https://'))).toBe(true);
     expect(html).toContain('No recibir más correos de seguimiento ni promociones');
+  });
+
+  it.each([
+    ['confirmation', 'contacto'],
+    ['confirmation', 'estudio'],
+    ['reminder', 'contacto'],
+    ['reminder', 'estudio'],
+  ])('presenta %s de %s sólo con la voz de GRAFIK', (kind, channel) => {
+    const { subject, preheader, html } = renderQuoteMail({
+      kind, intent: { ...intent, channel }, baseUrl,
+    });
+    expect(`${subject} ${preheader} ${html}`).not.toMatch(/orkestalo/i);
+    expect(subject).toContain('GRAFIK');
+    expect(html).toContain('GRAFIK');
   });
 });
