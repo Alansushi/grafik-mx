@@ -58,7 +58,7 @@ function StepButton({ label, onClick, children }) {
 }
 
 export function PanelTallas({
-  allowedSizes, breakdown, onChange,
+  allowedSizes, minTotal, breakdown, onChange,
   // `rawSizes` es lo que el cliente tecleó y `rawErrors` los valores que
   // normalizeBreakdown rechazó. Sin estos dos, un valor no numérico —pegar
   // "1,000" desde Excel, por ejemplo— revertía el campo al valor anterior sin
@@ -83,8 +83,8 @@ export function PanelTallas({
   }, [breakdown]);
 
   const validation = useMemo(
-    () => validateBreakdown(breakdown, { allowedSizes }),
-    [breakdown, allowedSizes],
+    () => validateBreakdown(breakdown, { allowedSizes, minTotal }),
+    [breakdown, allowedSizes, minTotal],
   );
 
   const fieldErrors = {};
@@ -183,7 +183,7 @@ export function PanelTallas({
       'aria-describedby': generalErrors.length > 0 ? generalErrorsId : undefined,
     },
     [
-      h('legend', { className: 'es-panel-title', key: 'legend' }, 'Tallas'),
+      h('legend', { className: 'es-panel-title', key: 'legend' }, isSingleSize ? 'Cantidad' : 'Tallas'),
       h(
         'div',
         { className: cx('es-tallas-grid', isSingleSize && 'es-tallas-grid--single'), key: 'grid' },

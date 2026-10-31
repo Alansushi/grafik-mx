@@ -114,23 +114,24 @@
       const items = p.items.map((it) => `
         <section class="es-pedido-item">
           ${it.preview_url
-            ? `<img class="es-pedido-preview" src="${esc(it.preview_url)}" alt="Vista previa aprobada por el cliente" />`
+            ? `<img class="es-pedido-preview" src="${esc(it.preview_url)}" alt="${it.render_type === 'bracelet' ? 'Tira plana y pulsera cerrada, vistas aproximadas' : 'Vista previa aprobada por el cliente'}" />`
             : '<p class="es-hint">La vista previa no está disponible.</p>'}
           <dl class="es-pedido-datos">
-            <dt>Prenda</dt><dd>${esc(it.garment)}</dd>
+            <dt>${it.render_type === 'bracelet' ? 'Producto' : 'Prenda'}</dt><dd>${esc(it.garment)}</dd>
             <dt>Color</dt><dd>
               <span class="es-pedido-chip-color" style="background:${esc(it.color_hex)}"></span>
               ${esc(it.color_name)}
             </dd>
-            <dt>Técnica</dt><dd>${esc(it.technique)}</dd>
-            <dt>Tallas</dt><dd>${esc(breakdownToLabel(it.size_breakdown))}</dd>
+            <dt>Técnica</dt><dd>${esc(it.technique ?? 'Pendiente de confirmar')}</dd>
+            <dt>${it.render_type === 'bracelet' ? 'Cantidad' : 'Tallas'}</dt>
+            <dd>${it.render_type === 'bracelet' ? `${esc(it.qty)} piezas` : esc(breakdownToLabel(it.size_breakdown))}</dd>
             ${it.unit_price_cents != null
               ? `<dt>Precio unitario</dt><dd>${esc(formatCentsMXN(it.unit_price_cents))}</dd>
             <dt>Subtotal</dt><dd>${esc(formatCentsMXN(it.subtotal_cents))}</dd>`
               : ''}
           </dl>
           ${it.logo_url
-            ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar el logo original</a>`
+            ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar ${it.render_type === 'bracelet' ? 'imagen original' : 'logo original'}</a>`
             : ''}
         </section>
       `).join('');
@@ -151,8 +152,8 @@
         </footer>`
           : '<p class="es-hint">Pedido sin cotizar: el precio se confirma con el cliente por WhatsApp.</p>'}
         <p class="es-disclaimer">
-          El archivo que se manda a producción es el logo original, no la vista previa.
-          El acabado final puede variar ligeramente según la técnica.
+          Los archivos originales son la referencia para preparar la impresión. Las vistas son aproximaciones;
+          GRAFIK confirmará material, medidas, técnica y arte final.
         </p>
       `;
       elLoading.hidden = true;

@@ -104,7 +104,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  *   onRemove: () => void,
  * }} props
  */
-export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTransform, onFit, onRemove }) {
+export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTransform, onFit, onRemove, imageLabel = 'logo', bracelet = false }) {
   const scale = transform?.scaleX ?? 1;
   const rotation = transform?.rotation ?? 0;
   const controlsDisabled = busy || !transform;
@@ -130,7 +130,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
         className: 'es-lt-btn',
         onClick: openPicker,
         disabled: busy,
-      }, h(UploadIcon, null), logo ? 'Cambiar logo' : 'Subir logo'),
+      }, h(UploadIcon, null), logo ? `Cambiar ${imageLabel}` : `Subir ${imageLabel}`),
     ),
 
     logo
@@ -162,7 +162,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
         )
       : null,
 
-    logo
+    logo && !bracelet
       ? h(
           'div',
           { className: 'es-lt-group' },
@@ -209,7 +209,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
             className: 'es-btn es-btn-danger',
             onClick: onRemove,
             disabled: busy,
-          }, 'Quitar logo'),
+          }, `Quitar ${imageLabel}`),
         )
       : null,
   );

@@ -17,18 +17,18 @@ import { h, cx } from './react.js';
  */
 export function PanelPrenda({
   garments, techniques, garmentSlug, colorHex, techniqueSlug,
-  onGarment, onColor, onTechnique, busy,
+  onGarment, onColor, onTechnique, busy, isBracelet,
 }) {
   const garment = garments.find((g) => g.slug === garmentSlug) ?? garments[0];
   const variants = garment?.variants ?? [];
   const activeTechnique = techniques.find((t) => t.slug === techniqueSlug);
 
   return h('section', { className: 'es-panel es-panel-prenda', 'aria-busy': busy ? 'true' : 'false' },
-    h('h2', { className: 'es-panel-title' }, 'Tu prenda'),
+    h('h2', { className: 'es-panel-title' }, isBracelet ? 'Tu pulsera' : 'Tu prenda'),
 
     // ── Prenda ──
     h('div', { className: 'es-field' },
-      h('span', { className: 'es-label', id: 'es-lbl-prenda' }, 'Prenda'),
+      h('span', { className: 'es-label', id: 'es-lbl-prenda' }, 'Producto'),
       h('div', { className: 'es-chip-row', role: 'radiogroup', 'aria-labelledby': 'es-lbl-prenda' },
         garments.map((g) => h('button', {
           key: g.slug,
@@ -45,7 +45,7 @@ export function PanelPrenda({
     // ── Color ──
     h('div', { className: 'es-field' },
       h('span', { className: 'es-label', id: 'es-lbl-color' },
-        'Color',
+        isBracelet ? 'Color base' : 'Color',
         h('span', { className: 'es-label-note' },
           ' · ', variants.find((v) => v.color_hex === colorHex)?.color_name ?? ''),
       ),
@@ -68,7 +68,7 @@ export function PanelPrenda({
     ),
 
     // ── Técnica ──
-    h('div', { className: 'es-field' },
+    !isBracelet ? h('div', { className: 'es-field' },
       h('span', { className: 'es-label', id: 'es-lbl-tecnica' }, 'Técnica de personalización'),
       h('div', { className: 'es-chip-row', role: 'radiogroup', 'aria-labelledby': 'es-lbl-tecnica' },
         techniques.map((t) => h('button', {
@@ -88,7 +88,7 @@ export function PanelPrenda({
       activeTechnique?.notes
         ? h('p', { className: 'es-hint' }, activeTechnique.notes)
         : null,
-    ),
+    ) : null,
   );
 }
 

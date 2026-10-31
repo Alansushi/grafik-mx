@@ -4,8 +4,8 @@
 // lo manda por WhatsApp. En Etapa B, el botón de pagar lo moverá a
 // `pending_payment` sin tocar nada de este archivo.
 //
-// Etapa A no cotiza: el pedido se guarda SIN precios, mínimos ni máximos y se
-// cotiza a mano por WhatsApp. pricing_rules y estudio/lib/pricing.js siguen
+// Etapa A no cotiza: el pedido se guarda SIN precios. Pulsera exige el mínimo
+// del catálogo; las demás prendas se cotizan a mano por WhatsApp. pricing_rules y estudio/lib/pricing.js siguen
 // ahí para la Etapa B.
 //
 // ── Regla de seguridad que sostiene todo lo demás ──
@@ -69,19 +69,8 @@ export default async function handler(req, res) {
   if (items.length > MAX_ITEMS) return json(res, 400, { error: 'TOO_MANY_ITEMS', max: MAX_ITEMS });
 
   for (const [i, it] of items.entries()) {
-    if (!isUuid(it?.garment_type_id) || !isUuid(it?.garment_variant_id) || !isUuid(it?.technique_id)) {
-      return json(res, 400, { error: 'INVALID_ID', index: i });
-    }
-    // La comprobación que cierra el agujero de referencia directa.
-    for (const campo of ['logo_path', 'preview_path']) {
-      const ruta = it?.[campo];
-      if (typeof ruta !== 'string' || !ruta.includes(`/${draftId}/`) || ruta.includes('..')) {
-        return json(res, 400, { error: 'PATH_NOT_IN_DRAFT', index: i, field: campo });
-      }
-    }
-    if (!it?.logo_transform || typeof it.logo_transform !== 'object') {
-      return json(res, 400, { error: 'MISSING_TRANSFORM', index: i });
-    }
+    const inputError = validateQuoteItemInput(it, draftId);
+    if (inputError) return json(res, 400, { ...inputError, index: i });
   }
 
   try {
@@ -92,7 +81,7 @@ export default async function handler(req, res) {
     const garmentIds = [...new Set(items.map((i) => i.garment_type_id))];
     const [garments, variants] = await Promise.all([
       sbGet(supabaseUrl, headers, 'garment_types', {
-        select: 'id,slug,name,allowed_sizes,is_active',
+        select: 'id,slug,name,allowed_sizes,min_qty,is_active,render_type',
         in: { id: garmentIds },
       }),
       sbGet(supabaseUrl, headers, 'garment_variants', {
@@ -114,6 +103,17 @@ export default async function handler(req, res) {
       );
       if (!variant) return json(res, 404, { error: 'VARIANT_NOT_FOUND', index });
 
+      const bracelet = garment.render_type === 'bracelet';
+      if (!validTechniqueForGarment(it.technique_id, garment.render_type)) {
+        return json(res, 400, { error: 'INVALID_TECHNIQUE', index });
+      }
+      if (!bracelet) {
+        const [technique] = await sbGet(supabaseUrl, headers, 'print_techniques', {
+          select: 'id,is_active', eq: { id: it.technique_id }, limit: 1,
+        });
+        if (!technique?.is_active) return json(res, 404, { error: 'TECHNIQUE_NOT_FOUND', index });
+      }
+
       let breakdown;
       try {
         breakdown = normalizeBreakdown(it.size_breakdown ?? {});
@@ -121,9 +121,8 @@ export default async function handler(req, res) {
         return json(res, 400, { error: err.code ?? 'INVALID_BREAKDOWN', index });
       }
 
-      // Sin mínimo ni máximo: sólo tallas válidas y al menos una pieza.
-      const check = validateBreakdown(breakdown, { allowedSizes: garment.allowed_sizes });
-      if (!check.valid || check.total < 1) {
+      const check = validateCatalogBreakdown(breakdown, garment);
+      if (!check.valid || check.total < 1 || (bracelet && !validBraceletBreakdown(breakdown))) {
         return json(res, 400, {
           error: 'INVALID_BREAKDOWN', index,
           details: check.valid ? [{ code: 'EMPTY' }] : check.errors,
@@ -147,7 +146,7 @@ export default async function handler(req, res) {
       item_index: index,
       garment_type_id: garment.id,
       garment_variant_id: variant.id,
-      technique_id: item.technique_id,
+      technique_id: item.technique_id ?? null,
       size_breakdown: breakdown,
       qty: totalUnits(breakdown),
       logo_object_path: item.logo_path,
@@ -195,6 +194,37 @@ export default async function handler(req, res) {
     logError('submit-quote', err, { ip });
     return json(res, 502, { error: 'SUBMIT_FAILED' });
   }
+}
+
+export function validateQuoteItemInput(it, draftId) {
+  if (!isUuid(it?.garment_type_id) || !isUuid(it?.garment_variant_id)
+    || (it?.technique_id != null && !isUuid(it.technique_id))) return { error: 'INVALID_ID' };
+  for (const [field, extension] of [['logo_path', '(png|jpg|jpeg|webp|svg)'], ['preview_path', 'png']]) {
+    const path = it?.[field];
+    const pattern = new RegExp(`^\\d{4}/\\d{2}/${draftId}/[a-zA-Z0-9._-]+\\.${extension}$`);
+    if (typeof path !== 'string' || !pattern.test(path) || path.includes('..')) {
+      return { error: 'PATH_NOT_IN_DRAFT', field };
+    }
+  }
+  if (!it?.logo_transform || typeof it.logo_transform !== 'object' || Array.isArray(it.logo_transform)) {
+    return { error: 'MISSING_TRANSFORM' };
+  }
+  return null;
+}
+
+export function validTechniqueForGarment(id, renderType) {
+  return renderType === 'bracelet' ? id == null : isUuid(id);
+}
+
+export function validBraceletBreakdown(breakdown) {
+  return Object.keys(breakdown).length === 1 && Number.isInteger(breakdown.U) && breakdown.U > 0;
+}
+
+export function validateCatalogBreakdown(breakdown, garment) {
+  return validateBreakdown(breakdown, {
+    allowedSizes: garment.allowed_sizes,
+    ...(garment.render_type === 'bracelet' ? { minTotal: garment.min_qty } : {}),
+  });
 }
 
 /**

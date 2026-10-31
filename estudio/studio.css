@@ -134,6 +134,13 @@ a { color: inherit; }
   font-weight: 400;
   margin: 0;
 }
+.es-intro {
+  color: var(--es-plata);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  max-width: 680px;
+}
 
 /* ---- Indicador de pasos (estudio/ui/step-indicator.js) ----
    Tercera fila del header, sólo de lectura — no hay wizard que navegar.
@@ -314,6 +321,10 @@ a { color: inherit; }
   width: 100% !important;
   height: 100% !important;
 }
+
+.es-bracelet-canvas { cursor: grab; }
+.es-stage[data-editing="true"] .es-bracelet-canvas:active { cursor: grabbing; }
+.es-bracelet-note { margin: 10px 2px 0; color: var(--es-plata); font-size: 13px; line-height: 1.45; }
 
 /* Con un logo colocado, arrastrarlo o escalarlo con el dedo no debe desplazar la
    página: sin esto el navegador cancela el gesto (pointercancel) y se lleva el
