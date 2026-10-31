@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Herramientas de desarrollo del configurador /estudio/. El sitio y las Vercel Functions NO tienen dependencias de runtime — Mercado Pago, Resend y Supabase se consumen con fetch crudo.",
   "engines": {
-    "node": ">=20"
+    "node": "24.x"
   },
   "scripts": {
     "test": "vitest run",
