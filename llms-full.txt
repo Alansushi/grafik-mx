@@ -240,11 +240,11 @@ Pedidos producidos y entregados por GRAFIK (fotos reales, galería en https://ww
 
 ## Estudio GRAFIK
 
-El Estudio GRAFIK (https://www.grafik.mx/estudio/) es una herramienta para visualizar cómo se verá tu logo aplicado en una playera o gorra antes de solicitar tu cotización. No muestra precios: solo la vista previa y el envío del diseño por WhatsApp. Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).
+El Estudio GRAFIK (https://www.grafik.mx/estudio/) permite visualizar tu diseño en una playera, gorra o pulsera antes de solicitar una cotización. En pulseras puedes colocar una imagen o logo y revisar una tira plana y una vista cerrada; ambas son aproximaciones visuales, no el arte final de impresión. No muestra precios: al terminar se abre WhatsApp con un mensaje preparado que incluye un enlace a tu vista previa; debes enviarlo desde esa aplicación para solicitar la cotización. Para ajustar el diseño con mayor precisión, abre el Estudio en computadora.
 
-1. **Elige tu prenda** — Playera o gorra, color y técnica de personalización (DTF, bordado o sublimación).
-2. **Sube tu logo** — Colócalo y ajusta el tamaño.
-3. **Míralo y cotiza** — Nos mandas el diseño por WhatsApp.
+1. **Elige tu producto** — Playera, gorra o pulsera; selecciona sus opciones de personalización.
+2. **Sube tu diseño** — Colócalo y ajusta el tamaño.
+3. **Míralo y cotiza** — Envía por WhatsApp el enlace a tu vista previa.
 
 ---
 

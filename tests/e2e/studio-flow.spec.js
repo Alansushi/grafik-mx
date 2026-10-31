@@ -435,7 +435,7 @@ test.describe('flujo del configurador', () => {
   test('F14. Delete quita el logo seleccionado; dentro de un campo no hace nada', async ({ page }) => {
     await conLogo(page);
 
-    const campo = page.locator('input:not([type="file"])').first();
+    const campo = page.locator('#es-customer-name');
     await campo.focus();
     await page.keyboard.press('Backspace');
     expect((await estado(page)).hasLogo).toBe(true);
@@ -674,7 +674,7 @@ test.describe('flujo del configurador', () => {
         visible: [...document.querySelectorAll('.es-about-faq dt')].map((dt) => [norm(dt.textContent), norm(dt.nextElementSibling.textContent)]),
       };
     });
-    expect(schema.length).toBe(3);
+    expect(schema.length).toBe(4);
     expect(visible).toEqual(schema);
   });
 

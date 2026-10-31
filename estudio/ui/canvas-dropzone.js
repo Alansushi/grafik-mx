@@ -69,7 +69,7 @@ function UploadIcon() {
  *   onReject?: (reason:'type'|'size', file: File) => void,
  * }} props
  */
-export function CanvasDropzone({ visible, busy, fileInputRef, onFile, onReject }) {
+export function CanvasDropzone({ visible, busy, fileInputRef, onFile, onReject, imageLabel = 'logo' }) {
   const [isDragOver, setIsDragOver] = useState(false);
   // Rechazo ANTES de llegar a onFile: mime/tamaño obviamente inválidos. Es
   // deliberadamente distinto del `error` que vive en panel-logo.js — ese otro
@@ -139,7 +139,7 @@ export function CanvasDropzone({ visible, busy, fileInputRef, onFile, onReject }
     // no hay drag&drop) pero oculto visualmente; el <label> le da nombre
     // accesible sin duplicar texto visible. logo-toolbar.js abre este mismo
     // input por su ref — un único <input> en todo el DOM.
-    h('label', { className: 'es-sr-only', htmlFor: 'es-logo-input' }, 'Elegir archivo de logo'),
+    h('label', { className: 'es-sr-only', htmlFor: 'es-logo-input' }, `Elegir archivo de ${imageLabel}`),
     h('input', {
       ref: fileInputRef,
       id: 'es-logo-input',
@@ -167,10 +167,12 @@ export function CanvasDropzone({ visible, busy, fileInputRef, onFile, onReject }
           },
           h(UploadIcon, null),
           h('p', { className: 'es-dropzone-title' },
-            busy ? 'Cargando…' : 'Arrastra tu logo aquí o toca para elegirlo'),
+            busy ? 'Cargando…' : `Arrastra tu ${imageLabel} aquí o toca para elegir archivo`),
           h('p', { className: 'es-dropzone-formats' }, 'PNG · JPG · WEBP · SVG — hasta 8 MB'),
           h('p', { className: 'es-hint', id: 'es-logo-hint' },
-            'PNG con fondo transparente: un JPG lleva un rectángulo de fondo que se ve pegado encima de la prenda.'),
+            imageLabel === 'imagen'
+              ? 'Puedes reemplazar esta imagen después. Se mostrará en la tira y la simulación cerrada.'
+              : 'PNG con fondo transparente: un JPG lleva un rectángulo de fondo que se ve pegado encima de la prenda.'),
           localError
             ? h('p', { className: 'es-error-text es-canvas-dropzone-error', role: 'alert' }, localError)
             : null,

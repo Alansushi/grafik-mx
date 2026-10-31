@@ -17,9 +17,10 @@ import { LogoToolbar } from './logo-toolbar.js';
 import { StepIndicator } from './step-indicator.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
+import { createBraceletStage } from '../canvas/bracelet-stage.js';
 import { resolvePrintArea } from '../lib/geometry.js';
 import { loadImageFromUrl, loadImageFromFile } from '../canvas/image-loader.js';
-import { normalizeBreakdown } from '../lib/sizes.js';
+import { normalizeBreakdown, validateBreakdown } from '../lib/sizes.js';
 import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
 import { breakdownToLabel } from '../lib/sizes.js';
 import { track, trackOnce } from './track.js';
@@ -124,6 +125,7 @@ export function StudioApp({ catalog, stageContainer }) {
     () => garments.find((g) => g.slug === garmentSlug) ?? garments[0],
     [garments, garmentSlug],
   );
+  const isBracelet = garment.render_type === 'bracelet';
   const technique = useMemo(
     () => techniques.find((t) => t.slug === techniqueSlug) ?? techniques[0],
     [techniques, techniqueSlug],
@@ -146,7 +148,7 @@ export function StudioApp({ catalog, stageContainer }) {
       const size = garment.canvas_size || DEFAULT_CANVAS_SIZE;
       const printArea = resolvePrintArea(garment.print_area, size);
 
-      const baseImage = await loadImageFromUrl(garment.base_mockup_url);
+      const baseImage = isBracelet ? null : await loadImageFromUrl(garment.base_mockup_url);
 
       // Vistas no-front (presentación): pocas y ligeras, se precargan todas
       // de una vez para que el selector de vista no tenga que esperar red en
@@ -160,8 +162,10 @@ export function StudioApp({ catalog, stageContainer }) {
       stageRef.current?.destroy();
       stageContainer.style.aspectRatio = `${size.width} / ${size.height}`;
 
-      created = createStudioStage({ container: stageContainer, width: size.width, height: size.height, printArea });
-      created.setGarment({ baseImage, foldImage: null, colorHex });
+      created = isBracelet
+        ? createBraceletStage({ container: stageContainer, colorHex: garment.variants[0].color_hex })
+        : createStudioStage({ container: stageContainer, width: size.width, height: size.height, printArea });
+      if (!isBracelet) created.setGarment({ baseImage, foldImage: null, colorHex });
       created.onTransformChange((t) => {
         setTransform(t);
         setFitScale(created.getFitScale());
@@ -192,7 +196,7 @@ export function StudioApp({ catalog, stageContainer }) {
       trackOnce('studio_error', { where: 'stage', code: codigo }, `error:stage:${codigo}`);
       setStageError({
         code: err?.code ?? 'STAGE_FAILED',
-        message: 'No pudimos cargar la vista previa de esta prenda. Recarga la página o escríbenos por WhatsApp.',
+        message: 'No pudimos cargar la vista previa. Recarga la página o escríbenos por WhatsApp.',
       });
       setStageBusy(false);
     });
@@ -225,7 +229,7 @@ export function StudioApp({ catalog, stageContainer }) {
 
   // ── Tallas asentadas ────────────────────────────────────────────────────
   //
-  // Etapa A no cotiza: sin precios, mínimos ni máximos. Se conserva el debounce
+  // Etapa A no cotiza precios. Se conserva el debounce
   // sólo para que `studio_sizes` mida la cantidad ya asentada (no el "1" de
   // escribir "12").
   const piezas = Object.values(breakdown).reduce((s, n) => s + n, 0);
@@ -355,9 +359,17 @@ export function StudioApp({ catalog, stageContainer }) {
   // Sólo cuando CAMBIA: el botón de la prenda ya elegida también llama a onGarment.
   // El slug viene del catálogo; el servidor sólo acepta [a-z0-9-] y descartaría uno distinto.
   const onGarment = useCallback((slug) => {
-    if (slug !== garmentSlug) track('studio_garment', { garment: slug });
+    if (slug !== garmentSlug) {
+      track('studio_garment', { garment: slug });
+      const selected = garments.find((g) => g.slug === slug);
+      if (selected?.render_type === 'bracelet') {
+        setBreakdown({ U: selected.min_qty });
+        setRawSizes({ U: selected.min_qty });
+        setSizeErrors({});
+      }
+    }
     setGarmentSlug(slug);
-  }, [garmentSlug]);
+  }, [garmentSlug, garments]);
 
   // ── Tallas ──────────────────────────────────────────────────────────────
   //
@@ -433,8 +445,8 @@ export function StudioApp({ catalog, stageContainer }) {
           items: [{
             garment_type_id: garment.id,
             garment_variant_id: variant.id,
-            technique_id: technique.id,
-            size_breakdown: breakdown,
+            technique_id: isBracelet ? null : technique.id,
+            size_breakdown: isBracelet ? { U: breakdown.U } : breakdown,
             logo_path: logoPath,
             preview_path: previewPath,
             logo_transform: stage.getTransform(),
@@ -467,7 +479,7 @@ export function StudioApp({ catalog, stageContainer }) {
     } finally {
       setSubmitting(false);
     }
-  }, [garment, colorHex, technique, breakdown, customer]);
+  }, [garment, colorHex, technique, breakdown, customer, isBracelet]);
 
   // canSubmit exige además que el stage esté VIVO y que el logo tenga posición
   // real. Sin eso, un fallo al montar la vista previa dejaba el botón activo
@@ -475,7 +487,11 @@ export function StudioApp({ catalog, stageContainer }) {
   // logo sin colocar. Es el mismo bug de "el logo queda donde no se imprime",
   // pero a nivel de pedido.
   const canSubmit = Boolean(
-    piezas > 0
+    validateBreakdown(breakdown, {
+      allowedSizes: garment.allowed_sizes,
+      ...(isBracelet ? { minTotal: garment.min_qty } : {}),
+    }).valid && piezas > 0 && !Object.keys(sizeErrors).length
+    && (!isBracelet || (Object.keys(breakdown).length === 1 && Number.isInteger(breakdown.U) && breakdown.U > 0))
     && logo && !logo.isEmpty && transform
     && !stageBusy && !stageError && stageRef.current
     && customer.name.trim().length >= 2
@@ -484,13 +500,13 @@ export function StudioApp({ catalog, stageContainer }) {
   );
 
   // Indicador de pasos del header (step-indicator.js): mismos ingredientes
-  // que canSubmit, pero por separado — "tallas" se marca lista con sólo
-  // tener al menos una pieza (Etapa A no tiene mínimo ni cotización). Es sólo de lectura: no hay wizard ni pasos que
+  // que canSubmit, pero por separado — "tallas" se marca lista al cumplir
+  // el mínimo de Pulsera o tener una pieza en las otras prendas. Es sólo de lectura: no hay wizard ni pasos que
   // navegar, el configurador entero sigue en una sola pantalla.
   const stepsDone = {
     prenda: true,
     logo: Boolean(logo && !logo.isEmpty && transform),
-    tallas: piezas > 0,
+    tallas: piezas > 0 && (!isBracelet || piezas >= garment.min_qty),
     contacto: customer.name.trim().length >= 2 && customer.email.includes('@') && telefonoValido(customer.phone),
   };
 
@@ -501,7 +517,7 @@ export function StudioApp({ catalog, stageContainer }) {
   // vivo y no una foto del montaje.
   window.__studioBridge = {
     get stage() { return stageRef.current; },
-    garment, colorHex, transform, activeView, stageBusy,
+    garment, colorHex, transform, activeView, stageBusy, logo,
     setColor: setColorHex,
     setGarmentBySlug: setGarmentSlug,
     setView: onView,
@@ -520,7 +536,7 @@ export function StudioApp({ catalog, stageContainer }) {
   const stepsMount = document.getElementById('es-steps-mount');
 
   return h(Fragment, null,
-    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone }), stepsMount) : null,
+    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone, bracelet: isBracelet }), stepsMount) : null,
     viewPillMount
       ? createPortal(
           h(ViewPill, { views: garment.views ?? [], activeView, onView, busy: stageBusy }),
@@ -531,6 +547,7 @@ export function StudioApp({ catalog, stageContainer }) {
       ? createPortal(
           h(CanvasDropzone, {
             visible: !logo,
+            imageLabel: isBracelet ? 'imagen' : 'logo',
             busy: stageBusy,
             fileInputRef,
             onFile,
@@ -542,10 +559,15 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     toolbarMount
       ? createPortal(
-          h(LogoToolbar, {
-            logo, transform, fitScale, busy: stageBusy, openPicker,
-            onTransform, onFit, onRemove: onRemoveLogo,
-          }),
+          h(Fragment, null,
+            h(LogoToolbar, {
+              logo, transform, fitScale, busy: stageBusy, openPicker,
+              imageLabel: isBracelet ? 'imagen' : 'logo', bracelet: isBracelet,
+              onTransform, onFit, onRemove: onRemoveLogo,
+            }),
+            isBracelet ? h('p', { className: 'es-bracelet-note' },
+              'La tira plana y la pulsera cerrada son aproximaciones visuales, no el arte final de impresión.') : null,
+          ),
           toolbarMount,
         )
       : null,
@@ -559,10 +581,18 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
+      isBracelet,
       onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),
-    h(PanelLogo, {
+    isBracelet
+      ? h('section', { className: 'es-panel es-panel-logo' },
+          h('h2', { className: 'es-panel-title' }, 'Imagen'),
+          h('p', { className: 'es-hint' }, logo ? logo.name : 'Sube una imagen para personalizar la pulsera.'),
+          logoError ? h('p', { className: 'es-error-text', role: 'alert' }, logoError.message) : null,
+          h('p', { className: 'es-hint' },
+            '¿Necesitas un diseño más específico o usar más imágenes? Envíanos tus archivos por WhatsApp y el equipo de GRAFIK te ayudará a adaptarlos a la pulsera.'))
+      : h(PanelLogo, {
       logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,
       // El área en PÍXELES del canvas (no la fracción) y su ancho real en cm:
@@ -575,6 +605,7 @@ export function StudioApp({ catalog, stageContainer }) {
     }),
     h(PanelTallas, {
       allowedSizes: garment.allowed_sizes,
+      minTotal: isBracelet ? garment.min_qty : undefined,
       breakdown, rawSizes, rawErrors: sizeErrors,
       onChange: onSize,
     }),
@@ -582,7 +613,8 @@ export function StudioApp({ catalog, stageContainer }) {
       summary: {
         garmentName: garment.name,
         colorName: garment.variants.find((v) => v.color_hex === colorHex)?.color_name ?? '',
-        techniqueName: technique.name,
+        techniqueName: isBracelet ? 'Pendiente de confirmar' : technique.name,
+        isBracelet,
         breakdown, qty: piezas,
       },
       customer, onCustomer: (k, v) => setCustomer((c) => ({ ...c, [k]: v })),
@@ -629,16 +661,18 @@ async function subirArchivo({ kind, draftId, blob, filename, itemIndex, mime }) 
  * liga a /estudio/pedido/?t=..., donde se ve el preview que el cliente aprobó.
  */
 function construirMensajeWhatsApp({ data, garment, variant, technique, breakdown, customer }) {
+  const isBracelet = garment.render_type === 'bracelet';
   const liga = `${location.origin}/estudio/pedido/?t=${data.public_token}`;
   const lineas = [
     `Hola, acabo de armar un pedido en el configurador. Folio ${data.short_code}.`,
     '',
-    `Prenda: ${garment.name}`,
+    `${isBracelet ? 'Producto' : 'Prenda'}: ${garment.name}`,
     `Color: ${variant?.color_name ?? ''}`,
-    `Técnica: ${technique.name}`,
-    `Tallas: ${breakdownToLabel(breakdown)}`,
+    ...(isBracelet ? [`Cantidad: ${breakdown.U ?? 0} piezas`] : [
+      `Técnica: ${technique.name}`, `Tallas: ${breakdownToLabel(breakdown)}`]),
     '',
     `Mi diseño: ${liga}`,
+    ...(isBracelet ? ['Si necesito añadir archivos, los envío en esta conversación.'] : []),
     '',
     `Soy ${customer.name.trim()}.`,
     `Correo: ${customer.email.trim()}`,

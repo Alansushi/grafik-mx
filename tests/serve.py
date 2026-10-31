@@ -9,7 +9,23 @@ el esqueleto de carga, lo que parecía un fallo del código.
 Uso: python3 tests/serve.py <puerto>
 """
 import sys
+import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+
+class Handler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        # El servidor hermético no monta Vercel Functions. El acceso opcional
+        # está apagado en estos tests salvo donde Playwright falsea la API.
+        if self.path == "/api/quote-intent":
+            body = json.dumps({"enabled": False}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        super().do_GET()
 
 
 class Servidor(ThreadingHTTPServer):
@@ -19,4 +35,4 @@ class Servidor(ThreadingHTTPServer):
 
 if __name__ == "__main__":
     puerto = int(sys.argv[1]) if len(sys.argv) > 1 else 8099
-    Servidor(("127.0.0.1", puerto), SimpleHTTPRequestHandler).serve_forever()
+    Servidor(("127.0.0.1", puerto), Handler).serve_forever()

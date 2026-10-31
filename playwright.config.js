@@ -56,17 +56,17 @@ export default defineConfig({
     // táctil y el desbordamiento — por eso va en los dos tamaños.
     {
       name: 'canvas',
-      testMatch: /(canvas|studio-flow|a11y)\.spec\.js/,
+      testMatch: /(canvas|studio-flow|bracelet|a11y)\.spec\.js/,
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {
       name: 'canvas-webkit',
-      testMatch: /(canvas|studio-flow)\.spec\.js/,
+      testMatch: /(canvas|studio-flow|bracelet)\.spec\.js/,
       use: { ...devices['Desktop Safari'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {
       name: 'canvas-mobile',
-      testMatch: /(canvas|studio-flow|a11y)\.spec\.js/,
+      testMatch: /(canvas|studio-flow|bracelet|a11y)\.spec\.js/,
       use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     // analytics.js contra una página fixture, con /api/track interceptado.

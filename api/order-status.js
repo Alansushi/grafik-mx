@@ -71,19 +71,22 @@ export default async function handler(req, res) {
     // El catálogo se resuelve por id para poder mostrar nombres en vez de uuids.
     const [garments, variants, techniques] = await Promise.all([
       sbGet(supabaseUrl, headers, 'garment_types', {
-        select: 'id,name,slug', in: { id: [...new Set(items.map((i) => i.garment_type_id))] },
+        select: 'id,name,slug,render_type', in: { id: [...new Set(items.map((i) => i.garment_type_id))] },
       }),
       sbGet(supabaseUrl, headers, 'garment_variants', {
         select: 'id,color_hex,color_name', in: { id: [...new Set(items.map((i) => i.garment_variant_id))] },
       }),
-      sbGet(supabaseUrl, headers, 'print_techniques', {
-        select: 'id,name,slug', in: { id: [...new Set(items.map((i) => i.technique_id))] },
-      }),
+      items.some((i) => i.technique_id)
+        ? sbGet(supabaseUrl, headers, 'print_techniques', {
+            select: 'id,name,slug', in: { id: [...new Set(items.map((i) => i.technique_id).filter(Boolean))] },
+          })
+        : Promise.resolve([]),
     ]);
 
     const itemsSalida = await Promise.all(items.map(async (it) => ({
       item_index: it.item_index,
       garment: garments.find((g) => g.id === it.garment_type_id)?.name ?? null,
+      render_type: garments.find((g) => g.id === it.garment_type_id)?.render_type ?? 'garment',
       color_hex: variants.find((v) => v.id === it.garment_variant_id)?.color_hex ?? null,
       color_name: variants.find((v) => v.id === it.garment_variant_id)?.color_name ?? null,
       technique: techniques.find((t) => t.id === it.technique_id)?.name ?? null,

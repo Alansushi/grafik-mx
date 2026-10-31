@@ -18,14 +18,17 @@ function isLikelyValidEmail(value) {
 
 function SummaryBody({ summary }) {
   return h('dl', { className: 'es-resumen-summary' }, [
-    h('dt', { className: 'es-resumen-summary-label', key: 'gt' }, 'Prenda'),
+    h('dt', { className: 'es-resumen-summary-label', key: 'gt' }, summary.isBracelet ? 'Producto' : 'Prenda'),
     h('dd', { className: 'es-resumen-summary-value', key: 'gd' }, summary.garmentName),
     h('dt', { className: 'es-resumen-summary-label', key: 'ct' }, 'Color'),
     h('dd', { className: 'es-resumen-summary-value', key: 'cd' }, summary.colorName),
-    h('dt', { className: 'es-resumen-summary-label', key: 'tt' }, 'Técnica'),
-    h('dd', { className: 'es-resumen-summary-value', key: 'td' }, summary.techniqueName),
-    h('dt', { className: 'es-resumen-summary-label', key: 'st' }, 'Tallas'),
-    h('dd', { className: 'es-resumen-summary-value', key: 'sd' }, summary.qty > 0 ? breakdownToLabel(summary.breakdown) : 'Aún sin piezas'),
+    ...(!summary.isBracelet ? [
+      h('dt', { className: 'es-resumen-summary-label', key: 'tt' }, 'Técnica'),
+      h('dd', { className: 'es-resumen-summary-value', key: 'td' }, summary.techniqueName),
+    ] : []),
+    h('dt', { className: 'es-resumen-summary-label', key: 'st' }, summary.isBracelet ? 'Cantidad' : 'Tallas'),
+    h('dd', { className: 'es-resumen-summary-value', key: 'sd' }, summary.qty > 0
+      ? (summary.isBracelet ? `${summary.qty} piezas` : breakdownToLabel(summary.breakdown)) : 'Aún sin piezas'),
   ]);
 }
 
