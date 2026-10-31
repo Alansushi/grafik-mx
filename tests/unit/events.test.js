@@ -287,7 +287,7 @@ describe('events.js — sincronía de la Fase 2 con index.html', () => {
     expect(HTML, 'las FAQ necesitan data-faq').toMatch(/<details[^>]*\bdata-faq\b/);
     expect(HTML, 'las tarjetas del marquee necesitan data-work').toMatch(/className="work-card"[^>]*data-work=\{w\.slug\}|data-work=\{w\.slug\}[^>]*className="work-card"/);
     expect(HTML, 'el formulario necesita data-track-form').toMatch(/<form[^>]*\bdata-track-form\b/);
-    expect(HTML, 'los chips emiten service_chip').toMatch(/grafikTrack\('service_chip'/);
+    expect(HTML, 'el selector conserva el evento service_chip').toMatch(/grafikTrack\('service_chip'/);
   });
 });
 

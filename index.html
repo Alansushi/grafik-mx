@@ -1087,7 +1087,6 @@
       const [detalle, setDetalle] = useState('');
       const [promociones, setPromociones] = useState(false);
       const [captureEnabled, setCaptureEnabled] = useState(false);
-      const [privacy, setPrivacy] = useState(null);
       const quoteKey = React.useRef(null);
       const trackedSteps = React.useRef(new Set());
       if (!quoteKey.current) quoteKey.current = crypto.randomUUID();
@@ -1099,11 +1098,10 @@
       React.useEffect(() => {
         fetch('/api/quote-intent').then(r => r.json()).then(d => {
           setCaptureEnabled(d.enabled === true);
-          setPrivacy(d.privacy || null);
         }).catch(() => {});
       }, []);
 
-      // Las tarjetas de intención/productos (pickIntent) preseleccionan chip y mensaje.
+      // Las tarjetas de intención/productos (pickIntent) preseleccionan servicio y mensaje.
       React.useEffect(() => {
         const onIntent = (e) => {
           const d = e.detail || {};
@@ -1128,19 +1126,10 @@
         return () => clearTimeout(timer);
       }, [captureEnabled, nombre, correo, telefono, servicio, detalle, promociones]);
 
-      const chips = [
-        "Lonas",
-        "Volantes",
-        "Pósters",
-        "Boletos",
-        "Stickers",
-        "Pendones",
-        "Brazaletes",
-        "Tarjetas de presentación",
-        "Caballetes",
-        "Figuras en coroplast",
-        "Impresión 3D",
-        "Artículos Promocionales",
+      const serviceGroups = [
+        { label: "Impresión y papelería", options: ["Volantes", "Pósters", "Boletos", "Stickers", "Tarjetas de presentación"] },
+        { label: "Gran formato y exhibición", options: ["Lonas", "Pendones", "Caballetes", "Figuras en coroplast"] },
+        { label: "Promocionales y especiales", options: ["Brazaletes", "Artículos Promocionales", "Impresión 3D"] },
       ];
 
       const handleSubmit = (e) => {
@@ -1200,20 +1189,21 @@
               <div className="contacto-right">
                 <form onSubmit={handleSubmit} data-track-form>
                   <div className="seg-wrap">
-                    <label className="field-label">¿Qué servicio necesitas?</label>
-                    <div className="seg-chips">
-                      {chips.map(s => (
-                        <button key={s} type="button"
-                          className={`chip-btn${servicio === s ? ' chip-sel' : ''}`}
-                          onClick={() => {
-                            if (window.grafikTrack) window.grafikTrack('service_chip', { servicio: s, selected: servicio !== s });
-                            step('service');
-                            setServicio(prev => prev === s ? '' : s);
-                          }}>
-                          {s}
-                        </button>
+                    <label className="field-label" htmlFor="servicio">¿Qué servicio necesitas?</label>
+                    <select id="servicio" name="service" className="field service-select" value={servicio}
+                      onChange={e => {
+                        const next = e.target.value;
+                        if (window.grafikTrack) window.grafikTrack('service_chip', { servicio: next || servicio, selected: Boolean(next) });
+                        step('service');
+                        setServicio(next);
+                      }}>
+                      <option value="">Selecciona un servicio (opcional)</option>
+                      {serviceGroups.map(group => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.options.map(option => <option key={option} value={option}>{option}</option>)}
+                        </optgroup>
                       ))}
-                    </div>
+                    </select>
                   </div>
                   <div className="form-field">
                     <label className="field-label" htmlFor="nombre">Tu nombre</label>
@@ -1236,10 +1226,10 @@
                       placeholder="Ej: Necesito 5 lonas de 2×1m para evento este sábado..."
                       value={detalle} onChange={e => { setDetalle(e.target.value); step('details'); }} />
                   </div>
-                  {captureEnabled && <div className="form-field">
-                    <p>{privacy?.controller}, con domicilio en {privacy?.address}, tratará tu nombre, correo, teléfono y detalle para preparar y dar seguimiento a la cotización. Orkestalo recibe y atiende las solicitudes de GRAFIK. Al pulsar Enviar se abrirá WhatsApp con el mensaje preparado; debes enviarlo desde esa aplicación para que Orkestalo lo reciba. Puedes ejercer derechos ARCO en {privacy?.email}. Las promociones requieren tu aceptación separada. <a href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Aviso de privacidad integral</a>.</p>
-                    <label><input type="checkbox" checked={promociones} onChange={e => setPromociones(e.target.checked)} /> Acepto recibir promociones por correo (opcional).</label>
-                  </div>}
+                  <div className="form-field">
+                    <label className="form-marketing-consent"><input type="checkbox" checked={promociones} onChange={e => setPromociones(e.target.checked)} /> Acepto recibir promociones por correo (opcional).</label>
+                    <a className="form-privacy-link" href="/api/privacy-notice" target="_blank" rel="noopener noreferrer">Aviso de privacidad integral</a>
+                  </div>
                   <button type="submit" className="btn btn-green form-submit">
                     <Ico id="i-wa" w={18} h={18}/>
                     Enviar por WhatsApp
