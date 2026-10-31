@@ -429,11 +429,13 @@
     .field:focus { border-color: var(--rojo); box-shadow: 3px 3px 0 var(--rojo); }
     textarea.field { resize: none; }
     .seg-wrap { margin-bottom: 20px; }
-    .seg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip-btn { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 13px 16px; border: 1.5px solid rgba(240,240,238,0.12); background: var(--carbon-mid); color: var(--plata); cursor: pointer; transition: background .12s, color .12s; line-height: 1; }
-    .chip-btn:hover { background: var(--carbon-hi); color: var(--blanco); }
-    .chip-sel { background: var(--rojo) !important; color: var(--blanco) !important; border-color: var(--rojo-dark) !important; }
+    .service-select { height: 48px; cursor: pointer; color-scheme: dark; }
     .form-submit { margin-top: 18px; width: 100%; justify-content: center; font-size: 15px; padding: 15px 24px; }
+    .form-marketing-consent { display: flex; align-items: flex-start; gap: 10px; color: var(--plata-claro); font-size: 13px; line-height: 1.45; cursor: pointer; }
+    .form-marketing-consent input { margin-top: 3px; accent-color: var(--rojo); flex-shrink: 0; }
+    .form-marketing-consent input:focus-visible, .form-privacy-link:focus-visible { outline: 2px solid var(--rojo-txt); outline-offset: 3px; }
+    .form-privacy-link { display: inline-block; margin-top: 9px; color: var(--plata); font-size: 12px; line-height: 1.5; text-decoration: underline; text-underline-offset: 3px; }
+    .form-privacy-link:hover { color: var(--blanco); }
 
     /* ---- FAQs ---- */
     .faq-list {
@@ -790,7 +792,7 @@
       .cta-block .btn { width: 100%; justify-content: center; }
       .ssr-fallback h1 { font-size: 30px; }
       .ssr-fallback h2 { font-size: 20px; }
-      .chip-btn { font-size: 11px; padding: 11px 14px; }
+      .service-select { font-size: 16px; }
       .floating-wa-wrap { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); right: 14px; }
     }
 
@@ -986,7 +988,6 @@
 
 /* Áreas táctiles ≥ 44px en pantallas táctiles y en tablet/móvil (≤ 960px, donde aparece el hamburguesa) */
 @media (pointer: coarse), (max-width: 960px) {
-  .chip-btn { min-height: 44px; }
   .nav-toggle { min-width: 44px; min-height: 44px; align-items: center; justify-content: center; }
   .footer-nav { gap: 0 18px; }
   .footer-nav a, .footer-contact a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
