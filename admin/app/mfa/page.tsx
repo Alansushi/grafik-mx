@@ -16,7 +16,7 @@ export default async function Mfa({ searchParams }: { searchParams: Promise<{err
   return <main className="auth"><div className="auth-card"><p className="eyebrow">SEGUNDO FACTOR</p>
     <h1>{verified ? 'Código de tu aplicación' : 'Configura tu aplicación'}</h1>
     {!verified && enrollment?.data && <><p>Escanea el código con tu aplicación autenticadora.</p>
-      <img className="qr" src={`data:image/svg+xml;base64,${Buffer.from(enrollment.data.totp.qr_code).toString('base64')}`} alt="Código QR para configurar autenticación" />
+      <img className="qr" src={enrollment.data.totp.qr_code} alt="Código QR para configurar autenticación" />
       <p className="secret">Clave manual: <code>{enrollment.data.totp.secret}</code></p></>}
     {error && <p className="error" role="alert">Código inválido o vencido. Inténtalo de nuevo.</p>}
     <form action={verifyMfa}><input type="hidden" name="factorId" value={factorId} />
