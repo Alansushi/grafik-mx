@@ -58,6 +58,9 @@ async function loginAndMfa(page, userEmail) {
   assert.equal(await page.getByText('Resumen de ventas').count(),0);
   const secret=await page.locator('.secret code').textContent();
   assert.ok(secret);
+  const qr=page.locator('img.qr');
+  await qr.waitFor({state:'visible'});
+  assert.ok(await qr.evaluate(img=>img.complete && img.naturalWidth>0),'TOTP QR did not render');
   await page.getByLabel('Código de 6 dígitos').fill(totp(secret));
   await page.getByRole('button',{name:'Verificar y entrar'}).click();
 }
