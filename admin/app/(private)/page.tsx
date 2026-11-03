@@ -1,5 +1,6 @@
 import { salesData } from '@/lib/data';
 import { money, pct, summary } from '@/lib/metrics';
+import Link from 'next/link';
 
 export default async function Home() {
   const data = await salesData();
@@ -23,5 +24,6 @@ export default async function Home() {
       <p>Tasa de contacto <b>{pct(m.contactRate)}</b></p><p>Tasa de venta <b>{pct(m.winRate)}</b></p>
       <p>Costo por oportunidad <b>{m.costPerOpportunity === null ? '—' : money(m.costPerOpportunity)}</b></p>
       <p>Costo por venta <b>{m.costPerSale === null ? '—' : money(m.costPerSale)}</b></p></div>
-      <p className="note">El retorno publicitario compara ingresos cobrados con gasto cargado; no representa utilidad. Atribución al primer origen conocido de cada oportunidad.</p></section></>;
+      <p className="note">El retorno publicitario compara ingresos cobrados con gasto cargado; no representa utilidad. Atribución al primer origen conocido de cada oportunidad.</p>
+      <p><Link href="/historico">Ver visitas, clics, solicitudes y pedidos históricos →</Link></p></section></>;
 }
