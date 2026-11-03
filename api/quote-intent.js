@@ -37,6 +37,8 @@ export default async function handler(req, res) {
   const device = ['mobile', 'tablet', 'desktop'].includes(body.device) ? body.device : null;
   const utm = /^[\p{L}\p{N} _.\-]{1,100}$/u.test(body.utmSource || '') ? body.utmSource : null;
   const referrer = /^[a-z0-9.-]{1,100}$/.test(body.referrerHost || '') ? body.referrerHost : null;
+  const utmMedium = /^[\p{L}\p{N} _.\-]{1,100}$/u.test(body.utmMedium || '') ? body.utmMedium : null;
+  const utmCampaign = /^[\p{L}\p{N} _.\-]{1,100}$/u.test(body.utmCampaign || '') ? body.utmCampaign : null;
 
   let base, secret;
   try {
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     });
     if (!rate.ok || !(await rate.json())) return json(res, 429, { error: 'RATE_LIMITED' });
 
-    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,status,channel,email,name,unsubscribed_at,unsubscribe_token,return_token', eq: { client_key: key }, limit: 1 });
+    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,status,channel,email,name,unsubscribed_at,unsubscribe_token,return_token,utm_source,utm_medium,utm_campaign,referrer_host', eq: { client_key: key }, limit: 1 });
     const existingRes = await fetch(url, { headers });
     if (!existingRes.ok) throw new Error('intent lookup failed');
     const existing = (await existingRes.json())[0];
@@ -77,12 +79,16 @@ export default async function handler(req, res) {
       marketing_consent: consent && !suppressed, consent_at: consent && !suppressed ? now : null,
       ...(suppressed ? { unsubscribed_at: existing?.unsubscribed_at || now } : {}),
       updated_at: now,
+      ...(!existing?.utm_source && !existing?.referrer_host ? {
+        utm_source: utm, utm_medium: utmMedium, utm_campaign: utmCampaign, referrer_host: referrer,
+      } : {}),
       ...(action === 'complete' ? { status: 'completed', completed_at: now } : {}),
     };
     let response = existing
       ? await fetch(buildPostgrestUrl(base, 'quote_intents', { eq: { client_key: key, status: 'started' } }), { method: 'PATCH', headers, body: JSON.stringify(data) })
       : await fetch(buildPostgrestUrl(base, 'quote_intents'), { method: 'POST', headers, body: JSON.stringify({
-        ...data, client_key: key, channel, device, utm_source: utm, referrer_host: referrer,
+        ...data, client_key: key, channel, device, utm_source: utm, utm_medium: utmMedium,
+        utm_campaign: utmCampaign, referrer_host: referrer,
       }) });
     // El autoguardado y Enviar pueden llegar a la vez. Si ambos intentaron
     // INSERT, la clave única deja pasar uno; el otro relee y aplica la

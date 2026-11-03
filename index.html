@@ -546,8 +546,18 @@
       waMsg: "Hola GRAFIK, me interesa cotizar un trabajo de imprenta/publicidad. ¿Me pueden ayudar?"
     };
 
-    const waLink = (msg) =>
-      `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg || CONFIG.waMsg)}`;
+    const waLink = (msg, direct = true) => {
+      const folio = direct ? `GW-${crypto.randomUUID().replace(/-/g, '').toUpperCase()}` : null;
+      const text = `${msg || CONFIG.waMsg}${folio ? `\nFolio ${folio}` : ''}`;
+      return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
+    };
+    const quoteAttribution = () => {
+      try {
+        const ctx = JSON.parse(sessionStorage.getItem('grafik_ctx') || '{}');
+        return { utmSource: ctx.utm_source, utmMedium: ctx.utm_medium,
+          utmCampaign: ctx.utm_campaign, referrerHost: ctx.referrer_host };
+      } catch { return {}; }
+    };
 
     const Ico = ({ id, w = 18, h = 18 }) => (
       <svg width={w} height={h} aria-hidden="true"><use href={`/defs.svg#${id}`}/></svg>
@@ -1120,6 +1130,7 @@
             body: JSON.stringify({ key: quoteKey.current, action: 'start', channel: 'contacto',
               name: nombre, email: correo, phone: telefono, service: servicio, details: detalle,
               marketingConsent: promociones,
+              ...quoteAttribution(),
               device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
           }).catch(() => {});
         }, 900);
@@ -1143,13 +1154,15 @@
         if (telefono) partes.push(`Teléfono: ${telefono.trim()}.`);
         if (!partes.length) partes.push(CONFIG.waMsg);
         if (window.grafikTrack) window.grafikTrack('cta_click', { cta_id: 'contacto-form', kind: 'form', servicio: servicio || undefined });
-        window.open(waLink(partes.join(' ')), '_blank', 'noopener,noreferrer');
+        const folio = `GQ-${quoteKey.current.replace(/-/g, '').slice(0, 16).toUpperCase()}`;
+        window.open(waLink(`${partes.join(' ')} Folio ${folio}.`, false), '_blank', 'noopener,noreferrer');
         if (captureEnabled && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
           fetch('/api/quote-intent', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
             body: JSON.stringify({ key: quoteKey.current, action: 'complete', channel: 'contacto',
               name: nombre, email: correo, phone: telefono, service: servicio, details: detalle,
               marketingConsent: promociones,
+              ...quoteAttribution(),
               device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
           }).then(r => { if (r.ok) { step('saved'); quoteKey.current = crypto.randomUUID(); } }).catch(() => {});
         }

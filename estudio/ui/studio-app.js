@@ -469,6 +469,9 @@ export function StudioApp({ catalog, stageContainer }) {
       window.open(construirMensajeWhatsApp({
         data, garment, variant, technique, breakdown, customer,
       }), '_blank', 'noopener');
+      // Pedido creado y apertura de WhatsApp son dos pasos distintos. Este
+      // evento registra la apertura intentada, nunca un mensaje enviado.
+      track('studio_whatsapp_click', { short_code: data.short_code });
     } catch (err) {
       console.error('[estudio] no se pudo enviar el pedido', err);
       track('studio_error', { where: 'submit', code: safeCode(err?.code, 'SUBMIT_FAILED') });

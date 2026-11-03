@@ -97,6 +97,20 @@ describe('events.js — validateBatch: lista blanca de eventos y props', () => {
     expect(mal.rows[0].props).toEqual({ cta_id: 'lightbox', kind: 'whatsapp' });
   });
 
+  it('9b. folio de WhatsApp: conserva sólo el identificador aleatorio esperado', () => {
+    const valid = 'GW-0123456789ABCDEF0123456789ABCDEF';
+    expect(validateBatch(batch([cta({ props: { cta_id: 'hero', kind: 'whatsapp', folio: valid } })]))
+      .rows[0].props.folio).toBe(valid);
+    expect(validateBatch(batch([cta({ props: { cta_id: 'hero', kind: 'whatsapp', folio: 'cliente@correo.com' } })]))
+      .rows[0].props).toEqual({ cta_id: 'hero', kind: 'whatsapp' });
+  });
+
+  it('9c. apertura de WhatsApp del Estudio exige folio de pedido', () => {
+    const event = (short_code) => ({ name: 'studio_whatsapp_click', props: { short_code } });
+    expect(validateBatch(batch([event('GK-ABC123')])).rows[0].props.short_code).toBe('GK-ABC123');
+    expect(validateBatch(batch([event('GQ-ABC123')])).rows).toHaveLength(0);
+  });
+
   it('10. path: sólo pathname (la query puede traer un correo o un token)', () => {
     const r = validateBatch(batch([cta({ path: '/estudio/?email=a@b.com#x' })]));
     expect(r.rows[0].path).toBe('/estudio/');
