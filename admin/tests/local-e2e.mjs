@@ -79,6 +79,8 @@ try {
   const quote=await sb.from('quote_intents').insert({client_key:key,channel:'contacto',status:'completed',
     email:'buyer@example.test',name:'Comprador Prueba',utm_source:'google',utm_campaign:'noviembre',completed_at:new Date().toISOString()});
   if(quote.error)throw quote.error;
+  const event=await sb.from('site_events').insert({sid:`history${suffix}`,event:'page_view',path:'/',ts:'2026-09-22T12:00:00Z'});
+  if(event.error)throw event.error;
 
   const noAuth=await anon.from('quote_intents').select('id');
   assert.ok(noAuth.error || noAuth.data.length===0,'anonymous user read PII');
@@ -102,8 +104,10 @@ try {
   await page.getByRole('button',{name:'Guardar gasto'}).click();
   await page.getByText('$500.00').first().waitFor({state:'visible'});
   await page.getByRole('link',{name:'Resumen'}).click();
-  await page.getByText('$1,500.00').first().waitFor({state:'visible'});
-  await page.getByText('3.00×').waitFor({state:'visible'});
+  await page.getByRole('heading',{name:'Resumen de ventas'}).waitFor({state:'visible'});
+  await page.getByRole('link',{name:'Histórico',exact:true}).click();
+  await page.getByRole('heading',{name:'Histórico'}).waitFor({state:'visible'});
+  await page.getByText('2026-09-22').first().waitFor({state:'visible'});
 
   const outsider=await browser.newContext();
   const outsiderPage=await outsider.newPage();

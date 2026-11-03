@@ -17,6 +17,11 @@ insert into public.site_events(sid,event,path) values ('testsession01','page_vie
 insert into public.site_events(sid,event,path,props)
 values ('testsession01','direct_whatsapp_click','/estudio/',
   '{"folio":"GW-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"}'::jsonb);
+insert into public.site_events(sid,event,path,props)
+values ('testsession01','cta_click','/', '{"cta_id":"hero","kind":"whatsapp"}'::jsonb);
+insert into public.quote_email_log(intent_id,kind,state)
+select id,'reminder','sent' from public.quote_intents
+where client_key='33333333-3333-4333-8333-333333333333';
 do $$ begin
   if not exists (select 1 from public.sales_opportunities
     where folio='GW-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' and whatsapp_clicked_at is not null) then
@@ -26,6 +31,7 @@ end $$;
 do $$ begin
   if has_table_privilege('anon','public.sales_opportunities','select') then raise exception 'anon can read opportunities'; end if;
   if has_table_privilege('anon','public.v_sessions','select') then raise exception 'anon can read view'; end if;
+  if has_table_privilege('anon','public.v_sales_event_history','select') then raise exception 'anon can read event history'; end if;
   if has_table_privilege('anon','public.quote_intents','select') then raise exception 'anon can read PII'; end if;
 end $$;
 
@@ -36,6 +42,8 @@ do $$ begin
   if (select count(*) from public.sales_opportunities) <> 0 then raise exception 'AAL1 read opportunities'; end if;
   if (select count(*) from public.quote_intents) <> 0 then raise exception 'AAL1 read PII'; end if;
   if (select count(*) from public.v_sessions) <> 0 then raise exception 'AAL1 read view'; end if;
+  if (select count(*) from public.v_sales_event_history) <> 0 then raise exception 'AAL1 read event history'; end if;
+  if (select count(*) from public.v_sales_email_history) <> 0 then raise exception 'AAL1 read mail history'; end if;
   if (select count(*) from public.admin_users) <> 0 then raise exception 'AAL1 read membership'; end if;
   update public.sales_opportunities set stage='ganada' where folio='GW-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
   if found then raise exception 'AAL1 updated opportunity'; end if;
@@ -55,6 +63,9 @@ do $$ begin
   if (select count(*) from public.sales_opportunities) <> 4 then raise exception 'member cannot read opportunities'; end if;
   if (select count(*) from public.quote_intents) <> 2 then raise exception 'member cannot read PII'; end if;
   if (select count(*) from public.v_sessions) <> 1 then raise exception 'member cannot read view'; end if;
+  if (select count(*) from public.v_sales_event_history) <> 3 then raise exception 'member cannot read event history'; end if;
+  if (select clics_sin_folio from public.v_sales_legacy_whatsapp_clicks) <> 1 then raise exception 'legacy click count wrong'; end if;
+  if (select count(*) from public.v_sales_email_history) <> 1 then raise exception 'member cannot read mail history'; end if;
 end $$;
 
 reset role;

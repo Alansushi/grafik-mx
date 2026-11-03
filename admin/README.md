@@ -14,6 +14,8 @@ En el DNS de `grafik.mx`, añadir el CNAME `admin` con el destino que indique el
 
 El resumen y las campañas muestran agregados. Una oportunidad conserva el primer origen conocido de su solicitud; una visita anónima anterior que no se pueda vincular no se atribuye. El folio `GQ-…` corresponde a una solicitud y `GW-…` a un botón directo de WhatsApp. `GK-…` es el folio de pedido del Estudio, enlazado a la oportunidad mediante `order_id`. Un clic registrado indica que se intentó abrir WhatsApp, no que se envió un mensaje. La conversación se confirma manualmente y `ganada` requiere el importe realmente cobrado. El retorno publicitario compara ingresos cobrados con gasto; no representa utilidad.
 
+`Histórico` consulta las vistas de medición y los pedidos existentes, incluidos los anteriores a la creación del panel. Presenta visitas, orígenes, CTA, formulario, solicitudes, Estudio y pedidos. Los clics anteriores a los folios `GW-…` no se pueden enlazar de forma fiable con una oportunidad; los pedidos antiguos sin solicitud vinculada se muestran como pedidos y no se cuentan como ventas.
+
 Si Contacto y Estudio representan el mismo cliente, usar la conciliación en Oportunidades. La oportunidad fusionada queda en el historial y se excluye de los agregados.
 
 ## Operación y recuperación
