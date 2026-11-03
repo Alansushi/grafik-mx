@@ -79,6 +79,7 @@ const EVENTS = {
     fields: { cta_id: enumOf(CTA_IDS), kind: enumOf(CTA_KINDS), work_cat: label, servicio: label, folio: directFolio },
     required: ['cta_id', 'kind'],
   },
+  direct_whatsapp_click: { fields: { folio: directFolio }, required: ['folio'] },
   // ── Fase 2: interacciones secundarias ──
   // Una vez por sesión y sección, tras 800 ms visible (ver analytics.js).
   section_view: { fields: { section: enumOf(SECTIONS) }, required: ['section'] },

@@ -14,6 +14,15 @@ do $$ begin
   end if;
 end $$;
 insert into public.site_events(sid,event,path) values ('testsession01','page_view','/');
+insert into public.site_events(sid,event,path,props)
+values ('testsession01','direct_whatsapp_click','/estudio/',
+  '{"folio":"GW-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"}'::jsonb);
+do $$ begin
+  if not exists (select 1 from public.sales_opportunities
+    where folio='GW-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB' and whatsapp_clicked_at is not null) then
+    raise exception 'direct WhatsApp click did not create opportunity';
+  end if;
+end $$;
 do $$ begin
   if has_table_privilege('anon','public.sales_opportunities','select') then raise exception 'anon can read opportunities'; end if;
   if has_table_privilege('anon','public.v_sessions','select') then raise exception 'anon can read view'; end if;
@@ -43,7 +52,7 @@ end $$;
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',true);
 do $$ begin
   if not public.is_admin() then raise exception 'member AAL2 denied'; end if;
-  if (select count(*) from public.sales_opportunities) <> 3 then raise exception 'member cannot read opportunities'; end if;
+  if (select count(*) from public.sales_opportunities) <> 4 then raise exception 'member cannot read opportunities'; end if;
   if (select count(*) from public.quote_intents) <> 2 then raise exception 'member cannot read PII'; end if;
   if (select count(*) from public.v_sessions) <> 1 then raise exception 'member cannot read view'; end if;
 end $$;

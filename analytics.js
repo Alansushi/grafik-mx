@@ -95,7 +95,7 @@
   // Eventos que salen ya, sin esperar la cola de 2 s: tras ellos el usuario salta a
   // WhatsApp y la pestaña puede quedar en segundo plano antes de que venza el
   // temporizador. `studio_submit` es la conversión del configurador.
-  const IMMEDIATE = { cta_click: true, studio_submit: true, studio_whatsapp_click: true };
+  const IMMEDIATE = { cta_click: true, direct_whatsapp_click: true, studio_submit: true, studio_whatsapp_click: true };
   const queue = [];
   let timer = null;
 
@@ -155,6 +155,18 @@
     return null;
   }
 
+  function ensureWhatsappFolio(el) {
+    if (!window.crypto?.randomUUID) return undefined;
+    const url = new URL(el.href);
+    const current = url.searchParams.get('text') || '';
+    const existing = current.match(/\bGW-[0-9A-F]{32}\b/)?.[0];
+    if (existing) return existing;
+    const folio = 'GW-' + window.crypto.randomUUID().replace(/-/g, '').toUpperCase();
+    url.searchParams.set('text', `${current || 'Hola GRAFIK, quiero cotizar.'}\nFolio ${folio}`);
+    el.href = url.toString();
+    return folio;
+  }
+
   function trackCta(el) {
     const id = el.getAttribute('data-cta');
     const kind = ctaKind(el.getAttribute('href') || '');
@@ -163,17 +175,7 @@
       return;
     }
     if (repeated('cta:' + id)) return;
-    let folio;
-    if (kind === 'whatsapp' && window.crypto?.randomUUID) {
-      const url = new URL(el.href);
-      const current = url.searchParams.get('text') || '';
-      folio = current.match(/\bGW-[0-9A-F]{32}\b/)?.[0];
-      if (!folio) {
-        folio = 'GW-' + window.crypto.randomUUID().replace(/-/g, '').toUpperCase();
-        url.searchParams.set('text', `${current}\nFolio ${folio}`);
-        el.href = url.toString();
-      }
-    }
+    const folio = kind === 'whatsapp' ? ensureWhatsappFolio(el) : undefined;
     track('cta_click', { cta_id: id, kind: kind, work_cat: el.getAttribute('data-cta-work') || undefined, folio });
   }
 
@@ -204,6 +206,12 @@
 
     const cta = t.closest('[data-cta]');
     if (cta) { trackCta(cta); return; }
+
+    const directWa = t.closest('a[href^="https://wa.me/"]');
+    if (directWa) {
+      const folio = ensureWhatsappFolio(directWa);
+      if (folio && !repeated('direct-wa:' + folio)) track('direct_whatsapp_click', { folio });
+    }
 
     const studio = t.closest('a[href="/estudio/"]');
     if (studio && !repeated('studio:' + (studio.getAttribute('data-studio-from') || 'ssr'))) {
