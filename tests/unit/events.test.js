@@ -111,6 +111,12 @@ describe('events.js — validateBatch: lista blanca de eventos y props', () => {
     expect(validateBatch(batch([event('GQ-ABC123')])).rows).toHaveLength(0);
   });
 
+  it('9d. enlace directo sin data-cta exige folio aleatorio', () => {
+    const event = (folio) => ({ name: 'direct_whatsapp_click', props: { folio } });
+    expect(validateBatch(batch([event('GW-0123456789ABCDEF0123456789ABCDEF')])).rows).toHaveLength(1);
+    expect(validateBatch(batch([event('GQ-0123456789ABCDEF')])).rows).toHaveLength(0);
+  });
+
   it('10. path: sólo pathname (la query puede traer un correo o un token)', () => {
     const r = validateBatch(batch([cta({ path: '/estudio/?email=a@b.com#x' })]));
     expect(r.rows[0].path).toBe('/estudio/');
