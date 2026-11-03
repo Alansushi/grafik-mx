@@ -87,6 +87,10 @@ async function requestAccess() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key, action: 'start', channel: 'estudio', name, email,
             marketingConsent: document.getElementById('es-access-consent').checked,
+            ...(() => { try { const ctx = JSON.parse(sessionStorage.getItem('grafik_ctx') || '{}');
+              return { utmSource: ctx.utm_source, utmMedium: ctx.utm_medium,
+                utmCampaign: ctx.utm_campaign, referrerHost: ctx.referrer_host }; }
+              catch { return {}; } })(),
             device: innerWidth < 640 ? 'mobile' : innerWidth < 960 ? 'tablet' : 'desktop' }),
         });
         if (!response.ok) throw new Error('access save failed');

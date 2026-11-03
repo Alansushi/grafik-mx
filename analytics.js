@@ -95,7 +95,7 @@
   // Eventos que salen ya, sin esperar la cola de 2 s: tras ellos el usuario salta a
   // WhatsApp y la pestaña puede quedar en segundo plano antes de que venza el
   // temporizador. `studio_submit` es la conversión del configurador.
-  const IMMEDIATE = { cta_click: true, studio_submit: true };
+  const IMMEDIATE = { cta_click: true, studio_submit: true, studio_whatsapp_click: true };
   const queue = [];
   let timer = null;
 
@@ -163,7 +163,18 @@
       return;
     }
     if (repeated('cta:' + id)) return;
-    track('cta_click', { cta_id: id, kind: kind, work_cat: el.getAttribute('data-cta-work') || undefined });
+    let folio;
+    if (kind === 'whatsapp' && window.crypto?.randomUUID) {
+      const url = new URL(el.href);
+      const current = url.searchParams.get('text') || '';
+      folio = current.match(/\bGW-[0-9A-F]{32}\b/)?.[0];
+      if (!folio) {
+        folio = 'GW-' + window.crypto.randomUUID().replace(/-/g, '').toUpperCase();
+        url.searchParams.set('text', `${current}\nFolio ${folio}`);
+        el.href = url.toString();
+      }
+    }
+    track('cta_click', { cta_id: id, kind: kind, work_cat: el.getAttribute('data-cta-work') || undefined, folio });
   }
 
   function trackNav(a) {

@@ -63,6 +63,7 @@ const int = (min, max) => (v) => (Number.isInteger(v) && v >= min && v <= max ? 
 const errCode = (v) => (typeof v === 'string' && ERROR_CODE_RE.test(v) ? v : undefined);
 // Debe ser EXACTAMENTE la forma de gen_short_code() (0007): 'GK-' + 6 hex en mayúsculas.
 const shortCode = (v) => (typeof v === 'string' && /^GK-[0-9A-F]{6}$/.test(v) ? v : undefined);
+const directFolio = (v) => (typeof v === 'string' && /^GW-[0-9A-F]{32}$/.test(v) ? v : undefined);
 const QTY = int(1, MAX_TRACKED_QTY);
 // Identificadores que arma el cliente (id de ancla, slug de pregunta o de foto).
 // Se aceptan por FORMA y no por lista: las FAQs y las fotos de Trabajos cambian
@@ -75,7 +76,7 @@ const slug = (max) => (v) => (typeof v === 'string' && v.length <= max && /^[a-z
 const EVENTS = {
   page_view: { fields: {}, required: [] },
   cta_click: {
-    fields: { cta_id: enumOf(CTA_IDS), kind: enumOf(CTA_KINDS), work_cat: label, servicio: label },
+    fields: { cta_id: enumOf(CTA_IDS), kind: enumOf(CTA_KINDS), work_cat: label, servicio: label, folio: directFolio },
     required: ['cta_id', 'kind'],
   },
   // ── Fase 2: interacciones secundarias ──
@@ -112,6 +113,7 @@ const EVENTS = {
   // `short_code` (folio GK-XXXXXX) es "sólo para mostrar, nunca sirve como
   // credencial" (spec §7.8): une este evento con su fila de `orders`.
   studio_submit: { fields: { short_code: shortCode, qty: QTY }, required: ['short_code'] },
+  studio_whatsapp_click: { fields: { short_code: shortCode }, required: ['short_code'] },
   studio_error: { fields: { where: enumOf(STUDIO_ERROR_WHERE), code: errCode }, required: ['where'] },
   studio_fallback: { fields: { where: enumOf(STUDIO_FALLBACK_WHERE) }, required: ['where'] },
   // Clic en "¿Necesitas ayuda o un pedido especial?" (encabezado del estudio): alguien
