@@ -52,7 +52,7 @@ test('frazada conserva recortes por medida y envía original más dos previews e
   await page.locator('.es-blanket-size').filter({ hasText: 'Matrimonial 220 × 150' }).click();
   expect(await page.evaluate(() => window.__studio.stage.getTransform().y)).toBe(matrimonialAfter);
 
-  await page.evaluate(() => { window.__opened = null; window.open = (url) => { window.__opened = url; }; });
+  await page.evaluate(() => { window.__opened = null; window.open = (url) => { window.__opened = url; return { opener: null }; }; });
   await page.locator('#es-customer-name').fill('Ana Ruiz');
   await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
   await page.locator('#es-customer-phone').fill('55 1234 5678');

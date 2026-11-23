@@ -268,7 +268,7 @@ test.describe('flujo del configurador', () => {
     // window.open abriría una pestaña real; se intercepta para leer la URL.
     await page.evaluate(() => {
       window.__abierto = null;
-      window.open = (url) => { window.__abierto = url; return null; };
+      window.open = (url) => { window.__abierto = url; return { opener: null }; };
     });
 
     await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
@@ -308,6 +308,51 @@ test.describe('flujo del configurador', () => {
     expect(texto).toContain('ana@ejemplo.mx');
     expect(texto).toContain('55 1234 5678');
     expect(texto).not.toMatch(/\$|total|precio/i);
+
+    // Al volver al Estudio, el pedido guardado debe ofrecer el mismo mensaje
+    // preparado para abrir WhatsApp manualmente si se cerró la pestaña.
+    await expect(page.getByRole('link', { name: /abrir whatsapp/i })).toHaveAttribute('href', url);
+  });
+
+  test('F9b. si el navegador bloquea la pestaña, redirige a WhatsApp tras guardar', async ({ page }) => {
+    let pedidos = 0;
+    await page.route('**/api/catalog', (r) => r.fulfill({ json: CATALOG_FIXTURE }));
+    await page.route('**/api/upload-url', (r) => {
+      const b = r.request().postDataJSON();
+      return r.fulfill({ json: {
+        path: `2026/11/${b.draftId}/archivo.png`,
+        upload_url: 'https://supabase.test/upload', token: 'tok',
+      } });
+    });
+    await page.route('https://supabase.test/**', (r) => r.fulfill({ status: 200, body: '{}' }));
+    await page.route('**/api/submit-quote', (r) => {
+      pedidos++;
+      return r.fulfill({ status: 201, json: {
+        short_code: 'GK-7A3F1C',
+        public_token: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      } });
+    });
+    await page.route('https://wa.me/**', (r) => r.fulfill({ contentType: 'text/html', body: 'WhatsApp abierto' }));
+
+    await page.goto('/estudio/?debug=1');
+    await page.waitForFunction(() => window.__studio?.stage, null, { timeout: 20000 });
+    await page.getByRole('radio', { name: 'Frazada personalizada' }).click();
+    await page.waitForFunction(() => window.__studio?.garment?.slug === 'frazada' && !window.__studio?.stageBusy);
+    await page.evaluate(() => { window.open = () => null; });
+    await page.locator('input[type="file"]').first().setInputFiles(LOGO_PNG);
+    await page.waitForFunction(() => window.__studio.transform !== null);
+    await page.evaluate(() => window.__studioBridge.setSize('P', '1'));
+    await hayPiezas(page);
+    await page.locator('#es-customer-name').fill('Ana Ruiz');
+    await page.locator('#es-customer-email').fill('ana@ejemplo.mx');
+    await page.locator('#es-customer-phone').fill('55 1234 5678');
+
+    await page.locator('.es-resumen-submit').click();
+    await expect(page).toHaveURL(/^https:\/\/wa\.me\/525539014600\?text=/);
+    expect(pedidos).toBe(1);
+    const message = new URL(page.url()).searchParams.get('text');
+    expect(message).toContain('GK-7A3F1C');
+    expect(message).toContain('Frazada personalizada');
   });
 
   test('F10. la guía del área imprimible se adapta al color de la prenda', async ({ page }) => {

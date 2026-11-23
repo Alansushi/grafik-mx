@@ -48,7 +48,7 @@ async function preparar(page, opts = {}) {
   await page.addInitScript(() => {
     window.grafikAnalyticsConfig = { force: true };
     window.__abierto = null;
-    window.open = (url) => { window.__abierto = url; return null; }; // no abrir WhatsApp de verdad
+    window.open = (url) => { window.__abierto = url; return { opener: null }; }; // no abrir WhatsApp de verdad
     document.addEventListener('click', (e) => {
       if (e.target.closest('a[href^="https://wa.me"]')) e.preventDefault();
     });
@@ -117,7 +117,7 @@ test.describe('estudio — embudo completo', () => {
     await esperarStageLibre(page);
     await subirLogo(page);
     await page.getByRole('button', { name: 'Ajustar al área' }).click();
-    await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
+    await page.evaluate(() => window.__studioBridge.setSize('U', '12'));
     await hayPiezas(page);
     await page.waitForTimeout(500); // el debounce de studio_sizes (350 ms) debe asentarse antes de enviar
     await page.locator('#es-customer-name').fill('Ana Ruiz');
@@ -292,7 +292,7 @@ test.describe('estudio — la medición nunca rompe un pedido', () => {
     await subirLogo(page);
     await page.getByRole('radio', { name: /gorra/i }).click();
     await esperarStageLibre(page);
-    await page.evaluate(() => window.__studioBridge.setSize('M', '12'));
+    await page.evaluate(() => window.__studioBridge.setSize('U', '12'));
     await hayPiezas(page);
     await page.locator('#es-customer-name').fill('Ana Ruiz');
     await page.locator('#es-customer-email').fill('ana@ejemplo.mx');

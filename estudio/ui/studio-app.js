@@ -499,7 +499,10 @@ export function StudioApp({ catalog, stageContainer }) {
       const data = await res.json();
       if (!res.ok) throw Object.assign(new Error(data.error), { code: data.error });
 
-      setSubmitted(data);
+      const whatsappUrl = construirMensajeWhatsApp({
+        data, garment, variant, technique, breakdown, customer,
+      });
+      setSubmitted({ ...data, whatsappUrl });
       // El folio une este evento con su fila de `orders` (es sólo para mostrar,
       // nunca una credencial: spec §7.8). Nada del cliente viaja aquí.
       //
@@ -509,12 +512,14 @@ export function StudioApp({ catalog, stageContainer }) {
       // romper un pedido.
       track('studio_submit', { short_code: data.short_code, qty: trackedQty(piezas) });
       // El folio y el token salen de lo que DEVOLVIÓ el servidor, no del cliente.
-      window.open(construirMensajeWhatsApp({
-        data, garment, variant, technique, breakdown, customer,
-      }), '_blank', 'noopener');
+      const whatsappWindow = window.open(whatsappUrl, '_blank');
+      if (whatsappWindow) whatsappWindow.opener = null;
       // Pedido creado y apertura de WhatsApp son dos pasos distintos. Este
       // evento registra la apertura intentada, nunca un mensaje enviado.
       track('studio_whatsapp_click', { short_code: data.short_code });
+      // Si el navegador bloquea la pestaña tras las subidas y el fetch,
+      // navega en esta pestaña para que el pedido no quede sólo en la BBDD.
+      if (!whatsappWindow) window.location.assign(whatsappUrl);
     } catch (err) {
       console.error('[estudio] no se pudo enviar el pedido', err);
       track('studio_error', { where: 'submit', code: safeCode(err?.code, 'SUBMIT_FAILED') });

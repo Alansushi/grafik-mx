@@ -149,7 +149,7 @@ test('pulsera: tira, simulación, color, cantidad y pedido', async ({ page }) =>
   });
   expect(snapshot).toEqual({ width: 1000, height: 720, type: 'image/png' });
 
-  await page.evaluate(() => { window.__opened = null; window.open = (url) => { window.__opened = url; }; });
+  await page.evaluate(() => { window.__opened = null; window.open = (url) => { window.__opened = url; return { opener: null }; }; });
   await page.locator('#es-talla-U').fill('1,000');
   await expect(page.locator('.es-resumen-submit')).toBeDisabled();
   await page.locator('#es-talla-U').fill('101');
