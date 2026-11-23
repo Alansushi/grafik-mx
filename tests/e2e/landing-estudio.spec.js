@@ -6,6 +6,7 @@ test('La maqueta de la landing muestra los cuatro productos y sus opciones', asy
   const selector = section.getByRole('group', { name: 'Producto', exact: true });
   const preview = section.getByRole('group', { name: 'Vista previa ilustrativa del Estudio GRAFIK' });
   await expect(selector).toBeVisible({ timeout: 15_000 });
+  await expect(preview.getByText('Vista previa ilustrativa', { exact: true })).toBeVisible();
   await expect(section.getByRole('link', { name: 'Abrir Estudio' })).toHaveAttribute('href', '/estudio/');
   await expect(selector.getByRole('button')).toHaveCount(4);
 
@@ -36,6 +37,7 @@ test('La maqueta de la landing muestra los cuatro productos y sus opciones', asy
   await expect.poll(() => preview.locator('.cp-tee-img').evaluate(img => img.naturalWidth)).toBeGreaterThan(0);
 
   await selector.getByRole('button', { name: 'Pulsera' }).click();
+  await expect(preview.getByRole('img', { name: 'Pulsera ilustrativa en tira plana y vista cerrada' })).toBeVisible();
   await expect(preview.getByText('Tira plana')).toBeVisible();
   await expect(preview.getByText('Vista cerrada', { exact: true })).toBeVisible();
   await expect(preview.getByRole('group', { name: 'Color del producto' })).toBeVisible();

@@ -856,6 +856,7 @@
             <ol className="cp-studio-steps">
               <li className="is-done">Producto</li><li>Diseño</li><li>Opciones</li><li>Contacto</li>
             </ol>
+            <p className="cp-studio-caption">Vista previa ilustrativa</p>
             <div className="cp-studio-main">
               <div className={`cp-studio-stage cp-stage--${gar}`} style={{ "--c": color, ...(g.src ? { "--mask": `url(${g.src})` } : {}) }}>
                 {isGarment && <>
@@ -864,7 +865,7 @@
                   <span className="cp-tee-guide" aria-hidden="true"></span>
                   <span className="cp-tee-logo" style={{ color: darkTee ? "#F0F0EE" : "#0C0C0C" }} aria-hidden="true">{mark}</span>
                 </>}
-                {gar === "pulsera" && <div className="cp-bracelet" aria-label="Pulsera ilustrativa en tira plana y vista cerrada">
+                {gar === "pulsera" && <div className="cp-bracelet" role="img" aria-label="Pulsera ilustrativa en tira plana y vista cerrada">
                   <div className="cp-bracelet-flat"><span>{mark}</span></div>
                   <span className="cp-bracelet-label">Tira plana</span>
                   <div className="cp-bracelet-loop"><span>{mark}</span></div>

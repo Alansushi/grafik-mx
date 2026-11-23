@@ -1273,7 +1273,8 @@
 }
 .cp-studio-steps li.is-done { color: var(--blanco); }
 .cp-studio-steps li.is-done::before { content: "✓"; background: var(--rojo); border-color: var(--rojo); color: var(--blanco); }
-.cp-studio-main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 22px; margin-top: 18px; }
+.cp-studio-caption { margin: 16px 0 0; color: var(--plata); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; }
+.cp-studio-main { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 22px; margin-top: 12px; }
 .cp-studio-stage {
   position: relative; aspect-ratio: 1 / 1; isolation: isolate; overflow: hidden;
   background: #202020; border: 1px dashed rgba(240,240,238,0.14);
