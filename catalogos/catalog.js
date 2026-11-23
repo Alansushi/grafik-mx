@@ -173,6 +173,18 @@
     });
   });
   document.querySelector('[data-catalog-download]')?.addEventListener('click', () => track('catalog_download', { catalog: slug }));
+  const references = document.querySelector('.all-pages');
+  references?.addEventListener('toggle', () => {
+    if (references.open) references.querySelectorAll('img[data-src]').forEach((thumb) => {
+      thumb.src = thumb.dataset.src;
+      thumb.removeAttribute('data-src');
+    });
+  });
+  document.getElementById('catalog-help')?.addEventListener('click', (event) => {
+    const folio = `GW-${Array.from(crypto.getRandomValues(new Uint8Array(5)), (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+    event.currentTarget.href = `https://wa.me/525539014600?text=${encodeURIComponent(`Hola GRAFIK, necesito ayuda con los catálogos. Mi folio es ${folio}.`)}`;
+    track('catalog_help_click', { folio });
+  });
 
   function newDraft() {
     draft = { key: crypto.randomUUID(), startedEmail: null };
@@ -218,7 +230,7 @@
       saveCart(); renderCart();
     }));
   }
-  document.getElementById('open-quote').addEventListener('click', () => {
+  function openQuote() {
     renderCart();
     if (saved && draft.folio && draft.waHref) {
       status.textContent = `Solicitud guardada con folio ${draft.folio}. El equipo podrá consultar tu selección.`;
@@ -226,7 +238,9 @@
       savedActions.hidden = false;
     }
     dialog.showModal(); track('catalog_quote', { step: 'start' });
-  });
+  }
+  document.getElementById('open-quote').addEventListener('click', openQuote);
+  document.getElementById('send-list')?.addEventListener('click', openQuote);
   document.getElementById('close-quote').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
   form.elements.email.addEventListener('blur', async () => {

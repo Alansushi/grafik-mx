@@ -64,6 +64,7 @@ const errCode = (v) => (typeof v === 'string' && ERROR_CODE_RE.test(v) ? v : und
 // Debe ser EXACTAMENTE la forma de gen_short_code() (0007): 'GK-' + 6 hex en mayúsculas.
 const shortCode = (v) => (typeof v === 'string' && /^GK-[0-9A-F]{6}$/.test(v) ? v : undefined);
 const directFolio = (v) => (typeof v === 'string' && /^GW-[0-9A-F]{32}$/.test(v) ? v : undefined);
+const catalogHelpFolio = (v) => (typeof v === 'string' && /^GW-[0-9A-F]{10}$/.test(v) ? v : undefined);
 const QTY = int(1, MAX_TRACKED_QTY);
 // Identificadores que arma el cliente (id de ancla, slug de pregunta o de foto).
 // Se aceptan por FORMA y no por lista: las FAQs y las fotos de Trabajos cambian
@@ -109,6 +110,7 @@ const EVENTS = {
   catalog_item: { fields: { catalog, page: catalogPage, sku: catalogSku, action: enumOf(['add', 'remove']) }, required: ['catalog', 'page', 'sku', 'action'] },
   catalog_quote: { fields: { step: enumOf(['start', 'saved', 'error']) }, required: ['step'] },
   catalog_whatsapp_click: { fields: {}, required: [] },
+  catalog_help_click: { fields: { folio: catalogHelpFolio }, required: ['folio'] },
   catalog_download: { fields: { catalog }, required: ['catalog'] },
 
   // ── Fase 3: embudo de /estudio/ ──

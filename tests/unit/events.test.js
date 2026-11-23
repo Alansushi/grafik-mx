@@ -117,6 +117,13 @@ describe('events.js — validateBatch: lista blanca de eventos y props', () => {
     expect(validateBatch(batch([event('GQ-0123456789ABCDEF')])).rows).toHaveLength(0);
   });
 
+  it('9e. ayuda de catálogos acepta sólo un folio GW corto sin datos de la lista', () => {
+    const event = (folio) => ({ name: 'catalog_help_click', props: { folio, items: [{sku:'A2786'}] } });
+    const valid = validateBatch(batch([event('GW-0123456789')]));
+    expect(valid.rows[0].props).toEqual({ folio: 'GW-0123456789' });
+    expect(validateBatch(batch([event('GW-0123456789ABCDEF0123456789ABCDEF')])).rows).toHaveLength(0);
+  });
+
   it('10. path: sólo pathname (la query puede traer un correo o un token)', () => {
     const r = validateBatch(batch([cta({ path: '/estudio/?email=a@b.com#x' })]));
     expect(r.rows[0].path).toBe('/estudio/');

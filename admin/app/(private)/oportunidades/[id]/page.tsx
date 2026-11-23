@@ -16,7 +16,7 @@ export default async function Detail({ params }: {params: Promise<{id:string}>})
     supabase.from('sales_opportunities').select('id,folio').is('merged_into',null).neq('id',id).order('created_at',{ascending:false}).limit(200),
   ]);
   return <><div className="page-head"><Link className="back" href="/oportunidades">← Oportunidades</Link><p className="eyebrow">FOLIO {item.folio}</p>
-    <h1>{item.channel === 'whatsapp' ? 'Clic directo de WhatsApp' : 'Solicitud de cotización'}</h1>
+    <h1>{item.channel === 'catalogos_ayuda' ? 'Ayuda con catálogos · clic a WhatsApp' : item.channel === 'whatsapp' ? 'Clic directo de WhatsApp' : 'Solicitud de cotización'}</h1>
     <p>Origen: {item.source || 'desconocido'} · Campaña: {item.campaign || 'sin campaña'} · {item.attribution_note}</p></div>
     {item.merged_into && <p className="notice">Este folio fue conciliado con otra oportunidad y no se cuenta en los reportes.</p>}
     <div className="detail-grid"><section className="panel"><h2>Seguimiento</h2>
