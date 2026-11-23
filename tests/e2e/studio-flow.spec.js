@@ -49,8 +49,15 @@ test.describe('flujo del configurador', () => {
 
     // Los cuatro paneles presentes: prenda, logo, tallas y resumen.
     await expect(page.getByRole('heading', { name: /tu prenda/i })).toBeVisible();
+    const productos = page.getByRole('radiogroup', { name: 'Producto' });
+    await expect(productos.getByRole('radio')).toHaveCount(4);
+    for (const name of ['Playera cuello redondo', 'Gorra', 'Pulsera', 'Frazada personalizada']) {
+      await expect(productos.getByRole('radio', { name, exact: true })).toBeVisible();
+    }
     await expect(page.locator('.es-dropzone')).toBeVisible();
     await expect(page.locator('.es-tallas-grid')).toBeVisible();
+    await expect(page.locator('.es-panel-resumen')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Resumen y contacto' })).toBeVisible();
 
     expect(errors, `errores en consola: ${errors.join(' | ')}`).toEqual([]);
   });
