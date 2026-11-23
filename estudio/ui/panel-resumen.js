@@ -3,7 +3,7 @@
 // Componente controlado: no hace fetch. Sólo las frazadas muestran precios
 // base públicos; el pedido llega por WhatsApp y se cotiza a mano.
 
-import { h, Fragment } from './react.js';
+import { h, Fragment, cx } from './react.js';
 import { breakdownToLabel } from '../lib/sizes.js';
 import { BLANKET_SIZES } from '../lib/blankets.js';
 import { formatCentsMXN } from '../lib/format.js';
