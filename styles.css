@@ -1296,13 +1296,14 @@
   text-transform: uppercase; color: var(--ink-45);
 }
 .cp-studio-lbl b { color: var(--blanco); font-weight: 600; }
-.cp-garments { display: flex; gap: 8px; }
+.cp-garments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .cp-garments button {
-  flex: 1; min-height: 44px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+  min-width: 0; min-height: 44px; font-family: var(--sans); font-size: 13px; font-weight: 600;
   background: transparent; color: var(--plata); border: 1px solid rgba(240,240,238,0.2); cursor: pointer;
 }
 .cp-garments button[aria-pressed="true"] { background: var(--rojo-dark); border-color: var(--rojo); color: var(--blanco); }
 .cp-garments button:focus-visible { outline: 2px solid var(--blanco); outline-offset: 2px; }
+.cp-studio-phrase { margin: 0; min-height: 36px; color: var(--blanco); font-size: 14px; line-height: 1.3; font-weight: 600; }
 .cp-swatches { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: 8px; max-width: 280px; }
 .cp-swatches button {
   aspect-ratio: 1 / 1; border-radius: 50%; cursor: pointer; padding: 0;
@@ -1311,11 +1312,25 @@
 .cp-swatches button[aria-pressed="true"] { border-color: var(--rojo); box-shadow: 0 0 0 2px #101010, 0 0 0 4px var(--rojo); }
 .cp-swatches button:focus-visible { outline: 2px solid var(--blanco); outline-offset: 3px; }
 .cp-studio-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.cp-studio-chips span {
-  font-size: 12px; font-weight: 600; padding: 8px 12px;
-  border: 1px solid rgba(240,240,238,0.16); color: var(--plata);
+.cp-studio-chips button {
+  min-height: 44px; background: transparent; font-family: var(--sans); font-size: 12px; font-weight: 600; padding: 8px 12px;
+  border: 1px solid rgba(240,240,238,0.16); color: var(--plata); cursor: pointer;
 }
-.cp-studio-chips .is-on { background: var(--rojo-dark); border-color: var(--rojo); color: var(--blanco); }
+.cp-studio-chips button[aria-pressed="true"] { background: var(--rojo-dark); border-color: var(--rojo); color: var(--blanco); }
+.cp-studio-chips button:focus-visible { outline: 2px solid var(--blanco); outline-offset: 2px; }
+.cp-size-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cp-size-chips button:last-child { grid-column: 1 / -1; }
+.cp-bracelet { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 10%; }
+.cp-bracelet-flat { position: relative; width: 100%; height: 17%; min-height: 30px; transform: rotate(-6deg); background: var(--c); box-shadow: 0 12px 24px rgba(0,0,0,.35); border: 1px solid rgba(0,0,0,.2); }
+.cp-bracelet-flat::before, .cp-bracelet-flat::after { content: ""; position: absolute; top: 12%; bottom: 12%; border-left: 2px dashed rgba(0,0,0,.3); }
+.cp-bracelet-flat::before { left: 13%; }
+.cp-bracelet-flat::after { right: 13%; }
+.cp-bracelet-flat span { position: absolute; width: 13%; aspect-ratio: 1; top: 5%; left: 43.5%; color: #0c0c0c; }
+.cp-bracelet-label { color: var(--plata); font-size: 12px; font-weight: 600; }
+.cp-bracelet-loop { position: relative; width: 56%; height: 26%; border: clamp(14px, 2.5vw, 27px) solid var(--c); border-radius: 50%; transform: rotate(-13deg); box-shadow: 8px 12px 18px rgba(0,0,0,.36), inset 3px 5px 8px rgba(0,0,0,.3); }
+.cp-bracelet-loop span { position: absolute; width: 24%; aspect-ratio: 1; top: -34%; left: 37%; color: #0c0c0c; }
+.cp-blanket-img { position: absolute; width: 88%; height: 88%; inset: 6%; object-fit: contain; }
+.cp-blanket-logo { position: absolute; width: 20%; height: 20%; top: 40%; left: 40%; color: #0c0c0c; opacity: .72; }
 
 /* ---- Proceso ---- */
 .cp-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 28px; }

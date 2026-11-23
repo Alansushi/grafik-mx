@@ -115,6 +115,16 @@ export default defineConfig({
       testMatch: /[\\/]hero-loading\.spec\.js$/,
       use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
+    {
+      name: 'landing-estudio-desktop',
+      testMatch: /[\\/]landing-estudio\.spec\.js$/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
+      name: 'landing-estudio-mobile',
+      testMatch: /[\\/]landing-estudio\.spec\.js$/,
+      use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
     ...(LIVE_BASE_URL
       ? [
           {

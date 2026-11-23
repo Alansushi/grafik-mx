@@ -240,9 +240,9 @@ Pedidos producidos y entregados por GRAFIK (fotos reales, galería en https://ww
 
 ## Estudio GRAFIK
 
-El Estudio GRAFIK (https://www.grafik.mx/estudio/) permite visualizar tu diseño en una playera, gorra, pulsera o frazada antes de solicitar una cotización. En pulseras puedes colocar una imagen o logo y revisar una tira plana y una vista cerrada. En frazadas puedes subir una imagen y ajustar un recorte distinto para Personal (100 × 150 cm), Individual (200 × 150 cm) y Matrimonial (220 × 150 cm), desde una pieza en total. Los precios base por pieza son $410, $530 y $630, respectivamente; son referencias y GRAFIK confirma la cotización final. Las vistas son simulaciones aproximadas. Al terminar se abre WhatsApp con un mensaje preparado que incluye el enlace al pedido; debes enviarlo desde esa aplicación para iniciar la conversación.
+Visualiza tu diseño antes de producirlo: personaliza playeras y gorras, prueba pulseras para eventos y descubre cómo se verá tu imagen en una frazada con el Estudio GRAFIK (https://www.grafik.mx/estudio/). En playeras y gorras puedes probar colores y técnicas; en pulseras puedes colocar una imagen o logo y revisar la tira plana y la vista cerrada; en frazadas puedes ajustar tu imagen por medida Personal, Individual o Matrimonial. La maqueta de la landing es ilustrativa y la personalización completa ocurre en el Estudio. Al terminar se abre WhatsApp con un mensaje preparado que incluye el enlace al pedido; debes enviarlo desde esa aplicación para iniciar la conversación.
 
-1. **Elige tu producto** — Playera, gorra o pulsera; selecciona sus opciones de personalización.
+1. **Elige tu producto** — Playera, gorra, pulsera o frazada; selecciona sus opciones de personalización.
 2. **Sube tu diseño** — Colócalo y ajusta el tamaño.
 3. **Míralo y cotiza** — Envía por WhatsApp el enlace a tu vista previa.
 
