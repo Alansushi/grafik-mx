@@ -9,7 +9,7 @@ test('shared catalog request saves only after API success and supports retry', a
     attempts++;
     savedBody = body;
     return route.fulfill({status: attempts === 1 ? 502 : 200,contentType:'application/json',
-      body: attempts === 1 ? '{"error":"SAVE_FAILED"}' : '{"saved":true,"completed":true,"folio":"GQ-ABCDEF0123456789"}'});
+      body: attempts === 1 ? '{"error":"SAVE_FAILED"}' : '{"saved":true,"completed":true,"folio":"GQ-ABCDEF0123"}'});
   });
   await page.goto('/catalogos/navidad-2026/?p=26');
   await expect(page.locator('#reader-page-label')).toContainText('Página 26');
@@ -34,7 +34,7 @@ test('shared catalog request saves only after API success and supports retry', a
   expect(savedBody.items).toHaveLength(2);
   expect(savedBody.email).toBe('');
   expect(savedBody.phone).toBe('5512345678');
-  await expect(page.locator('#catalog-whatsapp')).toHaveAttribute('href', /GQ-ABCDEF0123456789/);
+  await expect(page.locator('#catalog-whatsapp')).toHaveAttribute('href', /GQ-ABCDEF0123/);
   await page.evaluate(() => document.getElementById('catalog-whatsapp').addEventListener('click', (event) => event.preventDefault()));
   await page.locator('#catalog-whatsapp').click();
   await expect(page.locator('#catalog-whatsapp')).not.toHaveAttribute('href', /GW-/);
@@ -84,7 +84,7 @@ test('email request autosaves its draft and finishes with the same key', async (
     const body = route.request().postDataJSON();
     calls.push(body);
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      saved: true, completed: body.action === 'complete', folio: body.action === 'complete' ? 'GQ-ABCDEF0123456789' : undefined,
+      saved: true, completed: body.action === 'complete', folio: body.action === 'complete' ? 'GQ-ABCDEF0123' : undefined,
     }) });
   });
   await page.goto('/catalogos/agendas-2027/?p=2');
@@ -108,8 +108,47 @@ test('without JavaScript a SKU link opens its original sheet in the HTML index',
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto('/catalogos/navidad-2026/');
+  await expect(page.locator('.all-pages')).not.toHaveAttribute('open');
+  await page.locator('.all-pages summary').click();
   await page.getByRole('link', { name: 'Cutters A2786' }).click();
   await expect(page).toHaveURL(/p=26&sku=A2786#pagina-26$/);
   await expect(page.locator('#pagina-26')).toBeInViewport();
   await context.close();
+});
+
+test('send list uses the form; help opens a separate GW folio without list data', async ({ page }) => {
+  const requests = [];
+  await page.addInitScript(() => {
+    window.grafikAnalyticsConfig = { force: true };
+    navigator.sendBeacon = () => false;
+  });
+  await page.route('**/api/track', async (route) => {
+    const body = route.request().postDataJSON();
+    if (body?.events) requests.push(body);
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+  await page.goto('/catalogos/navidad-2026/');
+  await page.locator('#send-list').click();
+  await expect(page.locator('#quote-dialog')).toBeVisible();
+  await page.locator('#close-quote').click();
+  await page.locator('#catalog-help').evaluate((link) => link.addEventListener('click', (event) => event.preventDefault()));
+  await page.locator('#catalog-help').click();
+  const href = await page.locator('#catalog-help').getAttribute('href');
+  expect(decodeURIComponent(new URL(href).searchParams.get('text'))).toMatch(/ayuda con los catálogos.*GW-[0-9A-F]{10}/i);
+  expect(href).not.toContain('A2786');
+  await expect.poll(() => requests.some((body) => body.events.some((event) => event.name === 'catalog_help_click'))).toBe(true);
+  const help = requests.flatMap((body) => body.events).find((event) => event.name === 'catalog_help_click');
+  expect(help.props).toEqual({ folio: expect.stringMatching(/^GW-[0-9A-F]{10}$/) });
+});
+
+test('page reference thumbnails wait until the native section opens', async ({ page }) => {
+  const requested = [];
+  page.on('request', (request) => { if (request.url().includes('/previews/04.webp')) requested.push(request.url()); });
+  await page.goto('/catalogos/navidad-2026/?p=26');
+  await expect(page.locator('.all-pages')).not.toHaveAttribute('open');
+  expect(requested).toHaveLength(0);
+  await expect(page.locator('.all-pages img[data-src]')).toHaveCount(56);
+  await page.locator('.all-pages summary').click();
+  await expect(page.locator('.all-pages img[data-src]')).toHaveCount(0);
+  await expect.poll(() => requested.length).toBeGreaterThan(0);
 });

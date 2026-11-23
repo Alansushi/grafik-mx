@@ -1,5 +1,5 @@
 // Captura privada. Se activa sólo tras publicar el aviso de privacidad.
-import { createHmac } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { readEnv } from './_lib/env.js';
 import { json, readJsonBody, clientIp } from './_lib/http.js';
 import { buildPostgrestUrl, sbHeaders } from './_lib/supabase.js';
@@ -11,7 +11,8 @@ import { validateCatalogIntent } from './_lib/catalog-intent.js';
 
 export { captureEnabled };
 
-const folioFor = (key) => 'GQ-' + String(key).replace(/-/g, '').slice(0, 16).toUpperCase();
+const legacyFolioFor = (key) => 'GQ-' + String(key).replace(/-/g, '').slice(0, 16).toUpperCase();
+const newCatalogFolio = () => `GQ-${randomBytes(5).toString('hex').toUpperCase()}`;
 async function sendCompletionMail(base, secret, intent) {
   if (!intent) return;
   if (intent.channel === 'catalogos') {
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
     });
     if (!rate.ok || !(await rate.json())) return json(res, 429, { error: 'RATE_LIMITED' });
 
-    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,client_key,status,channel,email,name,phone,items,intended_use,personalization,required_date,buyer_type,return_catalog,return_page,unsubscribed_at,unsubscribe_token,return_token,utm_source,utm_medium,utm_campaign,referrer_host', eq: { client_key: key }, limit: 1 });
+    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,client_key,folio,status,channel,email,name,phone,items,intended_use,personalization,required_date,buyer_type,return_catalog,return_page,unsubscribed_at,unsubscribe_token,return_token,utm_source,utm_medium,utm_campaign,referrer_host', eq: { client_key: key }, limit: 1 });
     const existingRes = await fetch(url, { headers });
     if (!existingRes.ok) throw new Error('intent lookup failed');
     const existing = (await existingRes.json())[0];
@@ -83,7 +84,7 @@ export default async function handler(req, res) {
     if (existing && (existing.channel !== channel || (existing.email || null) !== (email || null))) return json(res, 409, { error: 'KEY_CONFLICT' });
     if (existing?.status === 'completed') {
       if (action === 'complete') await sendCompletionMail(base, secret, existing);
-      return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: folioFor(key) } : {}) });
+      return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: existing.folio } : {}) });
     }
     if (existing?.status === 'cancelled') return json(res, 409, { error: 'CANCELLED' });
     const now = new Date().toISOString();
@@ -111,12 +112,14 @@ export default async function handler(req, res) {
       } : {}),
       ...(action === 'complete' ? { status: 'completed', completed_at: now } : {}),
     };
+    let folio = existing?.folio || (channel === 'catalogos' ? newCatalogFolio() : legacyFolioFor(key));
+    const insert = () => fetch(buildPostgrestUrl(base, 'quote_intents'), { method: 'POST', headers, body: JSON.stringify({
+      ...data, client_key: key, folio, channel, device, utm_source: utm, utm_medium: utmMedium,
+      utm_campaign: utmCampaign, referrer_host: referrer,
+    }) });
     let response = existing
       ? await fetch(buildPostgrestUrl(base, 'quote_intents', { eq: { client_key: key, status: 'started' } }), { method: 'PATCH', headers, body: JSON.stringify(data) })
-      : await fetch(buildPostgrestUrl(base, 'quote_intents'), { method: 'POST', headers, body: JSON.stringify({
-        ...data, client_key: key, channel, device, utm_source: utm, utm_medium: utmMedium,
-        utm_campaign: utmCampaign, referrer_host: referrer,
-      }) });
+      : await insert();
     // El autoguardado y Enviar pueden llegar a la vez. Si ambos intentaron
     // INSERT, la clave única deja pasar uno; el otro relee y aplica la
     // transición sólo si sigue en started. Nunca rebaja completed a started.
@@ -124,15 +127,24 @@ export default async function handler(req, res) {
       const raced = await fetch(url, { headers });
       if (!raced.ok) throw new Error(`intent race lookup ${raced.status}`);
       const [current] = await raced.json();
-      if (!current || current.channel !== channel || (current.email || null) !== (email || null)) return json(res, 409, { error: 'KEY_CONFLICT' });
-      if (current.status === 'completed') {
+      if (!current && channel === 'catalogos') {
+        // A unique folio may already exist; keep the client key and retry with a fresh folio.
+        for (let attempt = 0; attempt < 4 && response.status === 409; attempt++) {
+          folio = newCatalogFolio();
+          response = await insert();
+        }
+      } else if (!current || current.channel !== channel || (current.email || null) !== (email || null)) return json(res, 409, { error: 'KEY_CONFLICT' });
+      if (current?.status === 'completed') {
         if (action === 'complete') await sendCompletionMail(base, secret, current);
-        return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: folioFor(key) } : {}) });
+        return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: current.folio } : {}) });
       }
-      if (current.status !== 'started') return json(res, 409, { error: 'CANCELLED' });
-      response = await fetch(buildPostgrestUrl(base, 'quote_intents', { eq: { client_key: key, status: 'started' } }), {
-        method: 'PATCH', headers, body: JSON.stringify(data),
-      });
+      if (current) {
+        if (current.status !== 'started') return json(res, 409, { error: 'CANCELLED' });
+        folio = current.folio;
+        response = await fetch(buildPostgrestUrl(base, 'quote_intents', { eq: { client_key: key, status: 'started' } }), {
+          method: 'PATCH', headers, body: JSON.stringify(data),
+        });
+      }
     }
     if (!response.ok) throw new Error(`intent write ${response.status}`);
     if (action === 'complete') {
@@ -143,7 +155,7 @@ export default async function handler(req, res) {
       }
       if (intent) await sendCompletionMail(base, secret, intent);
     }
-    return json(res, 200, { saved: true, completed: action === 'complete', ...(channel === 'catalogos' && action === 'complete' ? { folio: folioFor(key) } : {}) });
+    return json(res, 200, { saved: true, completed: action === 'complete', ...(channel === 'catalogos' && action === 'complete' ? { folio } : {}) });
   } catch (err) {
     logError('quote-intent', err);
     return json(res, 502, { error: 'SAVE_FAILED' });

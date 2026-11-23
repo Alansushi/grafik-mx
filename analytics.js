@@ -96,7 +96,7 @@
   // WhatsApp y la pestaña puede quedar en segundo plano antes de que venza el
   // temporizador. `studio_submit` es la conversión del configurador.
   const IMMEDIATE = { cta_click: true, direct_whatsapp_click: true, studio_submit: true, studio_whatsapp_click: true,
-    catalog_promo_click: true, catalog_quote: true, catalog_whatsapp_click: true, catalog_depth: true };
+    catalog_promo_click: true, catalog_quote: true, catalog_whatsapp_click: true, catalog_help_click: true, catalog_depth: true };
   const queue = [];
   let timer = null;
 

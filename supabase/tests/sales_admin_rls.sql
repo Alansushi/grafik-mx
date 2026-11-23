@@ -2,10 +2,10 @@
 begin;
 insert into public.admin_users(user_id,email) values ('11111111-1111-4111-8111-111111111111','owner@example.test');
 insert into public.sales_opportunities(folio,channel) values ('GW-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA','whatsapp');
-insert into public.quote_intents(client_key,channel,email)
-values ('33333333-3333-4333-8333-333333333333','contacto','client@example.test');
-insert into public.quote_intents(client_key,channel,email,status,completed_at)
-values ('44444444-4444-4444-8444-444444444444','estudio','studio@example.test','completed',now());
+insert into public.quote_intents(client_key,folio,channel,email)
+values ('33333333-3333-4333-8333-333333333333','GQ-3333333333334333','contacto','client@example.test');
+insert into public.quote_intents(client_key,folio,channel,email,status,completed_at)
+values ('44444444-4444-4444-8444-444444444444','GQ-4444444444444444','estudio','studio@example.test','completed',now());
 do $$ begin
   if exists (select 1 from public.sales_opportunities where quote_intent_id =
     (select id from public.quote_intents where client_key='44444444-4444-4444-8444-444444444444')

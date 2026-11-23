@@ -13,6 +13,11 @@ for (const [slug, count] of [['navidad-2026', 56], ['agendas-2027', 9]]) {
       expect(html).toContain('href="?p=26&amp;sku=A2786#pagina-26"'.replace('26&amp;sku=A2786#pagina-26',
         slug === 'navidad-2026' ? '26&amp;sku=A2786#pagina-26' : '2&amp;sku=ASLE2027#pagina-2'));
       expect(html).toContain('href="catalogo.pdf"');
+      expect(html).toContain('id="send-list"');
+      expect(html).toContain('id="catalog-help"');
+      expect(html).toContain('<details class="container all-pages"');
+      expect(html).toContain('<summary>Hojas y referencias del catálogo</summary>');
+      expect(html).toMatch(/class="page-thumb"[^>]*><img data-src="previews\//);
       expect(html).not.toContain('p=56#pagina-56');
       expect(html).toContain(slug === 'navidad-2026' ? 'href="?p=4#pagina-4">Bebidas' : 'href="?p=1#pagina-1">Agendas semanales');
     });

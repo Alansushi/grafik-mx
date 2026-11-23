@@ -11,7 +11,7 @@ function escapeHtml(value) {
 }
 
 export function renderTeamAlert(intent) {
-  const folio = 'GQ-' + String(intent.client_key || '').replace(/-/g, '').slice(0, 16).toUpperCase();
+  const folio = intent.folio || 'GQ-' + String(intent.client_key || '').replace(/-/g, '').slice(0, 16).toUpperCase();
   const rows = (intent.items || []).map((item) => `<li>${escapeHtml(item.name)} (${escapeHtml(item.sku)}) · ${escapeHtml(item.catalog)} · Página ${escapeHtml(item.page)} · ${escapeHtml(item.quantity)} piezas</li>`).join('');
   const subject = `Nueva solicitud de catálogos ${folio} | GRAFIK`;
   const html = `<!doctype html><html lang="es"><meta charset="utf-8"><title>${escapeHtml(subject)}</title><body style="font-family:Arial,sans-serif;color:#181818;line-height:1.5"><h1>${escapeHtml(subject)}</h1><p><strong>Nombre:</strong> ${escapeHtml(intent.name)}</p><p><strong>Correo:</strong> ${escapeHtml(intent.email || 'No proporcionado')}</p><p><strong>WhatsApp:</strong> ${escapeHtml(intent.phone || 'No proporcionado')}</p><p><strong>Tipo de comprador:</strong> ${escapeHtml(intent.buyer_type || 'No indicado')}</p><p><strong>Uso previsto:</strong> ${escapeHtml(intent.intended_use)}</p><p><strong>Personalización:</strong> ${escapeHtml(intent.personalization || 'No indicada')}</p><p><strong>Fecha requerida:</strong> ${escapeHtml(intent.required_date || 'No indicada')}</p><h2>Artículos</h2><ul>${rows}</ul><p>Este correo confirma que la solicitud se guardó. Un clic posterior a WhatsApp no confirma conversación.</p></body></html>`;
@@ -102,6 +102,7 @@ export function renderQuoteMail({ kind, intent, baseUrl = 'https://www.grafik.mx
           <h1 style="margin:0 0 22px;color:${COLORS.black};font-family:${displayFont};font-size:38px;font-weight:900;line-height:1.05;text-transform:uppercase;">${escapeHtml(copy.title)}</h1>
           <p style="margin:0 0 14px;color:${COLORS.ink};font-family:${bodyFont};font-size:16px;line-height:1.6;">${greeting}</p>
           <p style="margin:0 0 14px;color:${COLORS.ink};font-family:${bodyFont};font-size:16px;line-height:1.6;">${escapeHtml(copy.intro)}</p>
+          ${catalog && intent.folio ? `<p style="margin:0 0 14px;color:${COLORS.ink};font-family:${bodyFont};font-size:16px;line-height:1.6;"><strong>Folio: ${escapeHtml(intent.folio)}</strong></p>` : ''}
           <p style="margin:0 0 28px;color:${COLORS.ink};font-family:${bodyFont};font-size:16px;line-height:1.6;">${escapeHtml(copy.detail)}</p>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td bgcolor="${COLORS.red}" style="background:${COLORS.red};">
             <a href="${escapeHtml(returnUrl)}" style="display:inline-block;padding:15px 24px;color:#FFFFFF;font-family:${bodyFont};font-size:14px;font-weight:600;line-height:1.2;text-decoration:none;">${escapeHtml(copy.button)} &nbsp;→</a>
