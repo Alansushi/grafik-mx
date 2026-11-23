@@ -445,7 +445,9 @@
 
         <section id="estudio">
           <h2>Antes de imprimirlo, míralo.</h2>
-          <p>El Estudio GRAFIK te permite visualizar tu diseño en una playera, gorra, pulsera o frazada antes de solicitar tu cotización. Las frazadas muestran precios base de referencia por pieza; GRAFIK confirma el precio final. Al terminar, WhatsApp abre un mensaje preparado con un enlace a la vista previa que debes enviar para iniciar la conversación. <a href="/estudio/">Abrir Estudio</a>.</p>
+          <p>Visualiza tu diseño antes de producirlo: personaliza playeras y gorras, prueba pulseras para eventos y descubre cómo se verá tu imagen en una frazada. La maqueta es ilustrativa; la personalización completa está en el <a href="/estudio/">Estudio GRAFIK</a>.</p>
+          <ul><li>Playera: prueba colores y técnicas.</li><li>Gorra: visualiza tu logo y prueba colores y técnicas.</li><li>Pulsera: revisa la tira y la vista cerrada; prueba colores.</li><li>Frazada: ajusta tu imagen por medida Personal, Individual o Matrimonial.</li></ul>
+          <p><a href="/estudio/">Abrir Estudio</a>. Al terminar, WhatsApp abre un mensaje preparado con un enlace a la vista previa que debes enviar para iniciar la conversación.</p>
           <ol>
             <li><strong>Elige tu producto</strong> — Playera, gorra, pulsera o frazada; selecciona sus opciones de personalización.</li>
             <li><strong>Sube tu diseño</strong> — Colócalo y ajusta el tamaño.</li>
@@ -826,47 +828,83 @@
       ["Azul marino", "#1b2646"], ["Azul", "#2557b8"], ["Verde", "#1f6b3a"], ["Amarillo", "#f2c200"],
     ];
     const GARMENTS = {
-      playera: { label: "Playera", src: "/assets/estudio-playera.avif?v=2" },
-      gorra:   { label: "Gorra",   src: "/assets/estudio-gorra.avif?v=1" },
+      playera: { label: "Playera", phrase: "Prueba colores y técnicas", src: "/assets/estudio-playera.avif?v=2" },
+      gorra:   { label: "Gorra", phrase: "Visualiza tu logo", src: "/assets/estudio-gorra.avif?v=1" },
+      pulsera: { label: "Pulsera", phrase: "Revisa la tira y la vista cerrada" },
+      frazada: { label: "Frazada", phrase: "Ajusta tu imagen por medida" },
     };
+    const BLANKET_SIZES = [
+      ["Personal", "personal", 480, 720],
+      ["Individual", "individual", 720, 540],
+      ["Matrimonial", "matrimonial", 720, 492],
+    ];
     const EstudioMock = () => {
       const [ci, setCi] = useState(3);
       const [gar, setGar] = useState("playera");
+      const [size, setSize] = useState(0);
+      const [technique, setTechnique] = useState("DTF");
       const [name, color] = TEE_COLORS[ci];
       const darkTee = [1, 4, 5, 6].includes(ci);
       const g = GARMENTS[gar];
+      const isGarment = gar === "playera" || gar === "gorra";
+      const [sizeName, sizeSlug, sizeW, sizeH] = BLANKET_SIZES[size];
+      const mark = <svg width="100%" height="100%" aria-hidden="true"><use href="/defs.svg#mark"/></svg>;
       return (
         <div className="cp-studio" role="group" aria-label="Vista previa ilustrativa del Estudio GRAFIK">
           <div className="cp-studio-bar" aria-hidden="true"><i></i><i></i><i></i><b>grafik.mx/estudio</b></div>
           <div className="cp-studio-body">
             <ol className="cp-studio-steps">
-              <li className="is-done">Prenda</li><li>Logo</li><li>Tallas</li><li>Contacto</li>
+              <li className="is-done">Producto</li><li>Diseño</li><li>Opciones</li><li>Contacto</li>
             </ol>
+            <p className="cp-studio-caption">Vista previa ilustrativa</p>
             <div className="cp-studio-main">
-              <div className={`cp-studio-stage cp-stage--${gar}`} style={{ "--c": color, "--mask": `url(${g.src})` }}>
-                <span className="cp-tee-color" aria-hidden="true"></span>
-                <img className="cp-tee-img" src={g.src} width="640" height="640" alt="" decoding="async" />
-                <span className="cp-tee-guide" aria-hidden="true"></span>
-                <span className="cp-tee-logo" style={{ color: darkTee ? "#F0F0EE" : "#0C0C0C" }} aria-hidden="true">
-                  <svg width="100%" height="100%" aria-hidden="true"><use href="/defs.svg#mark"/></svg>
-                </span>
+              <div className={`cp-studio-stage cp-stage--${gar}`} style={{ "--c": color, ...(g.src ? { "--mask": `url(${g.src})` } : {}) }}>
+                {isGarment && <>
+                  <span className="cp-tee-color" aria-hidden="true"></span>
+                  <img className="cp-tee-img" src={g.src} width="640" height="640" alt="" decoding="async" />
+                  <span className="cp-tee-guide" aria-hidden="true"></span>
+                  <span className="cp-tee-logo" style={{ color: darkTee ? "#F0F0EE" : "#0C0C0C" }} aria-hidden="true">{mark}</span>
+                </>}
+                {gar === "pulsera" && <div className="cp-bracelet" role="img" aria-label="Pulsera ilustrativa en tira plana y vista cerrada">
+                  <div className="cp-bracelet-flat"><span>{mark}</span></div>
+                  <span className="cp-bracelet-label">Tira plana</span>
+                  <div className="cp-bracelet-loop"><span>{mark}</span></div>
+                  <span className="cp-bracelet-label">Vista cerrada</span>
+                </div>}
+                {gar === "frazada" && <>
+                  <img className="cp-blanket-img" src={`/assets/estudio/frazada-${sizeSlug}-preview.avif`} width={sizeW} height={sizeH} alt={`Frazada ${sizeName} ilustrativa`} decoding="async" />
+                  <span className="cp-blanket-logo" aria-hidden="true">{mark}</span>
+                </>}
               </div>
               <div className="cp-studio-side">
-                <div className="cp-studio-lbl">Prenda</div>
-                <div className="cp-garments" role="group" aria-label="Prenda">
+                <div className="cp-studio-lbl">Producto</div>
+                <div className="cp-garments" role="group" aria-label="Producto">
                   {Object.entries(GARMENTS).map(([k, v]) => (
                     <button key={k} type="button" aria-pressed={k === gar} onClick={() => setGar(k)}>{v.label}</button>
                   ))}
                 </div>
-                <div className="cp-studio-lbl">Color · <b>{name}</b></div>
-                <div className="cp-swatches" role="group" aria-label="Color de la prenda">
-                  {TEE_COLORS.map(([n, col], i) => (
-                    <button key={n} type="button" aria-pressed={i === ci} aria-label={n}
-                      style={{ background: col }} onClick={() => setCi(i)} />
-                  ))}
-                </div>
-                <div className="cp-studio-lbl">Personalización</div>
-                <div className="cp-studio-chips"><span className="is-on">DTF</span><span>Bordado</span><span>Sublimación</span></div>
+                <p className="cp-studio-phrase">{g.phrase}</p>
+                {gar !== "frazada" && <>
+                  <div className="cp-studio-lbl">Color · <b>{name}</b></div>
+                  <div className="cp-swatches" role="group" aria-label="Color del producto">
+                    {TEE_COLORS.map(([n, col], i) => (
+                      <button key={n} type="button" aria-pressed={i === ci} aria-label={n}
+                        style={{ background: col }} onClick={() => setCi(i)} />
+                    ))}
+                  </div>
+                </>}
+                {isGarment && <>
+                  <div className="cp-studio-lbl">Técnica</div>
+                  <div className="cp-studio-chips" role="group" aria-label="Técnica ilustrativa">
+                    {["DTF", "Bordado", "Sublimación"].map(t => <button key={t} type="button" aria-pressed={technique === t} onClick={() => setTechnique(t)}>{t}</button>)}
+                  </div>
+                </>}
+                {gar === "frazada" && <>
+                  <div className="cp-studio-lbl">Medida</div>
+                  <div className="cp-studio-chips cp-size-chips" role="group" aria-label="Medida">
+                    {BLANKET_SIZES.map(([label], i) => <button key={label} type="button" aria-pressed={size === i} onClick={() => setSize(i)}>{label}</button>)}
+                  </div>
+                </>}
               </div>
             </div>
           </div>
@@ -880,7 +918,7 @@
           <div className="cp-estudio-copy">
             <span className="cp-new">Nuevo · Estudio GRAFIK</span>
             <h2 className="sec-title cp-estudio-title">Antes de imprimirlo, <em>míralo.</em></h2>
-            <p className="cp-estudio-lead">Prueba tu diseño en una playera, gorra, pulsera o frazada. En frazadas, ajusta el recorte por medida y consulta precios base antes de pedir tu cotización.</p>
+            <p className="cp-estudio-lead">Visualiza tu diseño antes de producirlo: personaliza playeras y gorras, prueba pulseras para eventos y descubre cómo se verá tu imagen en una frazada.</p>
             <ol className="cp-estudio-steps">
               <li><b>1</b><span>Elige tu producto<small>Playera, gorra, pulsera o frazada y sus opciones.</small></span></li>
               <li><b>2</b><span>Sube tu diseño<small>Colócalo y ajusta el tamaño.</small></span></li>
