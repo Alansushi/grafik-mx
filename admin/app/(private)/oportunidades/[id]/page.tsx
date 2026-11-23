@@ -12,7 +12,7 @@ export default async function Detail({ params }: {params: Promise<{id:string}>})
   if (result.error || !result.data) notFound();
   const item = result.data;
   const [intent, other] = await Promise.all([
-    item.quote_intent_id ? supabase.from('quote_intents').select('name,email,phone,service,details').eq('id',item.quote_intent_id).single() : Promise.resolve({data:null}),
+    item.quote_intent_id ? supabase.from('quote_intents').select('name,email,phone,service,details,items,intended_use,personalization,required_date,buyer_type').eq('id',item.quote_intent_id).single() : Promise.resolve({data:null}),
     supabase.from('sales_opportunities').select('id,folio').is('merged_into',null).neq('id',id).order('created_at',{ascending:false}).limit(200),
   ]);
   return <><div className="page-head"><Link className="back" href="/oportunidades">← Oportunidades</Link><p className="eyebrow">FOLIO {item.folio}</p>
@@ -20,7 +20,7 @@ export default async function Detail({ params }: {params: Promise<{id:string}>})
     <p>Origen: {item.source || 'desconocido'} · Campaña: {item.campaign || 'sin campaña'} · {item.attribution_note}</p></div>
     {item.merged_into && <p className="notice">Este folio fue conciliado con otra oportunidad y no se cuenta en los reportes.</p>}
     <div className="detail-grid"><section className="panel"><h2>Seguimiento</h2>
-      <p>Clic registrado: {item.whatsapp_clicked_at ? 'Sí' : 'No'} · Conversación confirmada: {item.conversation_confirmed_at ? 'Sí' : 'No'}</p>
+      <p>Clic a WhatsApp registrado: {item.whatsapp_clicked_at ? 'Sí' : 'No'} · Conversación confirmada: {item.conversation_confirmed_at ? 'Sí' : 'No'}</p>
       <form action={updateOpportunity}><input type="hidden" name="id" value={id} />
         <label>Estado<select name="stage" defaultValue={item.stage}>{['nueva','contactada','cotizada','ganada','perdida'].map(x=><option key={x}>{x}</option>)}</select></label>
         <label>Importe cobrado (MXN, sólo para ganada)<input name="amount" type="number" min="0" max="9999999999.99" step="0.01" defaultValue={item.amount_collected} /></label>
@@ -28,10 +28,23 @@ export default async function Detail({ params }: {params: Promise<{id:string}>})
         <button disabled={Boolean(item.merged_into)}>Guardar cambios</button></form>
       <p className="note">Cobrado: {money(Number(item.amount_collected))}. El clic por sí solo no significa mensaje enviado.</p></section>
       <section className="panel"><h2>Datos de contacto</h2>{intent.data ? <dl>
-        <dt>Nombre</dt><dd>{intent.data.name || '—'}</dd><dt>Correo</dt><dd>{intent.data.email}</dd>
+        <dt>Nombre</dt><dd>{intent.data.name || '—'}</dd><dt>Correo</dt><dd>{intent.data.email || '—'}</dd>
         <dt>Teléfono</dt><dd>{intent.data.phone || '—'}</dd><dt>Servicio</dt><dd>{intent.data.service || '—'}</dd>
         <dt>Detalles</dt><dd>{intent.data.details || '—'}</dd></dl> : <p>El clic directo no capturó datos personales. Busca el folio en WhatsApp.</p>}</section></div>
-      {!item.merged_into && <section className="panel"><h2>Conciliar folios</h2><p>Si Contacto y Estudio corresponden al mismo cliente, conserva un folio principal. El folio de origen debe tener importe cobrado igual a cero.</p>
+      {item.channel === 'catalogos' && intent.data && <section className="panel"><h2>Solicitud de catálogos</h2>
+        <dl><dt>Tipo de comprador</dt><dd>{intent.data.buyer_type || '—'}</dd>
+          <dt>Uso previsto</dt><dd>{intent.data.intended_use || '—'}</dd>
+          <dt>Personalización</dt><dd>{intent.data.personalization || '—'}</dd>
+          <dt>Fecha requerida</dt><dd>{intent.data.required_date || '—'}</dd></dl>
+        <h3>Artículos solicitados</h3><ul>{(Array.isArray(intent.data.items) ? intent.data.items : []).map((line: {catalog:string;page:number;sku:string;name:string;quantity:number}, index:number) =>
+          <li key={`${line.catalog}-${line.page}-${line.sku}-${index}`}>
+            {['navidad-2026','agendas-2027'].includes(line.catalog)
+              ? <a href={`https://www.grafik.mx/catalogos/${line.catalog}/?p=${Number(line.page)}&sku=${encodeURIComponent(line.sku)}#lector`} target="_blank" rel="noopener noreferrer">{line.name} · {line.sku}</a>
+              : <span>{line.name} · {line.sku}</span>}
+            {' · Página '}{line.page}{' · Cantidad '}{line.quantity}
+          </li>)}</ul>
+        <p className="note">SKU y página original identifican el producto, incluso cuando un SKU aparece dos veces en el PDF.</p></section>}
+      {!item.merged_into && <section className="panel"><h2>Conciliar folios</h2><p>Si Contacto, Estudio o Catálogos corresponden al mismo cliente, conserva un folio principal. El folio de origen debe tener importe cobrado igual a cero.</p>
       <form action={mergeOpportunity} className="inline-form"><input type="hidden" name="id" value={id} />
         <select name="target" required defaultValue=""><option value="" disabled>Elegir folio principal</option>{other.data?.map(x=><option key={x.id} value={x.id}>{x.folio}</option>)}</select>
         <button>Conciliar</button></form></section>}</>;

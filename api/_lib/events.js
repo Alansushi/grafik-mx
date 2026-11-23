@@ -33,7 +33,7 @@ export const CTA_KINDS = ['whatsapp', 'tel', 'form'];
  * llevan id en el HTML (CTA final, footer) se marcan con data-section.
  */
 export const SECTIONS = [
-  'crear', 'trabajos', 'estudio', 'proceso', 'servicios', 'acabados', 'faqs', 'contacto', 'cta-final', 'footer',
+  'catalogos', 'crear', 'trabajos', 'estudio', 'proceso', 'servicios', 'acabados', 'faqs', 'contacto', 'cta-final', 'footer',
 ];
 
 /**
@@ -70,6 +70,9 @@ const QTY = int(1, MAX_TRACKED_QTY);
 // seguido y CLAUDE.md ya obliga a tocar tres sitios al hacerlo; un cuarto sería
 // una trampa.
 const slug = (max) => (v) => (typeof v === 'string' && v.length <= max && /^[a-z0-9-]+$/.test(v) ? v : undefined);
+const catalog = enumOf(['navidad-2026', 'agendas-2027']);
+const catalogPage = (v) => Number.isInteger(v) && v >= 1 && v <= 57 ? v : undefined;
+const catalogSku = (v) => typeof v === 'string' && /^(?:A\d{4}|BM[TP]\d{4}|A[A-Z]{0,3}2027)$/.test(v) ? v : undefined;
 
 // `fields` decide QUÉ propiedades sobreviven; `required`, sin cuáles el evento
 // no significa nada y se descarta entero.
@@ -96,6 +99,17 @@ const EVENTS = {
   // `q` = texto de la pregunta convertido a slug, no su posición: las FAQs se reordenan.
   faq_open: { fields: { q: slug(60) }, required: ['q'] },
   work_open: { fields: { slug: slug(40), cat: label }, required: ['slug'] },
+
+  catalog_promo_exposure: { fields: { placement: enumOf(['nav', 'hero-block']) }, required: ['placement'] },
+  catalog_promo_click: { fields: { placement: enumOf(['nav', 'hero-block']) }, required: ['placement'] },
+  catalog_open: { fields: { catalog }, required: ['catalog'] },
+  catalog_search: { fields: { catalog, found: bool }, required: ['catalog', 'found'] },
+  catalog_page: { fields: { catalog, page: catalogPage }, required: ['catalog', 'page'] },
+  catalog_depth: { fields: { catalog, depth_pct: int(0, 100) }, required: ['catalog', 'depth_pct'] },
+  catalog_item: { fields: { catalog, page: catalogPage, sku: catalogSku, action: enumOf(['add', 'remove']) }, required: ['catalog', 'page', 'sku', 'action'] },
+  catalog_quote: { fields: { step: enumOf(['start', 'saved', 'error']) }, required: ['step'] },
+  catalog_whatsapp_click: { fields: {}, required: [] },
+  catalog_download: { fields: { catalog }, required: ['catalog'] },
 
   // ── Fase 3: embudo de /estudio/ ──
   // El page_view de /estudio/ ya es "abrió el configurador"; estos son los pasos
@@ -153,7 +167,10 @@ function cleanProps(schema, raw) {
     const value = clean(src[key]);
     if (value !== undefined) out[key] = value;
   }
-  return schema.required.every((k) => k in out) ? out : null;
+  if (!schema.required.every((k) => k in out)) return null;
+  if (out.catalog === 'navidad-2026' && out.page === 56) return null;
+  if (out.catalog === 'agendas-2027' && out.page > 9) return null;
+  return out;
 }
 
 function cleanEvent(ev) {

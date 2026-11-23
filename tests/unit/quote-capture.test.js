@@ -124,3 +124,49 @@ describe('webhook de Resend', () => {
     expect(verifySvix(payload, headers, secret, now + 301_000)).toBe(false);
   });
 });
+
+describe('solicitud mixta de catálogos', () => {
+  it('guarda por WhatsApp, devuelve folio y alerta una vez al reintentar', async () => {
+    const old = { ...process.env };
+    Object.assign(process.env, { QUOTE_CAPTURE_ENABLED:'1', PRIVACY_CONTROLLER:'GRAFIK',
+      PRIVACY_ADDRESS:'CDMX', PRIVACY_EMAIL:'privacidad@grafik.mx', SUPABASE_URL:'https://sb.test',
+      SUPABASE_SERVICE_ROLE_KEY:'test-key', RESEND_API_KEY:'test', EMAIL_FROM:'info@grafik.mx' });
+    const key='55555555-5555-4555-8555-555555555555';
+    let row; let log; const outgoing=[];
+    const stub=vi.spyOn(globalThis,'fetch').mockImplementation(async (url, init={})=>{
+      url=String(url);
+      if (url.includes('rpc_rate_limit_hit')) return {ok:true,json:async()=>true};
+      if (url.includes('/quote_intents') && !init.method) return {ok:true,json:async()=> row?[row]:[]};
+      if (url.includes('/quote_intents') && init.method==='POST') {
+        row={...JSON.parse(init.body),id:'11111111-1111-4111-8111-111111111111'};
+        return {ok:true,json:async()=>[row]};
+      }
+      if (url.includes('/quote_email_log') && init.method==='POST') {
+        if (log) return {ok:true,json:async()=>[]};
+        log={id:'log-1',state:'claimed',created_at:new Date().toISOString()};
+        return {ok:true,json:async()=>[log]};
+      }
+      if (url.includes('/quote_email_log') && !init.method) return {ok:true,json:async()=>[log]};
+      if (url.includes('/quote_email_log') && init.method==='PATCH') {
+        log={...log,...JSON.parse(init.body)};
+        return {ok:true};
+      }
+      if (url.includes('api.resend.com')) { outgoing.push(JSON.parse(init.body)); return {ok:true,json:async()=>({id:'resend-1'})}; }
+      throw new Error('unexpected '+url);
+    });
+    const body={ key, action:'complete', channel:'catalogos', name:'Ana Ruiz', phone:'5512345678',
+      buyerType:'empresa', intendedUse:'Regalo para clientes', personalization:'Logotipo', requiredDate:'2026-12-10',
+      items:[{catalog:'navidad-2026',page:26,sku:'A2786',name:'Cutters',quantity:20},
+        {catalog:'agendas-2027',page:2,sku:'ASLE2027',name:'Agenda Semanal Luxemburgo Ejecutiva 2027',quantity:30}] };
+    try {
+      const first=response(); await quoteIntent(request(body),first);
+      expect(first.body).toEqual({saved:true,completed:true,folio:'GQ-5555555555554555'});
+      const second=response(); await quoteIntent(request(body),second);
+      expect(second.body).toEqual(first.body);
+      expect(outgoing).toHaveLength(1);
+      expect(outgoing[0].to).toEqual(['info@orkestalo.com']);
+      expect(row.items).toHaveLength(2);
+      expect(row.email).toBeNull();
+    } finally { stub.mockRestore(); process.env=old; }
+  });
+});

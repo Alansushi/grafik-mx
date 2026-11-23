@@ -48,7 +48,7 @@ export default function handler(req, res) {
       <p><strong>Responsable:</strong> ${controller}.<br><strong>Domicilio:</strong> ${address}.<br><strong>Contacto de privacidad y derechos ARCO:</strong> <a href="mailto:${email}">${email}</a>.</p>
       <h2>Datos y finalidades</h2>
       <p>${controller}, con domicilio en ${address}, tratará tu nombre, correo, teléfono y detalle para preparar y dar seguimiento a la cotización. ${controller} recibe y atiende las solicitudes de GRAFIK.</p>
-      <p>Si comienzas y no terminas, podemos enviarte un recordatorio aproximadamente 24 horas después. Si usas el Estudio, también tratamos los datos de tu diseño para preparar la cotización.</p>
+      <p>Si comienzas y no terminas, podemos enviarte un recordatorio aproximadamente 24 horas después, sólo si proporcionaste correo. Si usas el Estudio, también tratamos los datos de tu diseño para preparar la cotización. Si usas los catálogos, guardamos los artículos, cantidades, uso previsto, personalización y fecha requerida de tu solicitud; puedes dejar correo o WhatsApp como medio de contacto. Enviamos al equipo una alerta de la solicitud guardada y, si dejas correo, una confirmación.</p>
       <p>Al pulsar Enviar por WhatsApp se abrirá WhatsApp con el mensaje preparado; debes enviarlo desde esa aplicación para que ${controller} lo reciba. WhatsApp no lo envía automáticamente. El uso de WhatsApp implica que los datos incluidos en el mensaje se transmitan a WhatsApp/Meta conforme a sus propios términos y aviso de privacidad.</p>
       <p>Las promociones requieren tu aceptación separada. Sólo enviaremos promociones por correo si marcas la casilla opcional. Puedes retirar tu consentimiento desde el enlace de baja incluido en los correos.</p>
       <h2>Encargados y conservación</h2>
@@ -57,7 +57,7 @@ export default function handler(req, res) {
       <p>Para acceder, rectificar, cancelar u oponerte al tratamiento, o revocar tu consentimiento, escribe a <a href="mailto:${email}">${email}</a> e indica tu solicitud y un medio de respuesta. También puedes darte de baja de los correos mediante el enlace incluido en ellos.</p>
       <h2>Cambios</h2>
       <p>Publicaremos aquí los cambios a este aviso.</p>
-      <p class="privacy-updated">Última actualización: 30 de octubre de 2026.</p>
+      <p class="privacy-updated">Última actualización: 22 de noviembre de 2026.</p>
     </div>
   </main>
 </body>

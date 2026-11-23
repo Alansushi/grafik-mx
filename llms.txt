@@ -7,7 +7,7 @@ Datos de la entidad:
 - Sitio: https://www.grafik.mx/
 - Ubicación y zona de servicio: Ciudad de México y área metropolitana; entrega a domicilio o recogida del pedido
 - Contacto: WhatsApp https://wa.me/525539014600 · Teléfono +52 55 3901 4600
-- Última actualización: 2026-10-19
+- Última actualización: 2026-11-22
 - Documento extendido: https://www.grafik.mx/llms-full.txt
 
 ## Servicios
@@ -29,6 +29,12 @@ Datos de la entidad:
 
 ## Estudio GRAFIK
 - [Estudio GRAFIK](https://www.grafik.mx/estudio/): visualizador para probar tu diseño en una playera, gorra o pulsera antes de cotizar. En pulseras muestra una tira plana y una vista cerrada; son aproximaciones visuales, no el arte final de impresión. No muestra precios; al terminar se abre WhatsApp con un mensaje que incluye un enlace a la vista previa y que debes enviar para solicitar la cotización. Para ajustar el diseño con mayor precisión, abre el Estudio en computadora.
+
+## Catálogos de temporada
+- [Catálogos GRAFIK](https://www.grafik.mx/catalogos/): lector interactivo de artículos promocionales, con búsqueda por SKU y lista de cotización compartida.
+- [Navidad 2026](https://www.grafik.mx/catalogos/navidad-2026/): regalos y artículos promocionales navideños. La página original 56 está excluida del lector y del PDF descargable; las referencias conservan la numeración original.
+- [Agendas 2027](https://www.grafik.mx/catalogos/agendas-2027/): agendas y opciones de personalización para el año 2027.
+- La lista permite reunir productos de ambos catálogos, indicar cantidades y uso previsto, y guardar una solicitud con correo o WhatsApp. La cotización no muestra precios, existencias ni plazos sin confirmar.
 
 ## Preguntas frecuentes
 - [Preguntas frecuentes](https://www.grafik.mx/#faqs): tiempos (1 a 3 días hábiles, express), formatos de archivo (PDF, AI, CDR, PNG/PSD a 150 DPI mínimo), servicio de diseño gráfico, mínimos de artículos promocionales (varían por artículo y técnica), entregas en CDMX y área metropolitana, cómo cotizar y qué productos se pueden cotizar.

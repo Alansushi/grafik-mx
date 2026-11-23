@@ -95,7 +95,8 @@
   // Eventos que salen ya, sin esperar la cola de 2 s: tras ellos el usuario salta a
   // WhatsApp y la pestaña puede quedar en segundo plano antes de que venza el
   // temporizador. `studio_submit` es la conversión del configurador.
-  const IMMEDIATE = { cta_click: true, direct_whatsapp_click: true, studio_submit: true, studio_whatsapp_click: true };
+  const IMMEDIATE = { cta_click: true, direct_whatsapp_click: true, studio_submit: true, studio_whatsapp_click: true,
+    catalog_promo_click: true, catalog_quote: true, catalog_whatsapp_click: true, catalog_depth: true };
   const queue = [];
   let timer = null;
 
@@ -207,8 +208,13 @@
     const cta = t.closest('[data-cta]');
     if (cta) { trackCta(cta); return; }
 
+    const catalogPromo = t.closest('a[data-catalog-placement]');
+    if (catalogPromo && !repeated('catalog-promo:' + catalogPromo.dataset.catalogPlacement)) {
+      track('catalog_promo_click', { placement: catalogPromo.dataset.catalogPlacement });
+    }
+
     const directWa = t.closest('a[href^="https://wa.me/"]');
-    if (directWa) {
+    if (directWa && !directWa.hasAttribute('data-catalog-whatsapp')) {
       const folio = ensureWhatsappFolio(directWa);
       if (folio && !repeated('direct-wa:' + folio)) track('direct_whatsapp_click', { folio });
     }
@@ -343,6 +349,41 @@
     scan(document.documentElement);
   }
 
+  function watchCatalogPromos() {
+    if (!('IntersectionObserver' in window) || !('MutationObserver' in window)) return;
+    const seen = new Set();
+    const watched = new WeakSet();
+    const timers = new Map();
+    const observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        const placement = entry.target.getAttribute('data-catalog-exposure');
+        if (seen.has(placement)) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          if (!timers.has(entry.target)) timers.set(entry.target, setTimeout(function () {
+            seen.add(placement);
+            observer.unobserve(entry.target);
+            timers.delete(entry.target);
+            track('catalog_promo_exposure', { placement });
+          }, 500));
+        } else if (timers.has(entry.target)) {
+          clearTimeout(timers.get(entry.target));
+          timers.delete(entry.target);
+        }
+      });
+    }, { threshold: [0, 0.5, 1] });
+    const scan = (root) => {
+      if (root.matches?.('[data-catalog-exposure]') && !watched.has(root) && !root.closest('.ssr-fallback')) {
+        watched.add(root); observer.observe(root);
+      }
+      root.querySelectorAll?.('[data-catalog-exposure]').forEach(scan);
+    };
+    const mutation = new MutationObserver((records) => records.forEach((record) =>
+      record.addedNodes.forEach((node) => { if (node.nodeType === 1) scan(node); })));
+    mutation.observe(document.documentElement, { childList: true, subtree: true });
+    setTimeout(() => mutation.disconnect(), 20000);
+    scan(document.documentElement);
+  }
+
   window.addEventListener('pagehide', flush);
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') flush();
@@ -358,5 +399,6 @@
       body: JSON.stringify({ token: returnToken }), keepalive: true }).catch(noop);
   }
   track('page_view');
+  watchCatalogPromos();
   watchSections();
 })();

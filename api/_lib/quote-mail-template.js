@@ -10,16 +10,30 @@ function escapeHtml(value) {
   })[char]);
 }
 
+export function renderTeamAlert(intent) {
+  const folio = 'GQ-' + String(intent.client_key || '').replace(/-/g, '').slice(0, 16).toUpperCase();
+  const rows = (intent.items || []).map((item) => `<li>${escapeHtml(item.name)} (${escapeHtml(item.sku)}) · ${escapeHtml(item.catalog)} · Página ${escapeHtml(item.page)} · ${escapeHtml(item.quantity)} piezas</li>`).join('');
+  const subject = `Nueva solicitud de catálogos ${folio} | GRAFIK`;
+  const html = `<!doctype html><html lang="es"><meta charset="utf-8"><title>${escapeHtml(subject)}</title><body style="font-family:Arial,sans-serif;color:#181818;line-height:1.5"><h1>${escapeHtml(subject)}</h1><p><strong>Nombre:</strong> ${escapeHtml(intent.name)}</p><p><strong>Correo:</strong> ${escapeHtml(intent.email || 'No proporcionado')}</p><p><strong>WhatsApp:</strong> ${escapeHtml(intent.phone || 'No proporcionado')}</p><p><strong>Tipo de comprador:</strong> ${escapeHtml(intent.buyer_type || 'No indicado')}</p><p><strong>Uso previsto:</strong> ${escapeHtml(intent.intended_use)}</p><p><strong>Personalización:</strong> ${escapeHtml(intent.personalization || 'No indicada')}</p><p><strong>Fecha requerida:</strong> ${escapeHtml(intent.required_date || 'No indicada')}</p><h2>Artículos</h2><ul>${rows}</ul><p>Este correo confirma que la solicitud se guardó. Un clic posterior a WhatsApp no confirma conversación.</p></body></html>`;
+  return { subject, html };
+}
+
 export function renderQuoteMail({ kind, intent, baseUrl = 'https://www.grafik.mx' }) {
   if (!['confirmation', 'reminder'].includes(kind)) throw new Error('Invalid quote email kind');
   const site = String(baseUrl).replace(/\/+$/, '');
   const studio = intent.channel === 'estudio';
+  const catalog = intent.channel === 'catalogos';
   const name = String(intent.name || '').trim();
   const greeting = name ? `Hola, ${escapeHtml(name)}.` : 'Hola.';
-  const destination = `${site}${studio ? '/estudio/' : '/'}`;
+  const catalogPath = ['navidad-2026', 'agendas-2027'].includes(intent.return_catalog)
+    ? intent.return_catalog : 'navidad-2026';
+  const destination = `${site}${catalog ? `/catalogos/${catalogPath}/` : studio ? '/estudio/' : '/'}`;
+  const reference = catalog ? (intent.items || []).find((item) =>
+    item.catalog === catalogPath && item.page === intent.return_page) : null;
+  const pageQuery = catalog ? `?p=${Number(intent.return_page) || 1}${reference?.sku ? `&sku=${encodeURIComponent(reference.sku)}` : ''}` : '';
   const returnUrl = kind === 'reminder' && intent.return_token
-    ? `${destination}?r=${encodeURIComponent(intent.return_token)}${studio ? '' : '#contacto'}`
-    : destination;
+    ? `${destination}${pageQuery}${pageQuery ? '&' : '?'}r=${encodeURIComponent(intent.return_token)}${studio || catalog ? '' : '#contacto'}`
+    : `${destination}${pageQuery}`;
   const unsubscribeUrl = intent.unsubscribe_token
     ? `${site}/api/unsubscribe?t=${encodeURIComponent(intent.unsubscribe_token)}` : null;
 
@@ -29,9 +43,18 @@ export function renderQuoteMail({ kind, intent, baseUrl = 'https://www.grafik.mx
     eyebrow: 'SOLICITUD GUARDADA',
     title: 'Gracias por elegir GRAFIK.',
     intro: 'Guardamos los datos de la solicitud que preparaste.',
-    detail: 'Si abriste WhatsApp para cotizar, todavía necesitas revisar y enviar el mensaje desde WhatsApp para que el equipo de GRAFIK lo reciba.',
-    button: studio ? 'Volver al Estudio' : 'Visitar GRAFIK',
+    detail: catalog ? 'Tu selección de artículos quedó registrada. Si decides abrir WhatsApp, revisa y envía el mensaje desde ahí.' : 'Si abriste WhatsApp para cotizar, todavía necesitas revisar y enviar el mensaje desde WhatsApp para que el equipo de GRAFIK lo reciba.',
+    button: catalog ? 'Volver al catálogo' : studio ? 'Volver al Estudio' : 'Visitar GRAFIK',
     note: '¿Tienes otra idea en mente? Conoce más formas de imprimir y personalizar con GRAFIK.',
+  } : catalog ? {
+    subject: 'Tu selección de catálogos sigue pendiente | GRAFIK',
+    preheader: 'Vuelve al catálogo y termina tu solicitud de cotización.',
+    eyebrow: 'TU SELECCIÓN SIGUE AQUÍ',
+    title: 'Continúa tu cotización.',
+    intro: 'Tu selección de artículos de catálogo quedó pendiente.',
+    detail: 'El enlace abre el catálogo en la página que consultaste. Si guardaste la lista en este navegador, podrás retomarla desde ahí.',
+    button: 'Volver al catálogo',
+    note: 'Puedes combinar artículos de Navidad 2026 y Agendas 2027 en una sola solicitud.',
   } : studio ? {
     subject: 'Tu cotización en el Estudio sigue pendiente | GRAFIK',
     preheader: 'Vuelve al Estudio para preparar tu cotización. El enlace no recupera tu diseño anterior.',

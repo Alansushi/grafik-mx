@@ -90,6 +90,16 @@ export default defineConfig({
       use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {
+      name: 'catalog-desktop',
+      testMatch: /[\\/]catalogs\.spec\.js$/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
+      name: 'catalog-mobile',
+      testMatch: /[\\/]catalogs\.spec\.js$/,
+      use: { ...devices['iPhone 14'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
+    },
+    {
       name: 'studio-analytics',
       testMatch: /[\\/]studio-analytics\.spec\.js$/,
       fullyParallel: false,

@@ -1,0 +1,118 @@
+{
+  "slug": "agendas-2027",
+  "pdf": "catalogo.pdf",
+  "pages": [
+    {
+      "number": 1,
+      "image": "pages/01.webp",
+      "preview": "previews/01.webp",
+      "wide": false,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "ASP2027",
+          "name": "Agenda Semanal Cannes 2027"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "image": "pages/02.webp",
+      "preview": "previews/02.webp",
+      "wide": true,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "ASLE2027",
+          "name": "Agenda Semanal Luxemburgo Ejecutiva 2027"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "image": "pages/03.webp",
+      "preview": "previews/03.webp",
+      "wide": true,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "ASL2027",
+          "name": "Agenda Semanal Luxemburgo 2027"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "image": "pages/04.webp",
+      "preview": "previews/04.webp",
+      "wide": true,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "ASLP2027",
+          "name": "Agenda Semanal Luxemburgo Pocket 2027"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "image": "pages/05.webp",
+      "preview": "previews/05.webp",
+      "wide": true,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "ASP2027",
+          "name": "Agenda Semanal Cannes 2027"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "image": "pages/06.webp",
+      "preview": "previews/06.webp",
+      "wide": true,
+      "category": "Agendas semanales",
+      "products": [
+        {
+          "sku": "AS2027",
+          "name": "Agenda Semanal Roma 2027"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "image": "pages/07.webp",
+      "preview": "previews/07.webp",
+      "wide": true,
+      "category": "Agendas diarias",
+      "products": [
+        {
+          "sku": "ADS2027",
+          "name": "Agenda Diaria Granada 2027"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "image": "pages/08.webp",
+      "preview": "previews/08.webp",
+      "wide": true,
+      "category": "Agendas diarias",
+      "products": [
+        {
+          "sku": "AD2027",
+          "name": "Agenda Diaria Odesa 2027"
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "image": "pages/09.webp",
+      "preview": "previews/09.webp",
+      "wide": false,
+      "category": "Agendas diarias",
+      "products": []
+    }
+  ]
+}

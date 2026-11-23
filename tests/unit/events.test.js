@@ -498,3 +498,23 @@ describe('events.js — sincronía de la Fase 3 con el código del estudio', () 
     }
   });
 });
+
+describe('eventos de catálogos', () => {
+  it('mide exposición y selección sin guardar datos personales', () => {
+    const result = validateBatch({sid:'catalogsid123', events:[
+      {name:'catalog_promo_exposure',props:{placement:'hero-block',email:'ana@example.com'}},
+      {name:'catalog_item',props:{catalog:'navidad-2026',page:26,sku:'A2786',action:'add',name:'Ana Ruiz'}},
+      {name:'catalog_quote',props:{step:'saved',phone:'5512345678'}},
+    ]});
+    expect(result.dropped).toBe(0);
+    expect(result.rows.map(row=>row.props)).toEqual([
+      {placement:'hero-block'}, {catalog:'navidad-2026',page:26,sku:'A2786',action:'add'}, {step:'saved'},
+    ]);
+  });
+  it('descarta eventos de la página 56 retirada', () => {
+    const result=validateBatch({sid:'catalogsid123',events:[
+      {name:'catalog_page',props:{catalog:'navidad-2026',page:56}},
+    ]});
+    expect(result.dropped).toBe(1);
+  });
+});

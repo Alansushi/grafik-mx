@@ -7,8 +7,18 @@ import { isUuid, isEmail } from './_lib/validation.js';
 import { logError } from './_lib/log.js';
 import { sendQuoteEmail } from './_lib/quote-mail.js';
 import { captureEnabled } from './_lib/capture-config.js';
+import { validateCatalogIntent } from './_lib/catalog-intent.js';
 
 export { captureEnabled };
+
+const folioFor = (key) => 'GQ-' + String(key).replace(/-/g, '').slice(0, 16).toUpperCase();
+async function sendCompletionMail(base, secret, intent) {
+  if (!intent) return;
+  if (intent.channel === 'catalogos') {
+    await sendQuoteEmail(base, secret, intent, 'team_alert').catch((err) => logError('quote-team-alert', err));
+  }
+  if (intent.email) await sendQuoteEmail(base, secret, intent, 'confirmation').catch((err) => logError('quote-confirmation', err));
+}
 
 export default async function handler(req, res) {
   if (req.method === 'GET') return json(res, 200, captureEnabled() ? {
@@ -19,14 +29,20 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'METHOD_NOT_ALLOWED' });
   if (!captureEnabled()) return json(res, 503, { error: 'CAPTURE_DISABLED' });
   let body;
-  try { body = await readJsonBody(req, { maxBytes: 4096 }); }
+  try { body = await readJsonBody(req, { maxBytes: 8192 }); }
   catch { return json(res, 400, { error: 'INVALID_BODY' }); }
   const { key, action, channel } = body || {};
   if (!isUuid(key) || !['start', 'complete', 'cancel'].includes(action)) return json(res, 400, { error: 'INVALID_ACTION' });
-  if (action !== 'cancel' && !['contacto', 'estudio'].includes(channel)) return json(res, 400, { error: 'INVALID_CHANNEL' });
+  if (action !== 'cancel' && !['contacto', 'estudio', 'catalogos'].includes(channel)) return json(res, 400, { error: 'INVALID_CHANNEL' });
   const email = String(body.email || '').trim().toLowerCase();
   const name = String(body.name || '').trim();
-  if (action !== 'cancel' && (!isEmail(email) || email.length > 254 || (name && (name.length < 2 || name.length > 120)))) {
+  let catalogData;
+  if (channel === 'catalogos' && action !== 'cancel') {
+    const validated = validateCatalogIntent(body, { partial: action === 'start' });
+    if (!validated.ok) return json(res, 400, { error: validated.error });
+    catalogData = validated.data;
+  }
+  if (action !== 'cancel' && channel !== 'catalogos' && (!isEmail(email) || email.length > 254 || (name && (name.length < 2 || name.length > 120)))) {
     return json(res, 400, { error: 'INVALID_CONTACT' });
   }
   if (channel === 'estudio' && action !== 'cancel' && name.length < 2) return json(res, 400, { error: 'INVALID_NAME' });
@@ -54,7 +70,7 @@ export default async function handler(req, res) {
     });
     if (!rate.ok || !(await rate.json())) return json(res, 429, { error: 'RATE_LIMITED' });
 
-    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,status,channel,email,name,unsubscribed_at,unsubscribe_token,return_token,utm_source,utm_medium,utm_campaign,referrer_host', eq: { client_key: key }, limit: 1 });
+    const url = buildPostgrestUrl(base, 'quote_intents', { select: 'id,client_key,status,channel,email,name,phone,items,intended_use,personalization,required_date,buyer_type,return_catalog,return_page,unsubscribed_at,unsubscribe_token,return_token,utm_source,utm_medium,utm_campaign,referrer_host', eq: { client_key: key }, limit: 1 });
     const existingRes = await fetch(url, { headers });
     if (!existingRes.ok) throw new Error('intent lookup failed');
     const existing = (await existingRes.json())[0];
@@ -64,19 +80,30 @@ export default async function handler(req, res) {
       });
       return json(res, 200, { saved: Boolean(existing) });
     }
-    if (existing && (existing.channel !== channel || existing.email !== email)) return json(res, 409, { error: 'KEY_CONFLICT' });
+    if (existing && (existing.channel !== channel || (existing.email || null) !== (email || null))) return json(res, 409, { error: 'KEY_CONFLICT' });
     if (existing?.status === 'completed') {
-      if (action === 'complete') await sendQuoteEmail(base, secret, existing, 'confirmation').catch((err) => logError('quote-confirmation', err));
-      return json(res, 200, { saved: true, completed: true });
+      if (action === 'complete') await sendCompletionMail(base, secret, existing);
+      return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: folioFor(key) } : {}) });
     }
     if (existing?.status === 'cancelled') return json(res, 409, { error: 'CANCELLED' });
     const now = new Date().toISOString();
-    const suppression = await fetch(`${buildPostgrestUrl(base, 'quote_intents', { select: 'id', eq: { email }, limit: 1 })}&unsubscribed_at=not.is.null`, { headers });
-    if (!suppression.ok) throw new Error(`suppression lookup ${suppression.status}`);
-    const suppressed = (await suppression.json()).length > 0 || Boolean(existing?.unsubscribed_at);
+    let suppressed = Boolean(existing?.unsubscribed_at);
+    if (email) {
+      const suppression = await fetch(`${buildPostgrestUrl(base, 'quote_intents', { select: 'id', eq: { email }, limit: 1 })}&unsubscribed_at=not.is.null`, { headers });
+      if (!suppression.ok) throw new Error(`suppression lookup ${suppression.status}`);
+      suppressed = (await suppression.json()).length > 0 || suppressed;
+    }
     const data = {
-      name: name || null, email, phone, service, details,
-      marketing_consent: consent && !suppressed, consent_at: consent && !suppressed ? now : null,
+      name: name || null, email: email || null, phone, service, details,
+      ...(catalogData ? {
+        items: catalogData.items, intended_use: catalogData.intended_use,
+        personalization: catalogData.personalization, required_date: catalogData.required_date,
+        return_catalog: catalogData.return_catalog, return_page: catalogData.return_page,
+        buyer_type: catalogData.buyer_type,
+        analytics_sid: /^[a-z0-9]{8,32}$/.test(body.analyticsSid || '') ? body.analyticsSid : null,
+      } : {}),
+      marketing_consent: consent && Boolean(email) && !suppressed,
+      consent_at: consent && email && !suppressed ? now : null,
       ...(suppressed ? { unsubscribed_at: existing?.unsubscribed_at || now } : {}),
       updated_at: now,
       ...(!existing?.utm_source && !existing?.referrer_host ? {
@@ -97,10 +124,10 @@ export default async function handler(req, res) {
       const raced = await fetch(url, { headers });
       if (!raced.ok) throw new Error(`intent race lookup ${raced.status}`);
       const [current] = await raced.json();
-      if (!current || current.channel !== channel || current.email !== email) return json(res, 409, { error: 'KEY_CONFLICT' });
+      if (!current || current.channel !== channel || (current.email || null) !== (email || null)) return json(res, 409, { error: 'KEY_CONFLICT' });
       if (current.status === 'completed') {
-        if (action === 'complete') await sendQuoteEmail(base, secret, current, 'confirmation').catch((err) => logError('quote-confirmation', err));
-        return json(res, 200, { saved: true, completed: true });
+        if (action === 'complete') await sendCompletionMail(base, secret, current);
+        return json(res, 200, { saved: true, completed: true, ...(channel === 'catalogos' ? { folio: folioFor(key) } : {}) });
       }
       if (current.status !== 'started') return json(res, 409, { error: 'CANCELLED' });
       response = await fetch(buildPostgrestUrl(base, 'quote_intents', { eq: { client_key: key, status: 'started' } }), {
@@ -114,9 +141,9 @@ export default async function handler(req, res) {
         const current = await fetch(url, { headers });
         if (current.ok) [intent] = await current.json();
       }
-      if (intent) await sendQuoteEmail(base, secret, intent, 'confirmation').catch((err) => logError('quote-confirmation', err));
+      if (intent) await sendCompletionMail(base, secret, intent);
     }
-    return json(res, 200, { saved: true, completed: action === 'complete' });
+    return json(res, 200, { saved: true, completed: action === 'complete', ...(channel === 'catalogos' && action === 'complete' ? { folio: folioFor(key) } : {}) });
   } catch (err) {
     logError('quote-intent', err);
     return json(res, 502, { error: 'SAVE_FAILED' });
