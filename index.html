@@ -369,6 +369,7 @@
       <header>
         <strong>GRAFIK</strong> · Imprenta y Publicidad en CDMX
         <nav>
+          <a href="/catalogos/">Catálogos</a>
           <a href="#trabajos">Trabajos</a>
           <a href="#estudio">Estudio</a>
           <a href="#proceso">Proceso</a>
@@ -383,6 +384,15 @@
           <h1>Tu idea merece verse <em>impresa</em> así de bien.</h1>
           <p>GRAFIK es una imprenta y agencia de publicidad en Ciudad de México que imprime lonas, flyers, pósters, boletos, pendones, brazaletes para eventos, artículos promocionales, stickers, tarjetas de presentación, caballetes y figuras en coroplast. También realizamos impresión 3D de piezas a medida y ofrecemos portarretratos 3D de calavera, gato y perro. Los trabajos de imprenta suelen producirse en 1 a 3 días hábiles, con servicio express disponible; consulta el tiempo de cada pieza 3D por WhatsApp. <a href="#trabajos">Ver trabajos reales</a></p>
           <p>Boletos, flyers, pósters, lonas, pendones, brazaletes y promocionales. GRAFIK te ayuda a elegir el material, acabado y formato ideal para tu proyecto. Cotización sin compromiso, revisamos tu archivo antes de imprimir y hay servicio express disponible. Más de 20 materiales, cotización rápida por WhatsApp y producción en CDMX. WhatsApp: <a href="https://wa.me/525539014600">55 3901 4600</a></p>
+        </section>
+
+        <section id="catalogos">
+          <h2>Catálogos para elegir y cotizar</h2>
+          <p>Explora regalos corporativos de Navidad 2026 y agendas 2027. Reúne referencias de ambos catálogos en una sola solicitud; indícanos cantidades, personalización y fecha requerida. La disponibilidad y el costo se confirman al cotizar.</p>
+          <ul>
+            <li><a href="/catalogos/navidad-2026/">Ver catálogo de Navidad 2026</a> — bebidas, hogar, textiles, tecnología, oficina, salud, viaje y escritura.</li>
+            <li><a href="/catalogos/agendas-2027/">Ver catálogo de Agendas 2027</a> — agendas semanales y diarias con opciones de personalización.</li>
+          </ul>
         </section>
 
         <section id="crear">
@@ -566,6 +576,7 @@
     // Fuente única de los anchors de sección — la usan Nav y Footer.
     // Al añadir/quitar una sección con id propio, tocar sólo este array.
     const NAV_LINKS = [
+      ["Catálogos",  "/catalogos/"],
       ["Trabajos",   "#trabajos"],
       ["Estudio",    "#estudio"],
       ["Proceso",    "#proceso"],
@@ -589,7 +600,9 @@
             </a>
             <nav className="nav-links" aria-label="Navegación principal">
               {NAV_LINKS.map(([label, href]) => (
-                <a key={href} href={href} className={`nav-link${href === "#estudio" ? " nav-link--pill" : ""}`}>{label}</a>
+                <a key={href} href={href} data-catalog-placement={href === '/catalogos/' ? 'nav' : undefined}
+                  data-catalog-exposure={href === '/catalogos/' ? 'nav' : undefined}
+                  className={`nav-link${href === "#estudio" ? " nav-link--pill" : ""}${href === '/catalogos/' ? ' nav-link--catalog' : ''}`}>{label}</a>
               ))}
               <a data-cta="nav" href={waLink()} target="_blank" rel="noopener noreferrer" className="btn btn-primary nav-cta">
                 Cotizar ahora
@@ -602,7 +615,9 @@
           {open && (
             <nav className="nav-mobile" aria-label="Menú móvil">
               {NAV_LINKS.map(([label, href]) => (
-                <a key={href} href={href} className={href === "#estudio" ? "nav-link--pill" : undefined} onClick={() => setOpen(false)}>{label}</a>
+                <a key={href} href={href} data-catalog-placement={href === '/catalogos/' ? 'nav' : undefined}
+                  data-catalog-exposure={href === '/catalogos/' ? 'nav' : undefined}
+                  className={href === "#estudio" ? "nav-link--pill" : undefined} onClick={() => setOpen(false)}>{label}</a>
               ))}
             </nav>
           )}
@@ -710,6 +725,22 @@
       </section>
       );
     };
+
+    const CatalogTeaser = () => (
+      <section id="catalogos" className="catalog-teaser" data-catalog-exposure="hero-block">
+        <div className="wrap catalog-teaser-inner">
+          <div className="catalog-teaser-copy">
+            <h2>Elige en papel. Cotiza en una sola lista.</h2>
+            <p>Recorre Navidad 2026 y Agendas 2027 como un libro. Guarda los artículos que te interesen de ambos catálogos y envíanos cantidades, personalización y fecha requerida.</p>
+            <a href="/catalogos/" className="btn btn-green" data-catalog-placement="hero-block">Explorar catálogos <span aria-hidden="true">→</span></a>
+          </div>
+          <div className="catalog-teaser-previews" aria-hidden="true">
+            <img src="/catalogos/navidad-2026/previews/04.webp" width="280" height="365" alt="" loading="lazy" />
+            <img src="/catalogos/agendas-2027/previews/02.webp" width="360" height="233" alt="" loading="lazy" />
+          </div>
+        </div>
+      </section>
+    );
 
     /* ── Trust strip (sustituye a StatsBar) ──── */
     /* Sólo datos que el sitio ya respalda: +20 materiales, revisión previa del
@@ -1536,6 +1567,7 @@
         <Nav />
         <main>
           <Hero />
+          <CatalogTeaser />
           <TrustStrip />
           <Intencion />
           <Trabajos />

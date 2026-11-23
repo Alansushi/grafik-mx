@@ -1470,3 +1470,23 @@
   .cp-intent:hover .cp-intent-img, .cp-case:hover img, .cp-prod:hover .cp-prod-media img { transform: none; }
   .cp-fin:hover img { transform: scale(var(--z, 1)); }
 }
+
+/* Catálogos estacionales: un escaparate de hojas impresas después del hero. */
+.nav-link--catalog { color: var(--blanco); border-bottom: 2px solid var(--rojo); }
+.catalog-teaser { background: #202020; border-block: 1px solid rgba(240,240,238,.12); overflow: hidden; }
+.catalog-teaser-inner { min-height: 390px; display: grid; grid-template-columns: minmax(0,1fr) minmax(300px, 46%); gap: 50px; align-items: center; }
+.catalog-teaser-copy { padding: 54px 0; max-width: 570px; }
+.catalog-teaser h2 { font-family: var(--serif); font-size: clamp(38px,4.5vw,68px); font-weight: 900; line-height: .95; text-transform: uppercase; max-width: 12ch; }
+.catalog-teaser p { margin: 23px 0 29px; color: var(--plata-claro); max-width: 52ch; }
+.catalog-teaser-previews { position: relative; height: 390px; }
+.catalog-teaser-previews img { position: absolute; object-fit: cover; background: #eee; border: 5px solid #f0f0ee; box-shadow: 12px 18px 32px rgba(0,0,0,.35); }
+.catalog-teaser-previews img:first-child { width: 44%; height: auto; left: 3%; top: 30px; transform: rotate(-7deg); }
+.catalog-teaser-previews img:last-child { width: 67%; height: auto; right: -3%; bottom: 25px; transform: rotate(5deg); }
+@media (max-width: 640px) {
+  .catalog-teaser-inner { display: block; }
+  .catalog-teaser-copy { padding: 50px 0 10px; }
+  .catalog-teaser-previews { height: 210px; }
+  .catalog-teaser-previews img:first-child { width: 33%; top: 5px; left: 12%; }
+  .catalog-teaser-previews img:last-child { width: 59%; bottom: -18px; right: 1%; }
+}
+@media (prefers-reduced-motion: reduce) { .catalog-teaser .btn:hover { transform: none; } }

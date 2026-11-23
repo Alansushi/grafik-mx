@@ -31,11 +31,11 @@ export default async function handler(req, res) {
     for (const row of claimed) {
       // El estado puede haber cambiado entre el reclamo en SQL y esta lectura.
       const freshRes = await fetch(buildPostgrestUrl(base, 'quote_intents', {
-        select: 'id,email,name,channel,status,unsubscribed_at,unsubscribe_token,return_token', eq: { id: row.id }, limit: 1,
+        select: 'id,email,name,channel,status,items,unsubscribed_at,unsubscribe_token,return_token,return_catalog,return_page', eq: { id: row.id }, limit: 1,
       }), { headers });
       if (!freshRes.ok) throw new Error(`read intent ${freshRes.status}`);
       const [fresh] = await freshRes.json();
-      if (fresh?.status !== 'started' || fresh.unsubscribed_at) continue;
+      if (fresh?.status !== 'started' || fresh.unsubscribed_at || !fresh.email) continue;
       const ok = await sendQuoteEmail(base, key, fresh, 'reminder');
       if (ok) {
         sent += 1;
@@ -62,7 +62,19 @@ export default async function handler(req, res) {
         }
       }
     }
-    return json(res, 200, { claimed: claimed.length, sent });
+    // Recuperación transaccional: el primer envío ocurre al guardar. Este
+    // barrido vuelve a intentar fallos durante la ventana de idempotencia.
+    const recent = await fetch(`${buildPostgrestUrl(base, 'quote_intents', {
+      select: 'id,client_key,name,email,phone,channel,status,items,intended_use,personalization,required_date,buyer_type,return_catalog,return_page,unsubscribed_at,unsubscribe_token,return_token',
+      eq: { channel: 'catalogos', status: 'completed' }, limit: 100,
+    })}&completed_at=gte.${encodeURIComponent(new Date(Date.now() - 23 * 3600_000).toISOString())}&order=completed_at.desc`, { headers });
+    if (!recent.ok) throw new Error(`recent catalog intents ${recent.status}`);
+    let alertsSent = 0;
+    for (const intent of await recent.json()) {
+      if (await sendQuoteEmail(base, key, intent, 'team_alert')) alertsSent += 1;
+      if (intent.email) await sendQuoteEmail(base, key, intent, 'confirmation');
+    }
+    return json(res, 200, { claimed: claimed.length, sent, alertsSent });
   } catch (error) {
     logError('send-reminders', error);
     return json(res, 502, { error: 'REMINDERS_FAILED' });

@@ -2,13 +2,14 @@
 import { buildPostgrestUrl, sbHeaders } from './supabase.js';
 import { logError } from './log.js';
 import { captureEnabled } from './capture-config.js';
-import { renderQuoteMail } from './quote-mail-template.js';
+import { renderQuoteMail, renderTeamAlert } from './quote-mail-template.js';
 
 export async function sendQuoteEmail(base, serviceKey, intent, kind) {
   if (!captureEnabled() || !process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) return false;
-  if (!intent || intent.unsubscribed_at || !['confirmation', 'reminder'].includes(kind)) return false;
+  if (!intent || !['confirmation', 'reminder', 'team_alert'].includes(kind)) return false;
+  if (kind !== 'team_alert' && (intent.unsubscribed_at || !intent.email)) return false;
   if (kind === 'reminder' && intent.status !== 'started') return false;
-  if (kind === 'confirmation' && intent.status !== 'completed') return false;
+  if (['confirmation', 'team_alert'].includes(kind) && intent.status !== 'completed') return false;
 
   const headers = sbHeaders({ key: serviceKey, prefer: 'resolution=ignore-duplicates,return=representation' });
   const claim = await fetch(`${buildPostgrestUrl(base, 'quote_email_log')}?on_conflict=intent_id,kind`, {
@@ -36,12 +37,12 @@ export async function sendQuoteEmail(base, serviceKey, intent, kind) {
     if (!claimed) return false;
   }
 
-  const { subject, html } = renderQuoteMail({
+  const { subject, html } = kind === 'team_alert' ? renderTeamAlert(intent) : renderQuoteMail({
     kind, intent, baseUrl: process.env.PUBLIC_BASE_URL || 'https://www.grafik.mx',
   });
   const payload = {
     from: process.env.EMAIL_FROM,
-    to: [intent.email], subject,
+    to: [kind === 'team_alert' ? 'info@orkestalo.com' : intent.email], subject,
     html,
   };
 

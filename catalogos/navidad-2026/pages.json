@@ -1,0 +1,982 @@
+{
+  "slug": "navidad-2026",
+  "pdf": "catalogo.pdf",
+  "pages": [
+    {
+      "number": 1,
+      "image": "pages/01.webp",
+      "preview": "previews/01.webp",
+      "wide": false,
+      "category": "Introducción",
+      "products": []
+    },
+    {
+      "number": 2,
+      "image": "pages/02.webp",
+      "preview": "previews/02.webp",
+      "wide": false,
+      "category": "Introducción",
+      "products": []
+    },
+    {
+      "number": 3,
+      "image": "pages/03.webp",
+      "preview": "previews/03.webp",
+      "wide": false,
+      "category": "Introducción",
+      "products": []
+    },
+    {
+      "number": 4,
+      "image": "pages/04.webp",
+      "preview": "previews/04.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3304",
+          "name": "Nayad Hydrostash"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "image": "pages/05.webp",
+      "preview": "previews/05.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A2865",
+          "name": "Nayad Tinos 14 OZ."
+        },
+        {
+          "sku": "A2868",
+          "name": "Nayad Neo | Tapa Deslizable"
+        },
+        {
+          "sku": "A2867",
+          "name": "Nayad Neo | Tapa Giratoria con Seguro"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "image": "pages/06.webp",
+      "preview": "previews/06.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A2779",
+          "name": "Nayad Trouper"
+        },
+        {
+          "sku": "A2778",
+          "name": "Nayad Metro Tall"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "image": "pages/07.webp",
+      "preview": "previews/07.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3301",
+          "name": "Santa"
+        },
+        {
+          "sku": "A3302",
+          "name": "Elfo"
+        },
+        {
+          "sku": "A3303",
+          "name": "Cometa"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "image": "pages/08.webp",
+      "preview": "previews/08.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3049",
+          "name": "Karry"
+        },
+        {
+          "sku": "A2915",
+          "name": "Barney"
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "image": "pages/09.webp",
+      "preview": "previews/09.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3105",
+          "name": "Dino"
+        },
+        {
+          "sku": "A3163",
+          "name": "Aventurero"
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "image": "pages/10.webp",
+      "preview": "previews/10.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3038",
+          "name": "Godere"
+        },
+        {
+          "sku": "A3239",
+          "name": "Malva"
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "image": "pages/11.webp",
+      "preview": "previews/11.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3264",
+          "name": "Kique"
+        },
+        {
+          "sku": "A3253",
+          "name": "Shot"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "image": "pages/12.webp",
+      "preview": "previews/12.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3191",
+          "name": "Noel"
+        },
+        {
+          "sku": "A3192",
+          "name": "Holly"
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "image": "pages/13.webp",
+      "preview": "previews/13.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A2940",
+          "name": "Copito"
+        },
+        {
+          "sku": "A2939",
+          "name": "Pipo"
+        },
+        {
+          "sku": "A2924",
+          "name": "Zazil"
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "image": "pages/14.webp",
+      "preview": "previews/14.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3186",
+          "name": "Potts"
+        },
+        {
+          "sku": "A2700",
+          "name": "Ellis"
+        }
+      ]
+    },
+    {
+      "number": 15,
+      "image": "pages/15.webp",
+      "preview": "previews/15.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A3299",
+          "name": "Trady"
+        },
+        {
+          "sku": "A3269",
+          "name": "Magdalena"
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "image": "pages/16.webp",
+      "preview": "previews/16.webp",
+      "wide": false,
+      "category": "Bebidas",
+      "products": [
+        {
+          "sku": "A2974",
+          "name": "Meeting"
+        },
+        {
+          "sku": "A2284",
+          "name": "Amart"
+        }
+      ]
+    },
+    {
+      "number": 17,
+      "image": "pages/17.webp",
+      "preview": "previews/17.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3297",
+          "name": "Rioja"
+        },
+        {
+          "sku": "A3014",
+          "name": "Golfito"
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "image": "pages/18.webp",
+      "preview": "previews/18.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A2310",
+          "name": "Chalet"
+        },
+        {
+          "sku": "A3153",
+          "name": "Conde"
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "image": "pages/19.webp",
+      "preview": "previews/19.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3280",
+          "name": "Islay"
+        },
+        {
+          "sku": "A2883",
+          "name": "Ginger"
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "image": "pages/20.webp",
+      "preview": "previews/20.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A2928",
+          "name": "Cocobongo"
+        },
+        {
+          "sku": "A2916",
+          "name": "Gatsby"
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "image": "pages/21.webp",
+      "preview": "previews/21.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3033",
+          "name": "Chicago"
+        },
+        {
+          "sku": "A3019",
+          "name": "Mandala"
+        },
+        {
+          "sku": "A2511",
+          "name": "Oval"
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "image": "pages/22.webp",
+      "preview": "previews/22.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3010",
+          "name": "Sauce"
+        },
+        {
+          "sku": "A2933",
+          "name": "Caoba"
+        },
+        {
+          "sku": "A2512",
+          "name": "Quezo"
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "image": "pages/23.webp",
+      "preview": "previews/23.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3286",
+          "name": "Albert"
+        },
+        {
+          "sku": "A3023",
+          "name": "Cheddar"
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "image": "pages/24.webp",
+      "preview": "previews/24.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3161",
+          "name": "Uxmal"
+        },
+        {
+          "sku": "A3162",
+          "name": "Taxco"
+        },
+        {
+          "sku": "A3183",
+          "name": "Lerma"
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "image": "pages/25.webp",
+      "preview": "previews/25.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3296",
+          "name": "Kitch"
+        },
+        {
+          "sku": "A3184",
+          "name": "Poncho"
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "image": "pages/26.webp",
+      "preview": "previews/26.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A2793",
+          "name": "Cooks"
+        },
+        {
+          "sku": "A2786",
+          "name": "Cutters"
+        },
+        {
+          "sku": "A2437",
+          "name": "Biryani"
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "image": "pages/27.webp",
+      "preview": "previews/27.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3082",
+          "name": "Grill"
+        },
+        {
+          "sku": "A3242",
+          "name": "Brasa"
+        }
+      ]
+    },
+    {
+      "number": 28,
+      "image": "pages/28.webp",
+      "preview": "previews/28.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A2786",
+          "name": "Milky"
+        },
+        {
+          "sku": "A3012",
+          "name": "Francis"
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "image": "pages/29.webp",
+      "preview": "previews/29.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3287",
+          "name": "Fotuqui"
+        },
+        {
+          "sku": "A3143",
+          "name": "Canadá"
+        }
+      ]
+    },
+    {
+      "number": 30,
+      "image": "pages/30.webp",
+      "preview": "previews/30.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3144",
+          "name": "Sandler"
+        },
+        {
+          "sku": "A2275",
+          "name": "Moments"
+        },
+        {
+          "sku": "A2510",
+          "name": "Kodac"
+        }
+      ]
+    },
+    {
+      "number": 31,
+      "image": "pages/31.webp",
+      "preview": "previews/31.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3298",
+          "name": "Wish"
+        },
+        {
+          "sku": "A2765",
+          "name": "Confort"
+        }
+      ]
+    },
+    {
+      "number": 32,
+      "image": "pages/32.webp",
+      "preview": "previews/32.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3240",
+          "name": "Glow"
+        },
+        {
+          "sku": "A3028",
+          "name": "Dinner"
+        }
+      ]
+    },
+    {
+      "number": 33,
+      "image": "pages/33.webp",
+      "preview": "previews/33.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A3015",
+          "name": "Zen"
+        },
+        {
+          "sku": "A3174",
+          "name": "Serenity"
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "image": "pages/34.webp",
+      "preview": "previews/34.webp",
+      "wide": false,
+      "category": "Hogar",
+      "products": [
+        {
+          "sku": "A2474",
+          "name": "Belami"
+        },
+        {
+          "sku": "A2490",
+          "name": "Felpi"
+        },
+        {
+          "sku": "A2527",
+          "name": "Shaun"
+        },
+        {
+          "sku": "A2544",
+          "name": "Bufandas"
+        },
+        {
+          "sku": "A2543",
+          "name": "Bubu"
+        },
+        {
+          "sku": "A2545",
+          "name": "Playera Peluche"
+        }
+      ]
+    },
+    {
+      "number": 35,
+      "image": "pages/35.webp",
+      "preview": "previews/35.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A2967",
+          "name": "Beijing"
+        },
+        {
+          "sku": "A3039",
+          "name": "Australia"
+        }
+      ]
+    },
+    {
+      "number": 36,
+      "image": "pages/36.webp",
+      "preview": "previews/36.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A3048",
+          "name": "Loreto"
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "image": "pages/37.webp",
+      "preview": "previews/37.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A3238",
+          "name": "Valley"
+        },
+        {
+          "sku": "A3243",
+          "name": "Seúl"
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "image": "pages/38.webp",
+      "preview": "previews/38.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A2995",
+          "name": "Josh"
+        },
+        {
+          "sku": "A3237",
+          "name": "Ginebra"
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "image": "pages/39.webp",
+      "preview": "previews/39.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A3244",
+          "name": "Santa Fé"
+        },
+        {
+          "sku": "A3194",
+          "name": "Keyla"
+        }
+      ]
+    },
+    {
+      "number": 40,
+      "image": "pages/40.webp",
+      "preview": "previews/40.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A2657",
+          "name": "Andrew"
+        },
+        {
+          "sku": "A3035",
+          "name": "Heidi"
+        },
+        {
+          "sku": "A3006",
+          "name": "Matilda"
+        }
+      ]
+    },
+    {
+      "number": 41,
+      "image": "pages/41.webp",
+      "preview": "previews/41.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A3188",
+          "name": "Gleam"
+        },
+        {
+          "sku": "A3187",
+          "name": "Gleam L"
+        }
+      ]
+    },
+    {
+      "number": 42,
+      "image": "pages/42.webp",
+      "preview": "previews/42.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A2478",
+          "name": "Star L"
+        },
+        {
+          "sku": "A2479",
+          "name": "Star"
+        },
+        {
+          "sku": "A2996",
+          "name": "Shine"
+        }
+      ]
+    },
+    {
+      "number": 43,
+      "image": "pages/43.webp",
+      "preview": "previews/43.webp",
+      "wide": false,
+      "category": "Textiles",
+      "products": [
+        {
+          "sku": "A2477",
+          "name": "Baco"
+        },
+        {
+          "sku": "A3282",
+          "name": "Holbox"
+        }
+      ]
+    },
+    {
+      "number": 44,
+      "image": "pages/44.webp",
+      "preview": "previews/44.webp",
+      "wide": false,
+      "category": "Tecnología",
+      "products": [
+        {
+          "sku": "A2815",
+          "name": "Mercury"
+        },
+        {
+          "sku": "A2811",
+          "name": "Fercho"
+        },
+        {
+          "sku": "A2812",
+          "name": "Popstar"
+        }
+      ]
+    },
+    {
+      "number": 45,
+      "image": "pages/45.webp",
+      "preview": "previews/45.webp",
+      "wide": false,
+      "category": "Tecnología",
+      "products": [
+        {
+          "sku": "A3058",
+          "name": "Ufo"
+        },
+        {
+          "sku": "A3263",
+          "name": "Hulk"
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "image": "pages/46.webp",
+      "preview": "previews/46.webp",
+      "wide": false,
+      "category": "Tecnología",
+      "products": [
+        {
+          "sku": "A2828",
+          "name": "Guetta"
+        },
+        {
+          "sku": "A2829",
+          "name": "Kawai"
+        }
+      ]
+    },
+    {
+      "number": 47,
+      "image": "pages/47.webp",
+      "preview": "previews/47.webp",
+      "wide": false,
+      "category": "Tecnología",
+      "products": [
+        {
+          "sku": "A3137",
+          "name": "Elixir"
+        },
+        {
+          "sku": "A3003",
+          "name": "Bingo"
+        }
+      ]
+    },
+    {
+      "number": 48,
+      "image": "pages/48.webp",
+      "preview": "previews/48.webp",
+      "wide": false,
+      "category": "Tecnología",
+      "products": [
+        {
+          "sku": "A3140",
+          "name": "Magnetic"
+        }
+      ]
+    },
+    {
+      "number": 49,
+      "image": "pages/49.webp",
+      "preview": "previews/49.webp",
+      "wide": false,
+      "category": "Oficina",
+      "products": [
+        {
+          "sku": "A3193",
+          "name": "Londres"
+        },
+        {
+          "sku": "A3045",
+          "name": "Hilton"
+        }
+      ]
+    },
+    {
+      "number": 50,
+      "image": "pages/50.webp",
+      "preview": "previews/50.webp",
+      "wide": false,
+      "category": "Oficina",
+      "products": [
+        {
+          "sku": "A3018",
+          "name": "Neruda"
+        },
+        {
+          "sku": "A2669",
+          "name": "Metrópolis"
+        }
+      ]
+    },
+    {
+      "number": 51,
+      "image": "pages/51.webp",
+      "preview": "previews/51.webp",
+      "wide": false,
+      "category": "Salud",
+      "products": [
+        {
+          "sku": "A3081",
+          "name": "Spá"
+        },
+        {
+          "sku": "A3111",
+          "name": "Fancy"
+        }
+      ]
+    },
+    {
+      "number": 52,
+      "image": "pages/52.webp",
+      "preview": "previews/52.webp",
+      "wide": false,
+      "category": "Salud",
+      "products": [
+        {
+          "sku": "A3169",
+          "name": "Ixchel"
+        },
+        {
+          "sku": "A3029",
+          "name": "Afrodita"
+        }
+      ]
+    },
+    {
+      "number": 53,
+      "image": "pages/53.webp",
+      "preview": "previews/53.webp",
+      "wide": false,
+      "category": "Viaje",
+      "products": [
+        {
+          "sku": "A3179",
+          "name": "Moony"
+        },
+        {
+          "sku": "A3136",
+          "name": "Sonrisa"
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "image": "pages/54.webp",
+      "preview": "previews/54.webp",
+      "wide": false,
+      "category": "Escritura",
+      "products": [
+        {
+          "sku": "A2426",
+          "name": "Majestic"
+        },
+        {
+          "sku": "BMT1934",
+          "name": "Munich"
+        },
+        {
+          "sku": "BMP4219",
+          "name": "Montenegro"
+        }
+      ]
+    },
+    {
+      "number": 55,
+      "image": "pages/55.webp",
+      "preview": "previews/55.webp",
+      "wide": false,
+      "category": "Escritura",
+      "products": [
+        {
+          "sku": "A2538",
+          "name": "Twas"
+        },
+        {
+          "sku": "A2202",
+          "name": "Harmony"
+        },
+        {
+          "sku": "A2687",
+          "name": "Elton"
+        },
+        {
+          "sku": "A2314",
+          "name": "Nimbus"
+        }
+      ]
+    },
+    {
+      "number": 57,
+      "image": "pages/57.webp",
+      "preview": "previews/57.webp",
+      "wide": false,
+      "category": "Escritura",
+      "products": []
+    }
+  ]
+}
