@@ -61,20 +61,22 @@ export function PanelResumen({
       ])
     : null;
 
-  // Tras un envío exitoso, `onSubmit` ya abrió WhatsApp en otra pestaña —
-  // esta sigue con el formulario intacto y habilitado si no se reemplaza
-  // por algo, así que un cliente que vuelve a ella puede parecer que "no
-  // pasó nada" y tocar enviar otra vez. El folio + liga a /estudio/pedido/
-  // (la misma que ya viaja en el mensaje de WhatsApp, generada en
-  // studio-app.js#onSubmit) le confirman que sí se guardó, sin inventar
-  // ningún dato nuevo — short_code y public_token ya vienen de la
-  // respuesta de /api/submit-quote.
+  // Conserva el mensaje preparado tras guardar: si el cliente cierra la
+  // pestaña o vuelve desde WhatsApp, puede iniciar la conversación sin crear
+  // otro pedido. El folio y la vista previa vienen de /api/submit-quote.
   const formOrDone = submitted
     ? h('div', { className: 'es-resumen-done', role: 'status', key: 'done' }, [
         h('p', { className: 'es-resumen-done-title', key: 'title' },
-          `Pedido enviado — folio ${submitted.short_code}`),
+          `Pedido guardado — folio ${submitted.short_code}`),
         h('p', { className: 'es-resumen-done-text', key: 'text' },
-          'Seguimos la conversación por WhatsApp. Si cerraste esa pestaña, aquí puedes ver tu diseño y el estado de tu pedido:'),
+          'Abre WhatsApp y envía el mensaje preparado para que podamos atenderte.'),
+        h('a', {
+          key: 'whatsapp',
+          className: 'es-btn es-btn-wa es-resumen-done-link',
+          href: submitted.whatsappUrl,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }, 'Abrir WhatsApp y enviar mensaje'),
         h('a', {
           key: 'link',
           className: 'es-btn es-btn-outline es-resumen-done-link',

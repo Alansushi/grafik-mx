@@ -24,7 +24,7 @@ import { defineConfig, devices } from '@playwright/test';
 // son numéricas y se comparan contra los mismos módulos puros ejecutados en Node.
 
 const LIVE_BASE_URL = process.env.E2E_BASE_URL;
-const LOCAL_PORT = 8099;
+const LOCAL_PORT = Number(process.env.E2E_PORT || 8099);
 
 export default defineConfig({
   testDir: 'tests/e2e',
