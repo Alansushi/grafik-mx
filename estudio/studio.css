@@ -322,7 +322,8 @@ a { color: inherit; }
   height: 100% !important;
 }
 
-.es-bracelet-canvas { cursor: grab; }
+.es-bracelet-canvas, .es-blanket-canvas { cursor: grab; }
+.es-blanket-canvas:active { cursor: grabbing; }
 .es-stage[data-editing="true"] .es-bracelet-canvas:active { cursor: grabbing; }
 .es-bracelet-note { margin: 10px 2px 0; color: var(--es-plata); font-size: 13px; line-height: 1.45; }
 
@@ -624,6 +625,19 @@ a { color: inherit; }
   grid-template-columns: minmax(160px, 240px);
 }
 
+.es-tallas-grid--blanket { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.es-blanket-size {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  width: 100%; min-height: 68px; padding: 10px 12px;
+  border: 1px solid rgba(184, 184, 184, 0.3); border-radius: var(--es-radius);
+  background: var(--es-carbon-hi); color: var(--es-blanco);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.es-blanket-size strong { font-size: 14px; }
+.es-blanket-size span { color: var(--es-plata); font-size: 12px; }
+.es-blanket-size.is-selected { border-color: var(--es-rojo); box-shadow: inset 0 0 0 1px var(--es-rojo); }
+.es-blanket-size:focus-visible { outline: 2px solid var(--es-blanco); outline-offset: 2px; }
+
 .es-talla-field {
   display: flex;
   flex-direction: column;
@@ -730,6 +744,9 @@ a { color: inherit; }
 }
 .es-resumen-summary-label { color: var(--es-plata); }
 .es-resumen-summary-value { margin: 0; color: var(--es-blanco); }
+.es-resumen-summary--blanket { grid-template-columns: 1fr; gap: 3px; }
+.es-resumen-summary--blanket .es-resumen-summary-label:not(:first-child) { margin-top: 9px; }
+.es-resumen-summary--blanket .es-resumen-summary-value > div + div { margin-top: 5px; }
 
 .es-resumen-contact {
   display: flex;
@@ -1128,6 +1145,7 @@ a { color: inherit; }
   border: 1px solid var(--es-carbon-hi); border-radius: 3px;
   background: var(--es-carbon);
 }
+.es-pedido-medida { margin: 0 0 14px; font-family: var(--es-font-display); font-size: 25px; line-height: 1.1; }
 .es-pedido-preview {
   display: block; width: 100%; height: auto;
   max-width: 100%;

@@ -1,10 +1,12 @@
 // estudio/ui/panel-resumen.js — resumen del pedido + datos de contacto.
 //
-// Componente controlado: no hace fetch. Etapa A no muestra precios: el pedido
-// llega por WhatsApp y se cotiza a mano con lo que el cliente armó.
+// Componente controlado: no hace fetch. Sólo las frazadas muestran precios
+// base públicos; el pedido llega por WhatsApp y se cotiza a mano.
 
 import { h, Fragment } from './react.js';
 import { breakdownToLabel } from '../lib/sizes.js';
+import { BLANKET_SIZES } from '../lib/blankets.js';
+import { formatCentsMXN } from '../lib/format.js';
 
 // Mismo patrón que EMAIL_RE en api/_lib/validation.js#isEmail, duplicado a
 // propósito: esta vista sólo da feedback temprano en el cliente, nunca es la
@@ -17,18 +19,24 @@ function isLikelyValidEmail(value) {
 }
 
 function SummaryBody({ summary }) {
-  return h('dl', { className: 'es-resumen-summary' }, [
-    h('dt', { className: 'es-resumen-summary-label', key: 'gt' }, summary.isBracelet ? 'Producto' : 'Prenda'),
+  return h('dl', { className: cx('es-resumen-summary', summary.isBlanket && 'es-resumen-summary--blanket') }, [
+    h('dt', { className: 'es-resumen-summary-label', key: 'gt' }, summary.isBracelet || summary.isBlanket ? 'Producto' : 'Prenda'),
     h('dd', { className: 'es-resumen-summary-value', key: 'gd' }, summary.garmentName),
-    h('dt', { className: 'es-resumen-summary-label', key: 'ct' }, 'Color'),
+    h('dt', { className: 'es-resumen-summary-label', key: 'ct' }, summary.isBlanket ? 'Material' : 'Color'),
     h('dd', { className: 'es-resumen-summary-value', key: 'cd' }, summary.colorName),
-    ...(!summary.isBracelet ? [
+    ...(!summary.isBracelet && !summary.isBlanket ? [
       h('dt', { className: 'es-resumen-summary-label', key: 'tt' }, 'Técnica'),
       h('dd', { className: 'es-resumen-summary-value', key: 'td' }, summary.techniqueName),
     ] : []),
-    h('dt', { className: 'es-resumen-summary-label', key: 'st' }, summary.isBracelet ? 'Cantidad' : 'Tallas'),
+    h('dt', { className: 'es-resumen-summary-label', key: 'st' }, summary.isBracelet ? 'Cantidad' : summary.isBlanket ? 'Medidas' : 'Tallas'),
     h('dd', { className: 'es-resumen-summary-value', key: 'sd' }, summary.qty > 0
-      ? (summary.isBracelet ? `${summary.qty} piezas` : breakdownToLabel(summary.breakdown)) : 'Aún sin piezas'),
+      ? (summary.isBracelet ? `${summary.qty} piezas` : summary.isBlanket
+        ? BLANKET_SIZES.filter(({ code }) => summary.breakdown[code] > 0).map((size) =>
+          h('div', { key: size.code },
+            `${size.name}: ${summary.breakdown[size.code]} ${summary.breakdown[size.code] === 1 ? 'pieza' : 'piezas'} · ${formatCentsMXN(size.priceCents)} base c/u`))
+        : breakdownToLabel(summary.breakdown)) : 'Aún sin piezas'),
+    summary.isBlanket ? h('dd', { className: 'es-hint', key: 'note' },
+      'Los precios son referencias; confirmaremos la cotización final por WhatsApp.') : null,
   ]);
 }
 

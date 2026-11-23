@@ -17,14 +17,14 @@ import { h, cx } from './react.js';
  */
 export function PanelPrenda({
   garments, techniques, garmentSlug, colorHex, techniqueSlug,
-  onGarment, onColor, onTechnique, busy, isBracelet,
+  onGarment, onColor, onTechnique, busy, isBracelet, isBlanket,
 }) {
   const garment = garments.find((g) => g.slug === garmentSlug) ?? garments[0];
   const variants = garment?.variants ?? [];
   const activeTechnique = techniques.find((t) => t.slug === techniqueSlug);
 
   return h('section', { className: 'es-panel es-panel-prenda', 'aria-busy': busy ? 'true' : 'false' },
-    h('h2', { className: 'es-panel-title' }, isBracelet ? 'Tu pulsera' : 'Tu prenda'),
+    h('h2', { className: 'es-panel-title' }, isBracelet ? 'Tu pulsera' : isBlanket ? 'Tu frazada' : 'Tu prenda'),
 
     // ── Prenda ──
     h('div', { className: 'es-field' },
@@ -43,7 +43,7 @@ export function PanelPrenda({
     ),
 
     // ── Color ──
-    h('div', { className: 'es-field' },
+    !isBlanket ? h('div', { className: 'es-field' },
       h('span', { className: 'es-label', id: 'es-lbl-color' },
         isBracelet ? 'Color base' : 'Color',
         h('span', { className: 'es-label-note' },
@@ -65,10 +65,10 @@ export function PanelPrenda({
           disabled: busy,
         })),
       ),
-    ),
+    ) : h('p', { className: 'es-hint' }, 'Felpa gris claro · impresión de imagen completa.'),
 
     // ── Técnica ──
-    !isBracelet ? h('div', { className: 'es-field' },
+    !isBracelet && !isBlanket ? h('div', { className: 'es-field' },
       h('span', { className: 'es-label', id: 'es-lbl-tecnica' }, 'Técnica de personalización'),
       h('div', { className: 'es-chip-row', role: 'radiogroup', 'aria-labelledby': 'es-lbl-tecnica' },
         techniques.map((t) => h('button', {

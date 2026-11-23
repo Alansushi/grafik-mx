@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Diseña playeras, gorras y pulseras | Estudio GRAFIK</title>
-  <meta name="description" content="Visualiza tu diseño en una playera, gorra o pulsera, ajusta sus opciones y solicita una cotización por WhatsApp con GRAFIK en CDMX." />
+  <title>Diseña playeras, gorras, pulseras y frazadas | Estudio GRAFIK</title>
+  <meta name="description" content="Visualiza tu diseño en playeras, gorras, pulseras o frazadas. Ajusta el recorte por medida y solicita una cotización por WhatsApp con GRAFIK en CDMX." />
   <link rel="canonical" href="https://www.grafik.mx/estudio/" />
   <meta name="theme-color" content="#0C0C0C" />
-  <meta property="og:title" content="Diseña playeras, gorras y pulseras | Estudio GRAFIK" />
-  <meta property="og:description" content="Sube tu diseño, visualízalo en una playera, gorra o pulsera y solicita tu cotización por WhatsApp." />
+  <meta property="og:title" content="Diseña playeras, gorras, pulseras y frazadas | Estudio GRAFIK" />
+  <meta property="og:description" content="Sube tu diseño, visualízalo en una playera, gorra, pulsera o frazada y solicita tu cotización por WhatsApp." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.grafik.mx/estudio/" />
   <meta property="og:image" content="https://www.grafik.mx/og-image.png?v=2" />
@@ -50,7 +50,7 @@
         "@id": "https://www.grafik.mx/estudio/#app",
         "name": "Estudio GRAFIK",
         "url": "https://www.grafik.mx/estudio/",
-        "description": "Herramienta para visualizar un diseño en una playera, gorra o pulsera antes de solicitar una cotización por WhatsApp. Permite ajustar las opciones del producto y revisar una vista previa; para pulseras, muestra una tira plana y una vista cerrada.",
+        "description": "Herramienta para visualizar un diseño en una playera, gorra, pulsera o frazada antes de solicitar una cotización por WhatsApp. Permite ajustar el recorte por medida de frazada y consultar precios base de referencia.",
         "applicationCategory": "DesignApplication",
         "operatingSystem": "Web",
         "inLanguage": "es-MX",
@@ -104,10 +104,18 @@
           },
           {
             "@type": "Question",
+            "name": "¿Puedo personalizar una frazada con mi imagen?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. Sube una imagen y ajusta su recorte por separado para frazadas Personal (100 × 150 cm), Individual (200 × 150 cm) y Matrimonial (220 × 150 cm). Puedes pedir desde una pieza en total. La simulación conserva pliegues aproximados."
+            }
+          },
+          {
+            "@type": "Question",
             "name": "¿El Estudio muestra precios?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. El Estudio es una vista previa: al terminar se abre WhatsApp con un mensaje preparado que contiene un enlace a tu diseño y tus datos de contacto. Debes enviarlo desde WhatsApp para solicitar la cotización."
+              "text": "Para frazadas muestra precios base por pieza: Personal $410, Individual $530 y Matrimonial $630. Son referencias; GRAFIK confirma la cotización final. Los demás productos no muestran precio. Al terminar se abre WhatsApp con un mensaje preparado que debes enviar para solicitar la cotización."
             }
           }
         ]
@@ -145,7 +153,7 @@
           <span class="es-help-cta-short">Ayuda</span>
         </a>
       </div>
-      <h1 class="es-context">Diseña playeras, gorras y pulseras — Estudio GRAFIK</h1>
+      <h1 class="es-context">Diseña playeras, gorras, pulseras y frazadas — Estudio GRAFIK</h1>
       <p class="es-intro">Sube tu diseño, ajusta las opciones del producto y revisa una vista previa antes de cotizar por WhatsApp.</p>
       <!-- Punto de montaje del indicador de pasos (estudio/ui/step-indicator.js),
            vía createPortal desde studio-app.js. Vacío hasta que React monta. -->
@@ -202,7 +210,7 @@
     <main id="es-main" class="es-main">
       <div class="es-stage-wrap">
         <!-- Contenedor que recibe createStudioStage({container: this, ...}). -->
-        <div id="es-stage" class="es-stage" role="img" tabindex="0" aria-label="Vista previa de la prenda con tu logo. Con el lienzo enfocado, las flechas mueven el logo (Mayús: más rápido) y Supr lo quita."></div>
+        <div id="es-stage" class="es-stage" role="img" tabindex="0" aria-label="Vista previa del producto con tu imagen. Con el lienzo enfocado, las flechas mueven la imagen (Mayús: más rápido) y Supr la quita."></div>
 
         <!-- Puntos de montaje de UI que se superpone o vive junto al canvas
              (view-pill.js, canvas-dropzone.js, logo-toolbar.js), todos vía
@@ -221,7 +229,7 @@
         <div id="es-controls"></div>
 
         <p class="es-disclaimer">
-          Vista previa referencial — el acabado final puede variar ligeramente según la técnica.
+          Vista previa referencial — el acabado y los pliegues finales pueden variar.
         </p>
       </aside>
     </main>
@@ -237,9 +245,9 @@
   <details class="es-about">
     <summary class="es-about-summary">¿Cómo funciona el Estudio? · Preguntas frecuentes</summary>
     <h2 id="es-about-title" class="es-about-title">¿Cómo funciona el Estudio GRAFIK?</h2>
-    <p class="es-about-lead">El Estudio GRAFIK te permite visualizar tu diseño en una playera, gorra o pulsera antes de solicitar tu cotización. No muestra precios: al terminar se abre WhatsApp con un mensaje preparado que incluye un enlace a tu vista previa; debes enviarlo desde esa aplicación para que podamos cotizarte. Para obtener los mejores resultados, abre el Estudio en la versión web (computadora).</p>
+    <p class="es-about-lead">El Estudio GRAFIK te permite visualizar tu diseño en una playera, gorra, pulsera o frazada antes de solicitar tu cotización. Las frazadas muestran precios base de referencia por pieza; GRAFIK confirmará la cotización final. Al terminar se abre WhatsApp con un mensaje preparado que incluye un enlace a tu vista previa; debes enviarlo desde esa aplicación para iniciar la conversación.</p>
     <ol class="es-about-steps">
-      <li><strong>Elige tu producto</strong> — Playera, gorra o pulsera; selecciona sus opciones de personalización.</li>
+      <li><strong>Elige tu producto</strong> — Playera, gorra, pulsera o frazada; selecciona sus opciones de personalización.</li>
       <li><strong>Sube tu diseño</strong> — Colócalo y ajusta el tamaño.</li>
       <li><strong>Míralo y cotiza</strong> — Envía por WhatsApp el enlace a tu vista previa con tus datos de contacto.</li>
     </ol>
@@ -251,8 +259,10 @@
       <dd>Puedes elegir DTF, bordado o sublimación. Las cantidades mínimas varían según el artículo y la técnica; las confirmamos por WhatsApp.</dd>
       <dt>¿Puedo ver cómo quedará mi diseño en una pulsera?</dt>
       <dd>Sí. En el Estudio GRAFIK puedes subir una imagen o logo, colocarlo en una pulsera y revisar la tira plana y la pulsera cerrada. La vista previa es aproximada; el arte final se confirma antes de imprimir.</dd>
+      <dt>¿Puedo personalizar una frazada con mi imagen?</dt>
+      <dd>Sí. Sube una imagen y ajusta su recorte por separado para frazadas Personal (100 × 150 cm), Individual (200 × 150 cm) y Matrimonial (220 × 150 cm). Puedes pedir desde una pieza en total. La simulación conserva pliegues aproximados.</dd>
       <dt>¿El Estudio muestra precios?</dt>
-      <dd>No. El Estudio es una vista previa: al terminar se abre WhatsApp con un mensaje preparado que contiene un enlace a tu diseño y tus datos de contacto. Debes enviarlo desde WhatsApp para solicitar la cotización.</dd>
+      <dd>Para frazadas muestra precios base por pieza: Personal $410, Individual $530 y Matrimonial $630. Son referencias; GRAFIK confirma la cotización final. Los demás productos no muestran precio. Al terminar se abre WhatsApp con un mensaje preparado que debes enviar para solicitar la cotización.</dd>
     </dl>
     <p class="es-about-links"><a href="/">Volver a GRAFIK, imprenta y publicidad en CDMX</a> · <a href="https://wa.me/525539014600">Cotizar por WhatsApp</a></p>
   </details>

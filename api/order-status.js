@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
     const [items, [customer]] = await Promise.all([
       sbGet(supabaseUrl, headers, 'order_items', {
-        select: 'item_index,garment_type_id,garment_variant_id,technique_id,size_breakdown,qty,logo_object_path,preview_object_path,unit_price_cents,subtotal_cents',
+        select: 'item_index,garment_type_id,garment_variant_id,technique_id,size_breakdown,qty,logo_object_path,preview_object_path,unit_price_cents,subtotal_cents,pricing_snapshot',
         eq: { order_id: order.id },
         order: 'item_index.asc',
       }),
@@ -94,6 +94,9 @@ export default async function handler(req, res) {
       qty: it.qty,
       unit_price_cents: it.unit_price_cents,
       subtotal_cents: it.subtotal_cents,
+      reference_unit_price_cents: garments.find((g) => g.id === it.garment_type_id)?.render_type === 'blanket'
+        && Number.isInteger(it.pricing_snapshot?.reference_unit_price_cents)
+        ? it.pricing_snapshot.reference_unit_price_cents : null,
       preview_url: await firmar(supabaseUrl, headers, 'previews', it.preview_object_path),
       logo_url: await firmar(supabaseUrl, headers, 'logos', it.logo_object_path),
     })));

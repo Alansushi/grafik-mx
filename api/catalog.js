@@ -4,10 +4,9 @@
 //
 // Podría usar service_role como el resto, y funcionaría igual. Se usa la anon
 // key a propósito: con ella, `pricing_rules` no es siquiera alcanzable (devuelve
-// 401 por los GRANT de 0003_rls.sql), así que filtrar precios desde aquí es
-// estructuralmente imposible — no depende de que yo recuerde no incluirlos en el
-// SELECT. Es el mismo principio que hace que /api/checkout re-cotice del lado
-// del servidor: quitar la posibilidad, no confiar en la disciplina.
+// 401 por los GRANT de 0003_rls.sql), así que no se pueden filtrar precios
+// finales desde la base. La excepción pública son los precios BASE de frazadas,
+// definidos en estudio/lib/blankets.js e identificados como referencias.
 //
 // Efecto secundario útil: el navegador nunca recibe ninguna key de Supabase. El
 // configurador público no carga supabase-js.
@@ -16,6 +15,7 @@ import { readEnv } from './_lib/env.js';
 import { json, requireMethod } from './_lib/http.js';
 import { buildPostgrestUrl, sbHeaders } from './_lib/supabase.js';
 import { logError } from './_lib/log.js';
+import { BLANKET_SIZES } from '../estudio/lib/blankets.js';
 
 // Sin cabecera de caché a propósito, aunque el catálogo sea el candidato obvio.
 //
@@ -66,6 +66,7 @@ export default async function handler(req, res) {
       ...t,
       variants: variants.filter((v) => v.garment_type_id === t.id).sort(bySort),
       views: views.filter((v) => v.garment_type_id === t.id).sort(bySort),
+      ...(t.render_type === 'blanket' ? { blanket_sizes: BLANKET_SIZES } : {}),
     }));
 
     return json(res, 200, {

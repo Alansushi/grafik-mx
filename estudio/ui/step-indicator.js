@@ -18,7 +18,7 @@ const STEPS = [
 /**
  * @param {{ done: {prenda:boolean, logo:boolean, tallas:boolean, contacto:boolean} }} props
  */
-export function StepIndicator({ done, bracelet = false }) {
+export function StepIndicator({ done, bracelet = false, blanket = false }) {
   return h(
     'ol',
     { className: 'es-steps' },
@@ -26,7 +26,8 @@ export function StepIndicator({ done, bracelet = false }) {
       'li',
       { key: s.key, className: cx('es-steps-item', done[s.key] && 'is-done') },
       h('span', { className: 'es-steps-num', 'aria-hidden': 'true' }, done[s.key] ? '✓' : String(i + 1)),
-      bracelet ? ({ prenda: 'Pulsera', logo: 'Imagen', tallas: 'Cantidad' }[s.key] ?? s.label) : s.label,
+      bracelet ? ({ prenda: 'Pulsera', logo: 'Imagen', tallas: 'Cantidad' }[s.key] ?? s.label)
+        : blanket ? ({ prenda: 'Frazada', logo: 'Imagen', tallas: 'Medidas' }[s.key] ?? s.label) : s.label,
     )),
   );
 }

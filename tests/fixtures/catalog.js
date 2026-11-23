@@ -87,6 +87,17 @@ export const CATALOG_FIXTURE = {
         { id: 'c7', garment_type_id: '33333333-3333-4333-8333-333333333333', color_hex: '#4D9871', color_name: 'Verde oscuro', sort_order: 7 },
       ],
     },
+    {
+      id: '44444444-4444-4444-8444-444444444444',
+      slug: 'frazada', name: 'Frazada personalizada', render_type: 'blanket',
+      base_mockup_url: '/assets/estudio/frazada-personal.png',
+      print_area: { x: 0, y: 0, width: 1, height: 1 },
+      canvas_size: { width: 600, height: 900 }, print_area_width_cm: null,
+      allowed_sizes: ['P', 'I', 'M'], min_qty: 1, max_qty: 1000, sort_order: 4,
+      views: [],
+      variants: [{ id: 'd1', garment_type_id: '44444444-4444-4444-8444-444444444444',
+        color_hex: '#D6D5D1', color_name: 'Felpa gris claro', sort_order: 1 }],
+    },
   ],
   techniques: [
     { id: 't1', slug: 'dtf', name: 'DTF', notes: 'Transferencia directa de película. Full color, buen detalle, sin mínimo de tintas.', sort_order: 1 },
