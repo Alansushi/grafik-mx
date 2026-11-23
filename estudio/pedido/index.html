@@ -45,6 +45,7 @@
 
     import { formatCentsMXN } from '../lib/format.js';
     import { breakdownToLabel } from '../lib/sizes.js';
+    import { blanketSize } from '../lib/blankets.js';
 
     const WA = 'https://wa.me/525539014600';
     const app = document.getElementById('es-app');
@@ -55,7 +56,7 @@
 
     const ESTADOS = {
       draft: 'Borrador',
-      quoted: 'Cotizado — pendiente de confirmar',
+      quoted: 'Solicitud recibida — pendiente de cotización',
       pending_payment: 'Pendiente de pago',
       paid: 'Pagado',
       payment_failed: 'Pago rechazado',
@@ -112,30 +113,36 @@
         ? '<p class="es-warning">Precio de referencia, sujeto a confirmación por parte de GRAFIK.</p>'
         : '';
 
-      const items = p.items.map((it) => `
+      const items = p.items.map((it) => {
+        const blanket = it.render_type === 'blanket';
+        const size = blanket ? blanketSize(Object.keys(it.size_breakdown ?? {})[0]) : null;
+        return `
         <section class="es-pedido-item">
+          ${size ? `<h2 class="es-pedido-medida">${esc(size.name)} · ${size.widthCm} × ${size.heightCm} cm</h2>` : ''}
           ${it.preview_url
-            ? `<img class="es-pedido-preview" src="${esc(it.preview_url)}" alt="${it.render_type === 'bracelet' ? 'Tira plana y pulsera cerrada, vistas aproximadas' : 'Vista previa aprobada por el cliente'}" />`
+            ? `<img class="es-pedido-preview" src="${esc(it.preview_url)}" alt="${blanket ? `Simulación aproximada de frazada ${size?.name ?? ''}` : it.render_type === 'bracelet' ? 'Tira plana y pulsera cerrada, vistas aproximadas' : 'Vista previa aprobada por el cliente'}" />`
             : '<p class="es-hint">La vista previa no está disponible.</p>'}
           <dl class="es-pedido-datos">
-            <dt>${it.render_type === 'bracelet' ? 'Producto' : 'Prenda'}</dt><dd>${esc(it.garment)}</dd>
-            <dt>Color</dt><dd>
+            <dt>${it.render_type === 'bracelet' || blanket ? 'Producto' : 'Prenda'}</dt><dd>${esc(it.garment)}</dd>
+            <dt>${blanket ? 'Material' : 'Color'}</dt><dd>
               <span class="es-pedido-chip-color" style="background:${esc(it.color_hex)}"></span>
               ${esc(it.color_name)}
             </dd>
-            <dt>Técnica</dt><dd>${esc(it.technique ?? 'Pendiente de confirmar')}</dd>
-            <dt>${it.render_type === 'bracelet' ? 'Cantidad' : 'Tallas'}</dt>
-            <dd>${it.render_type === 'bracelet' ? `${esc(it.qty)} piezas` : esc(breakdownToLabel(it.size_breakdown))}</dd>
+            ${blanket ? '' : `<dt>Técnica</dt><dd>${esc(it.technique ?? 'Pendiente de confirmar')}</dd>`}
+            <dt>${it.render_type === 'bracelet' || blanket ? 'Cantidad' : 'Tallas'}</dt>
+            <dd>${it.render_type === 'bracelet' || blanket ? `${esc(it.qty)} ${it.qty === 1 ? 'pieza' : 'piezas'}` : esc(breakdownToLabel(it.size_breakdown))}</dd>
+            ${blanket && it.reference_unit_price_cents != null
+              ? `<dt>Precio base</dt><dd>${esc(formatCentsMXN(it.reference_unit_price_cents))} base por pieza</dd>` : ''}
             ${it.unit_price_cents != null
               ? `<dt>Precio unitario</dt><dd>${esc(formatCentsMXN(it.unit_price_cents))}</dd>
             <dt>Subtotal</dt><dd>${esc(formatCentsMXN(it.subtotal_cents))}</dd>`
               : ''}
           </dl>
           ${it.logo_url
-            ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar ${it.render_type === 'bracelet' ? 'imagen original' : 'logo original'}</a>`
+            ? `<a class="es-btn" href="${esc(it.logo_url)}" download>Descargar ${it.render_type === 'bracelet' || blanket ? 'imagen original' : 'logo original'}</a>`
             : ''}
         </section>
-      `).join('');
+      `; }).join('');
 
       elContenido.innerHTML = `
         <header class="es-pedido-head">
@@ -151,7 +158,9 @@
           <span>Total</span>
           <strong>${esc(formatCentsMXN(p.total_cents))} ${esc(p.currency)}</strong>
         </footer>`
-          : '<p class="es-hint">Pedido sin cotizar: el precio se confirma con el cliente por WhatsApp.</p>'}
+          : p.items.some((it) => it.render_type === 'blanket')
+            ? '<p class="es-hint">Cotización final pendiente: GRAFIK confirmará el precio por WhatsApp. Los importes mostrados son bases de referencia.</p>'
+            : '<p class="es-hint">Pedido sin cotizar: el precio se confirma con el cliente por WhatsApp.</p>'}
         <p class="es-disclaimer">
           Los archivos originales son la referencia para preparar la impresión. Las vistas son aproximaciones;
           GRAFIK confirmará material, medidas, técnica y arte final.

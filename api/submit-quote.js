@@ -4,9 +4,10 @@
 // lo manda por WhatsApp. En Etapa B, el botón de pagar lo moverá a
 // `pending_payment` sin tocar nada de este archivo.
 //
-// Etapa A no cotiza: el pedido se guarda SIN precios. Pulsera exige el mínimo
-// del catálogo; las demás prendas se cotizan a mano por WhatsApp. pricing_rules y estudio/lib/pricing.js siguen
-// ahí para la Etapa B.
+// Etapa A no cotiza: el pedido se guarda SIN precios finales. Frazadas guardan
+// en pricing_snapshot un precio base de referencia por medida; Pulsera exige
+// el mínimo del catálogo. pricing_rules y estudio/lib/pricing.js siguen ahí
+// para la Etapa B.
 //
 // ── Regla de seguridad que sostiene todo lo demás ──
 //
@@ -25,6 +26,7 @@ import { isUuid, isEmail, normalizeMxPhone, isMxPhone } from './_lib/validation.
 import { sendQuoteEmail } from './_lib/quote-mail.js';
 import { captureEnabled } from './_lib/capture-config.js';
 import { normalizeBreakdown, validateBreakdown, totalUnits } from '../estudio/lib/sizes.js';
+import { blanketSize, validateBlanketItems } from '../estudio/lib/blankets.js';
 
 const MAX_ITEMS = 10;
 // Un pedido por WhatsApp no se manda diez veces seguidas. Limita el daño de un
@@ -81,7 +83,7 @@ export default async function handler(req, res) {
     const garmentIds = [...new Set(items.map((i) => i.garment_type_id))];
     const [garments, variants] = await Promise.all([
       sbGet(supabaseUrl, headers, 'garment_types', {
-        select: 'id,slug,name,allowed_sizes,min_qty,is_active,render_type',
+        select: 'id,slug,name,allowed_sizes,min_qty,max_qty,is_active,render_type',
         in: { id: garmentIds },
       }),
       sbGet(supabaseUrl, headers, 'garment_variants', {
@@ -104,10 +106,11 @@ export default async function handler(req, res) {
       if (!variant) return json(res, 404, { error: 'VARIANT_NOT_FOUND', index });
 
       const bracelet = garment.render_type === 'bracelet';
+      const blanket = garment.render_type === 'blanket';
       if (!validTechniqueForGarment(it.technique_id, garment.render_type)) {
         return json(res, 400, { error: 'INVALID_TECHNIQUE', index });
       }
-      if (!bracelet) {
+      if (!bracelet && !blanket) {
         const [technique] = await sbGet(supabaseUrl, headers, 'print_techniques', {
           select: 'id,is_active', eq: { id: it.technique_id }, limit: 1,
         });
@@ -132,6 +135,18 @@ export default async function handler(req, res) {
       preparados.push({ index, item: it, garment, variant, breakdown });
     }
 
+    if (preparados.some(({ garment }) => garment.render_type === 'blanket')) {
+      const first = preparados[0];
+      if (preparados.some(({ garment, variant }) => garment.render_type !== 'blanket'
+        || garment.id !== first.garment.id || variant.id !== first.variant.id)) {
+        return json(res, 400, { error: 'INVALID_BLANKET_ITEMS' });
+      }
+      const check = validateBlanketItems(preparados.map(({ item, breakdown }) => ({
+        ...item, size_breakdown: breakdown,
+      })), first.garment.max_qty);
+      if (!check.valid) return json(res, 400, { error: check.error });
+    }
+
     // ── Persistencia ───────────────────────────────────────────────────────
     const customerId = await upsertCustomer(supabaseUrl, headers, customer);
 
@@ -154,7 +169,10 @@ export default async function handler(req, res) {
       logo_transform: item.logo_transform,
       unit_price_cents: null,
       subtotal_cents: null,
-      pricing_snapshot: null,
+      pricing_snapshot: garment.render_type === 'blanket'
+        ? { reference_unit_price_cents: blanketSize(Object.keys(breakdown)[0]).priceCents,
+            reference_size: Object.keys(breakdown)[0], reference_only: true }
+        : null,
     }));
 
     try {
@@ -213,7 +231,7 @@ export function validateQuoteItemInput(it, draftId) {
 }
 
 export function validTechniqueForGarment(id, renderType) {
-  return renderType === 'bracelet' ? id == null : isUuid(id);
+  return renderType === 'bracelet' || renderType === 'blanket' ? id == null : isUuid(id);
 }
 
 export function validBraceletBreakdown(breakdown) {

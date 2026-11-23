@@ -16,6 +16,8 @@
 
 import { h, useMemo, cx } from './react.js';
 import { normalizeBreakdown, totalUnits, validateBreakdown } from '../lib/sizes.js';
+import { blanketSize } from '../lib/blankets.js';
+import { formatCentsMXN } from '../lib/format.js';
 
 /** Etiqueta humana de una talla. 'U' (gorra) se lee "Cantidad", no "Talla U". */
 function sizeLabel(size) {
@@ -59,6 +61,7 @@ function StepButton({ label, onClick, children }) {
 
 export function PanelTallas({
   allowedSizes, minTotal, breakdown, onChange,
+  blanket = false, activeSize = 'P', onSelectSize,
   // `rawSizes` es lo que el cliente tecleó y `rawErrors` los valores que
   // normalizeBreakdown rechazó. Sin estos dos, un valor no numérico —pegar
   // "1,000" desde Excel, por ejemplo— revertía el campo al valor anterior sin
@@ -111,7 +114,8 @@ export function PanelTallas({
   }
 
   function renderField(size) {
-    const label = sizeLabel(size);
+    const spec = blanket ? blanketSize(size) : null;
+    const label = spec ? `${spec.name} ${spec.widthCm} × ${spec.heightCm} cm` : sizeLabel(size);
     const inputId = `es-talla-${size}`;
     const errorId = `es-talla-error-${size}`;
     const errors = fieldErrors[size];
@@ -126,7 +130,13 @@ export function PanelTallas({
       'div',
       { className: 'es-talla-field', key: size },
       [
-        h('label', { className: 'es-label-sm', htmlFor: inputId, key: 'label' }, label),
+        spec ? h('button', { type: 'button', key: 'select',
+          className: cx('es-blanket-size', activeSize === size && 'is-selected'),
+          'aria-pressed': activeSize === size, onClick: () => onSelectSize(size) },
+          h('strong', null, label),
+          h('span', null, `${formatCentsMXN(spec.priceCents)} base / pieza`))
+          : h('label', { className: 'es-label-sm', htmlFor: inputId, key: 'label' }, label),
+        spec ? h('label', { className: 'es-label-sm', htmlFor: inputId, key: 'qty-label' }, `Piezas ${spec.name}`) : null,
         h(
           'div',
           { className: 'es-talla-stepper', key: 'stepper' },
@@ -183,16 +193,18 @@ export function PanelTallas({
       'aria-describedby': generalErrors.length > 0 ? generalErrorsId : undefined,
     },
     [
-      h('legend', { className: 'es-panel-title', key: 'legend' }, isSingleSize ? 'Cantidad' : 'Tallas'),
+      h('legend', { className: 'es-panel-title', key: 'legend' }, blanket ? 'Medidas y cantidades' : isSingleSize ? 'Cantidad' : 'Tallas'),
       h(
         'div',
-        { className: cx('es-tallas-grid', isSingleSize && 'es-tallas-grid--single'), key: 'grid' },
+        { className: cx('es-tallas-grid', isSingleSize && 'es-tallas-grid--single', blanket && 'es-tallas-grid--blanket'), key: 'grid' },
         sizesToRender.map(renderField),
       ),
       h('div', { className: 'es-tallas-total', key: 'total' }, [
         h('span', { key: 'label' }, 'Total de piezas'),
         h('span', { key: 'value' }, String(total)),
       ]),
+      blanket ? h('p', { className: 'es-hint', key: 'reference' },
+        'Precios base de referencia. GRAFIK confirmará el importe final al cotizar.') : null,
       generalErrors.length > 0
         ? h(
             'div',

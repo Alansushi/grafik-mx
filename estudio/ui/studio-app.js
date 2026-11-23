@@ -18,6 +18,7 @@ import { StepIndicator } from './step-indicator.js';
 
 import { createStudioStage } from '../canvas/konva-adapter.js';
 import { createBraceletStage } from '../canvas/bracelet-stage.js';
+import { createBlanketStage } from '../canvas/blanket-stage.js';
 import { resolvePrintArea } from '../lib/geometry.js';
 import { loadImageFromUrl, loadImageFromFile } from '../canvas/image-loader.js';
 import { normalizeBreakdown, validateBreakdown } from '../lib/sizes.js';
@@ -25,6 +26,7 @@ import { dominantColorFromPixels, pixelsHaveAlpha } from '../lib/compose.js';
 import { breakdownToLabel } from '../lib/sizes.js';
 import { track, trackOnce } from './track.js';
 import { logoFormat, rejectedKind, safeCode, trackedQty } from '../lib/track-props.js';
+import { BLANKET_SIZES, blanketQuality, buildBlanketItems } from '../lib/blankets.js';
 
 const DEFAULT_CANVAS_SIZE = { width: 900, height: 900 };
 const SIZES_DEBOUNCE_MS = 350;
@@ -41,6 +43,7 @@ export function StudioApp({ catalog, stageContainer }) {
   // presentación. Se resetea a 'front' cada vez que cambia la prenda, más
   // abajo — una prenda nueva puede no tener las mismas vistas.
   const [activeView, setActiveView] = useState('front');
+  const [activeBlanketSize, setActiveBlanketSize] = useState('P');
   const [logo, setLogo] = useState(null);
   const [transform, setTransform] = useState(null);
   // Escala del último "ajustar al área": referencia para mostrar el %
@@ -126,6 +129,7 @@ export function StudioApp({ catalog, stageContainer }) {
     [garments, garmentSlug],
   );
   const isBracelet = garment.render_type === 'bracelet';
+  const isBlanket = garment.render_type === 'blanket';
   const technique = useMemo(
     () => techniques.find((t) => t.slug === techniqueSlug) ?? techniques[0],
     [techniques, techniqueSlug],
@@ -148,7 +152,10 @@ export function StudioApp({ catalog, stageContainer }) {
       const size = garment.canvas_size || DEFAULT_CANVAS_SIZE;
       const printArea = resolvePrintArea(garment.print_area, size);
 
-      const baseImage = isBracelet ? null : await loadImageFromUrl(garment.base_mockup_url);
+      const baseImage = isBracelet || isBlanket ? null : await loadImageFromUrl(garment.base_mockup_url);
+      const blanketImages = isBlanket ? Object.fromEntries(await Promise.all(
+        BLANKET_SIZES.map(async (size) => [size.code, await loadImageFromUrl(size.mockup)]),
+      )) : null;
 
       // Vistas no-front (presentación): pocas y ligeras, se precargan todas
       // de una vez para que el selector de vista no tenga que esperar red en
@@ -164,8 +171,10 @@ export function StudioApp({ catalog, stageContainer }) {
 
       created = isBracelet
         ? createBraceletStage({ container: stageContainer, colorHex: garment.variants[0].color_hex })
+        : isBlanket
+          ? createBlanketStage({ container: stageContainer, mockups: blanketImages, initialSize: 'P' })
         : createStudioStage({ container: stageContainer, width: size.width, height: size.height, printArea });
-      if (!isBracelet) created.setGarment({ baseImage, foldImage: null, colorHex });
+      if (!isBracelet && !isBlanket) created.setGarment({ baseImage, foldImage: null, colorHex });
       created.onTransformChange((t) => {
         setTransform(t);
         setFitScale(created.getFitScale());
@@ -174,6 +183,7 @@ export function StudioApp({ catalog, stageContainer }) {
 
       viewImagesRef.current = { front: baseImage, ...Object.fromEntries(extraViews) };
       setActiveView('front');
+      if (isBlanket) setActiveBlanketSize('P');
 
       // El logo ya colocado sobrevive al cambio de prenda, reencajado en el
       // área nueva. Perderlo obligaría a subirlo otra vez por cambiar de
@@ -217,8 +227,9 @@ export function StudioApp({ catalog, stageContainer }) {
   // ── Cambiar de color: sólo repinta ──────────────────────────────────────
   useEffect(() => {
     if (!stageRef.current || stageBusy) return;
+    if (isBlanket) return;
     stageRef.current.setGarment({ colorHex });
-  }, [colorHex, stageBusy]);
+  }, [colorHex, stageBusy, isBlanket]);
 
   // Al cambiar de prenda, el color anterior puede no existir en la nueva.
   useEffect(() => {
@@ -366,10 +377,21 @@ export function StudioApp({ catalog, stageContainer }) {
         setBreakdown({ U: selected.min_qty });
         setRawSizes({ U: selected.min_qty });
         setSizeErrors({});
+      } else if (selected?.render_type === 'blanket' || isBlanket) {
+        setBreakdown({});
+        setRawSizes({});
+        setSizeErrors({});
+        setActiveBlanketSize('P');
       }
     }
     setGarmentSlug(slug);
-  }, [garmentSlug, garments]);
+  }, [garmentSlug, garments, isBlanket]);
+
+  const onBlanketSize = useCallback((code) => {
+    if (!isBlanket || !BLANKET_SIZES.some((size) => size.code === code)) return;
+    stageRef.current?.setSize(code);
+    setActiveBlanketSize(code);
+  }, [isBlanket]);
 
   // ── Tallas ──────────────────────────────────────────────────────────────
   //
@@ -426,15 +448,44 @@ export function StudioApp({ catalog, stageContainer }) {
         filename: logoFile.name, mime: logoFile.type || 'image/png',
       });
 
-      // pixelRatio 2 para que el equipo pueda ampliar el preview sin que se
-      // deshaga; el tope real de tamaño lo impone el bucket.
-      const snapshot = await stage.snapshot({ pixelRatio: 2 });
-      const previewPath = await subirArchivo({
-        kind: 'preview', draftId, blob: snapshot,
-        itemIndex: 0, mime: 'image/png',
-      });
-
       const variant = garment.variants.find((v) => v.color_hex === colorHex);
+      let items;
+      if (isBlanket) {
+        const requested = BLANKET_SIZES.filter(({ code }) => breakdown[code] > 0);
+        const previews = {};
+        const transforms = {};
+        try {
+          for (const [index, size] of requested.entries()) {
+            stage.setSize(size.code);
+            transforms[size.code] = stage.getTransform();
+            const snapshot = await stage.snapshot();
+            previews[size.code] = await subirArchivo({
+              kind: 'preview', draftId, blob: snapshot,
+              itemIndex: index, mime: 'image/png',
+            });
+          }
+        } finally {
+          stage.setSize(activeBlanketSize);
+        }
+        items = buildBlanketItems({ garmentId: garment.id, variantId: variant.id,
+          breakdown, originalPath: logoPath, previews, transforms });
+      } else {
+        // pixelRatio 2 para los previews de prenda y pulsera ya existentes.
+        const snapshot = await stage.snapshot({ pixelRatio: 2 });
+        const previewPath = await subirArchivo({
+          kind: 'preview', draftId, blob: snapshot,
+          itemIndex: 0, mime: 'image/png',
+        });
+        items = [{
+          garment_type_id: garment.id,
+          garment_variant_id: variant.id,
+          technique_id: isBracelet ? null : technique.id,
+          size_breakdown: isBracelet ? { U: breakdown.U } : breakdown,
+          logo_path: logoPath,
+          preview_path: previewPath,
+          logo_transform: stage.getTransform(),
+        }];
+      }
       const res = await fetch('/api/submit-quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -442,15 +493,7 @@ export function StudioApp({ catalog, stageContainer }) {
           draftId,
           intentKey: (() => { try { return JSON.parse(sessionStorage.getItem('grafik_studio_access'))?.key; } catch { return null; } })(),
           customer,
-          items: [{
-            garment_type_id: garment.id,
-            garment_variant_id: variant.id,
-            technique_id: isBracelet ? null : technique.id,
-            size_breakdown: isBracelet ? { U: breakdown.U } : breakdown,
-            logo_path: logoPath,
-            preview_path: previewPath,
-            logo_transform: stage.getTransform(),
-          }],
+          items,
         }),
       });
       const data = await res.json();
@@ -482,7 +525,7 @@ export function StudioApp({ catalog, stageContainer }) {
     } finally {
       setSubmitting(false);
     }
-  }, [garment, colorHex, technique, breakdown, customer, isBracelet]);
+  }, [garment, colorHex, technique, breakdown, customer, isBracelet, isBlanket, activeBlanketSize]);
 
   // canSubmit exige además que el stage esté VIVO y que el logo tenga posición
   // real. Sin eso, un fallo al montar la vista previa dejaba el botón activo
@@ -512,6 +555,14 @@ export function StudioApp({ catalog, stageContainer }) {
     tallas: piezas > 0 && (!isBracelet || piezas >= garment.min_qty),
     contacto: customer.name.trim().length >= 2 && customer.email.includes('@') && telefonoValido(customer.phone),
   };
+  const blanketQualityInfo = isBlanket && logo && !logo.isVector && transform
+    ? blanketQuality(logo.naturalSize, activeBlanketSize, transform) : null;
+  useEffect(() => {
+    if (blanketQualityInfo && blanketQualityInfo.level !== 'ok') {
+      trackOnce('studio_lowres', { level: blanketQualityInfo.level, dpi: blanketQualityInfo.dpi },
+        `blanket-lowres:${activeBlanketSize}:${blanketQualityInfo.level}`);
+    }
+  }, [blanketQualityInfo?.level, activeBlanketSize]);
 
   // Puente para el gancho de depuración de boot.js. Se publica SIEMPRE (es sólo
   // una referencia interna), pero boot.js sólo lo envuelve en window.__studio
@@ -539,7 +590,7 @@ export function StudioApp({ catalog, stageContainer }) {
   const stepsMount = document.getElementById('es-steps-mount');
 
   return h(Fragment, null,
-    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone, bracelet: isBracelet }), stepsMount) : null,
+    stepsMount ? createPortal(h(StepIndicator, { done: stepsDone, bracelet: isBracelet, blanket: isBlanket }), stepsMount) : null,
     viewPillMount
       ? createPortal(
           h(ViewPill, { views: garment.views ?? [], activeView, onView, busy: stageBusy }),
@@ -550,7 +601,7 @@ export function StudioApp({ catalog, stageContainer }) {
       ? createPortal(
           h(CanvasDropzone, {
             visible: !logo,
-            imageLabel: isBracelet ? 'imagen' : 'logo',
+            imageLabel: isBracelet || isBlanket ? 'imagen' : 'logo',
             busy: stageBusy,
             fileInputRef,
             onFile,
@@ -565,11 +616,14 @@ export function StudioApp({ catalog, stageContainer }) {
           h(Fragment, null,
             h(LogoToolbar, {
               logo, transform, fitScale, busy: stageBusy, openPicker,
-              imageLabel: isBracelet ? 'imagen' : 'logo', bracelet: isBracelet,
+              imageLabel: isBracelet || isBlanket ? 'imagen' : 'logo', bracelet: isBracelet,
+              blanket: isBlanket,
               onTransform, onFit, onRemove: onRemoveLogo,
             }),
             isBracelet ? h('p', { className: 'es-bracelet-note' },
               'La tira plana y la pulsera cerrada son aproximaciones visuales, no el arte final de impresión.') : null,
+            isBlanket ? h('p', { className: 'es-bracelet-note' },
+              'Simulación aproximada: los pliegues y el color final pueden variar. Arrastra la imagen para ajustar el recorte de cada medida.') : null,
           ),
           toolbarMount,
         )
@@ -584,17 +638,23 @@ export function StudioApp({ catalog, stageContainer }) {
       : null,
     h(PanelPrenda, {
       garments, techniques, garmentSlug, colorHex, techniqueSlug,
-      isBracelet,
+      isBracelet, isBlanket,
       onGarment, onColor: setColorHex, onTechnique: setTechniqueSlug,
       busy: stageBusy,
     }),
-    isBracelet
+    isBracelet || isBlanket
       ? h('section', { className: 'es-panel es-panel-logo' },
           h('h2', { className: 'es-panel-title' }, 'Imagen'),
-          h('p', { className: 'es-hint' }, logo ? logo.name : 'Sube una imagen para personalizar la pulsera.'),
+          h('p', { className: 'es-hint' }, logo ? logo.name
+            : isBlanket ? 'Sube una imagen para cubrir la frazada.' : 'Sube una imagen para personalizar la pulsera.'),
           logoError ? h('p', { className: 'es-error-text', role: 'alert' }, logoError.message) : null,
+          blanketQualityInfo && blanketQualityInfo.level !== 'ok'
+            ? h('p', { className: 'es-logo-alert', role: 'alert' },
+                `Resolución baja: ${blanketQualityInfo.dpi} dpi en ${activeBlanketSize}. La impresión puede verse pixelada. Sube una imagen más grande o reduce el acercamiento.`)
+            : null,
           h('p', { className: 'es-hint' },
-            '¿Necesitas un diseño más específico o usar más imágenes? Envíanos tus archivos por WhatsApp y el equipo de GRAFIK te ayudará a adaptarlos a la pulsera.'))
+            isBlanket ? 'Puedes pedir una o varias medidas con la misma imagen. Cada una guarda su propio recorte.'
+              : '¿Necesitas un diseño más específico o usar más imágenes? Envíanos tus archivos por WhatsApp y el equipo de GRAFIK te ayudará a adaptarlos a la pulsera.'))
       : h(PanelLogo, {
       logo, transform, garmentHex: colorHex, logoDominantHex: logo?.dominantHex,
       busy: stageBusy, error: logoError,
@@ -609,6 +669,7 @@ export function StudioApp({ catalog, stageContainer }) {
     h(PanelTallas, {
       allowedSizes: garment.allowed_sizes,
       minTotal: isBracelet ? garment.min_qty : undefined,
+      blanket: isBlanket, activeSize: activeBlanketSize, onSelectSize: onBlanketSize,
       breakdown, rawSizes, rawErrors: sizeErrors,
       onChange: onSize,
     }),
@@ -618,6 +679,7 @@ export function StudioApp({ catalog, stageContainer }) {
         colorName: garment.variants.find((v) => v.color_hex === colorHex)?.color_name ?? '',
         techniqueName: isBracelet ? 'Pendiente de confirmar' : technique.name,
         isBracelet,
+        isBlanket,
         breakdown, qty: piezas,
       },
       customer, onCustomer: (k, v) => setCustomer((c) => ({ ...c, [k]: v })),
@@ -665,13 +727,18 @@ async function subirArchivo({ kind, draftId, blob, filename, itemIndex, mime }) 
  */
 function construirMensajeWhatsApp({ data, garment, variant, technique, breakdown, customer }) {
   const isBracelet = garment.render_type === 'bracelet';
+  const isBlanket = garment.render_type === 'blanket';
   const liga = `${location.origin}/estudio/pedido/?t=${data.public_token}`;
   const lineas = [
     `Hola, acabo de armar un pedido en el configurador. Folio ${data.short_code}.`,
     '',
-    `${isBracelet ? 'Producto' : 'Prenda'}: ${garment.name}`,
-    `Color: ${variant?.color_name ?? ''}`,
-    ...(isBracelet ? [`Cantidad: ${breakdown.U ?? 0} piezas`] : [
+    `${isBracelet || isBlanket ? 'Producto' : 'Prenda'}: ${garment.name}`,
+    `${isBlanket ? 'Material' : 'Color'}: ${variant?.color_name ?? ''}`,
+    ...(isBlanket ? [
+      ...BLANKET_SIZES.filter(({ code }) => breakdown[code] > 0).map((size) =>
+        `${size.name} (${size.widthCm} × ${size.heightCm} cm): ${breakdown[size.code]} ${breakdown[size.code] === 1 ? 'pieza' : 'piezas'} · precio base $${size.priceCents / 100} c/u`),
+      'Precios base de referencia; espero la cotización final de GRAFIK.',
+    ] : isBracelet ? [`Cantidad: ${breakdown.U ?? 0} piezas`] : [
       `Técnica: ${technique.name}`, `Tallas: ${breakdownToLabel(breakdown)}`]),
     '',
     `Mi diseño: ${liga}`,

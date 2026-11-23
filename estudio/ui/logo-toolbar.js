@@ -104,7 +104,7 @@ function RangeField({ id, label, value, min, max, step, display, disabled, onCha
  *   onRemove: () => void,
  * }} props
  */
-export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTransform, onFit, onRemove, imageLabel = 'logo', bracelet = false }) {
+export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTransform, onFit, onRemove, imageLabel = 'logo', bracelet = false, blanket = false }) {
   const scale = transform?.scaleX ?? 1;
   const rotation = transform?.rotation ?? 0;
   const controlsDisabled = busy || !transform;
@@ -114,8 +114,8 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
   // en konva-adapter.js). fitScaleSafe evita dividir por 0/undefined antes
   // de que exista un fit.
   const fitScaleSafe = Number(fitScale) > 0 ? fitScale : (scale || 1);
-  const scaleMin = fitScaleSafe * MIN_SCALE_FRACTION;
-  const scaleMax = fitScaleSafe;
+  const scaleMin = blanket ? fitScaleSafe : fitScaleSafe * MIN_SCALE_FRACTION;
+  const scaleMax = blanket ? fitScaleSafe * 4 : fitScaleSafe;
   const scaleStep = fitScaleSafe / 100;
   const scalePercent = Math.round((scale / fitScaleSafe) * 100);
 
@@ -150,8 +150,8 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
             numberInput: {
               // Tope en 100, a juego con scaleMax: no hay nada por encima.
               value: scalePercent,
-              min: 20,
-              max: 100,
+              min: blanket ? 100 : 20,
+              max: blanket ? 400 : 100,
               step: 1,
               onChange: (pct) => {
                 const s = (pct / 100) * fitScaleSafe;
@@ -162,7 +162,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
         )
       : null,
 
-    logo && !bracelet
+    logo && !bracelet && !blanket
       ? h(
           'div',
           { className: 'es-lt-group' },
@@ -203,7 +203,7 @@ export function LogoToolbar({ logo, transform, fitScale, busy, openPicker, onTra
             className: 'es-btn es-btn-outline',
             onClick: () => onFit('contain'),
             disabled: controlsDisabled,
-          }, 'Ajustar al área'),
+          }, blanket ? 'Cubrir frazada' : 'Ajustar al área'),
           h('button', {
             type: 'button',
             className: 'es-btn es-btn-danger',

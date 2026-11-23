@@ -674,7 +674,7 @@ test.describe('flujo del configurador', () => {
         visible: [...document.querySelectorAll('.es-about-faq dt')].map((dt) => [norm(dt.textContent), norm(dt.nextElementSibling.textContent)]),
       };
     });
-    expect(schema.length).toBe(4);
+    expect(schema.length).toBe(5);
     expect(visible).toEqual(schema);
   });
 
