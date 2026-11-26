@@ -81,13 +81,15 @@ describe('captura privada y medición', () => {
       throw new Error(`unexpected request ${url}`);
     });
     const base = { key: '00000000-0000-4000-8000-000000000001', channel: 'contacto',
-      name: 'Ana', email: 'ana@example.com', service: 'Lonas', marketingConsent: false };
+      name: 'Ana', email: 'ana@example.com', service: 'Lonas', marketingConsent: false,
+      analyticsSid: 'a1b2c3d4e5f6' };
     try {
       const started = response();
       await quoteIntent(request({ ...base, action: 'start' }), started);
       expect(started.body).toEqual({ saved: true, completed: false });
       const done = response();
-      await quoteIntent(request({ ...base, action: 'complete' }), done);
+      const { analyticsSid, ...withoutSid } = base;
+      await quoteIntent(request({ ...withoutSid, action: 'complete' }), done);
       expect(done.body).toEqual({ saved: true, completed: true });
       const retry = response();
       await quoteIntent(request({ ...base, action: 'complete' }), retry);
@@ -95,6 +97,7 @@ describe('captura privada y medición', () => {
       expect(calls.filter((c) => c.method === 'POST' && c.url.includes('/quote_intents'))).toHaveLength(1);
       expect(row.status).toBe('completed');
       expect(row.marketing_consent).toBe(false);
+      expect(row.analytics_sid).toBe('a1b2c3d4e5f6');
       expect(calls.some((c) => c.url.includes('/site_events'))).toBe(false);
     } finally { stub.mockRestore(); process.env = old; }
   });
@@ -106,6 +109,14 @@ describe('captura privada y medición', () => {
     ] });
     expect(r.dropped).toBe(0);
     expect(r.rows.map((row) => row.props)).toEqual([{ step: 'saved' }, { step: 'saved' }]);
+  });
+
+  it('acepta una sola exposición del precio sin datos personales', () => {
+    const r = validateBatch({ sid: 'a1b2c3d4e5f6', events: [
+      { name: 'studio_price_view', path: '/estudio/', props: { price: 410, email: 'ana@example.com' } },
+    ] });
+    expect(r.dropped).toBe(0);
+    expect(r.rows[0].props).toEqual({});
   });
 });
 

@@ -59,6 +59,8 @@ test('Contacto agrupa servicios y conserva selección, captura y preselección',
   await form.locator('button[type="submit"]').click();
   await expect.poll(() => posts.some((p) => p.action === 'complete')).toBe(true);
   expect(posts.find((p) => p.action === 'complete').service).toBe('Pósters');
+  expect(posts.find((p) => p.action === 'complete').analyticsSid)
+    .toBe(await page.evaluate(() => sessionStorage.getItem('grafik_sid')));
   expect(decodeURIComponent(await page.evaluate(() => window.__wa))).toContain('Me interesa cotizar: Pósters.');
 
   await select.selectOption('');
@@ -111,6 +113,25 @@ test('Contacto conserva WhatsApp sin correo y guarda sólo con correo válido', 
   await form.locator('button[type="submit"]').click();
   await expect.poll(() => posts.some((p) => p.action === 'complete'), { timeout: 5000 }).toBe(true);
   expect(posts.every((p) => p.marketingConsent === false)).toBe(true);
+});
+
+test('Contacto puede guardar aun si sessionStorage está bloqueado', async ({ page }) => {
+  const posts = [];
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'sessionStorage', { configurable: true,
+      get() { throw new DOMException('storage blocked', 'SecurityError'); } });
+    window.open = () => null;
+  });
+  await page.route('**/api/quote-intent', (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { enabled: true } });
+    posts.push(route.request().postDataJSON());
+    return route.fulfill({ json: { saved: true } });
+  });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const form = page.locator('form[data-track-form]');
+  await form.locator('[name="email"]').fill('ana@example.com');
+  await form.locator('button[type="submit"]').click();
+  await expect.poll(() => posts.some((p) => p.action === 'complete')).toBe(true);
 });
 
 test('Contacto muestra el consentimiento opcional y enlaza al aviso sin texto extenso', async ({ page, context }) => {
@@ -179,5 +200,7 @@ test('Estudio exige nombre y correo antes de pedir el catálogo', async ({ page 
   await expect.poll(() => catalogRequests, { timeout: 10000 }).toBe(1);
   expect(posts).toHaveLength(1);
   expect(posts[0]).toMatchObject({ action: 'start', channel: 'estudio', marketingConsent: false });
+  expect(posts[0].analyticsSid)
+    .toBe(await page.evaluate(() => sessionStorage.getItem('grafik_sid')));
   await expect(gate).toBeHidden();
 });

@@ -23,6 +23,8 @@ export default function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Aviso de privacidad integral | GRAFIK</title>
   <link rel="stylesheet" href="/styles.css">
+  <script src="/vercel-analytics.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <style>
     .privacy-page { min-height: 100vh; background: var(--negro); color: var(--blanco); }
     .privacy-shell { width: min(100% - 40px, 760px); margin: 0 auto; padding: 48px 0 80px; }

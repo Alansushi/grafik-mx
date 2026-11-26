@@ -30,6 +30,7 @@ it('publica el aviso integral con los datos configurados y el flujo real de What
     expect(res.body).toContain('Volver a GRAFIK');
     expect(res.body).toContain('href="/styles.css"');
     expect(res.body).toContain('class="privacy-page"');
+    expect(res.body).toContain('src="/vercel-analytics.js"');
   } finally {
     process.env = previous;
   }

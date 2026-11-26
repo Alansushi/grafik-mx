@@ -14,10 +14,11 @@
 // Por eso `onChange` sólo entrega el valor crudo del input; normalizar es
 // trabajo exclusivo del padre, y aquí ni siquiera se intenta.
 
-import { h, useMemo, cx } from './react.js';
+import { h, useMemo, useEffect, useRef, cx } from './react.js';
 import { normalizeBreakdown, totalUnits, validateBreakdown } from '../lib/sizes.js';
 import { blanketSize } from '../lib/blankets.js';
 import { formatCentsMXN } from '../lib/format.js';
+import { trackOnce } from './track.js';
 
 /** Etiqueta humana de una talla. 'U' (gorra) se lee "Cantidad", no "Talla U". */
 function sizeLabel(size) {
@@ -69,6 +70,20 @@ export function PanelTallas({
   // se guardó". Lo encontró la puerta de revisión del incremento 8.
   rawSizes = {}, rawErrors = {},
 }) {
+  const priceNodes = useRef({});
+  useEffect(() => {
+    if (!blanket || !window.IntersectionObserver) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.5)) {
+        trackOnce('studio_price_view');
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+    for (const node of Object.values(priceNodes.current)) {
+      if (node) observer.observe(node);
+    }
+    return () => observer.disconnect();
+  }, [blanket]);
   const isSingleSize = allowedSizes.length === 1 && allowedSizes[0] === 'U';
   const sizesToRender = isSingleSize ? ['U'] : allowedSizes;
 
@@ -134,7 +149,7 @@ export function PanelTallas({
           className: cx('es-blanket-size', activeSize === size && 'is-selected'),
           'aria-pressed': activeSize === size, onClick: () => onSelectSize(size) },
           h('strong', null, label),
-          h('span', null, `${formatCentsMXN(spec.priceCents)} base / pieza`))
+          h('span', { ref: (node) => { priceNodes.current[size] = node; } }, `${formatCentsMXN(spec.priceCents)} base / pieza`))
           : h('label', { className: 'es-label-sm', htmlFor: inputId, key: 'label' }, label),
         spec ? h('label', { className: 'es-label-sm', htmlFor: inputId, key: 'qty-label' }, `Piezas ${spec.name}`) : null,
         h(
