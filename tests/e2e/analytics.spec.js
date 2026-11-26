@@ -50,7 +50,7 @@ test.describe('analytics.js — eventos', () => {
     await page.goto(PAGE);
     await page.click('#wa');
     await expect.poll(() => t.clics().length, { timeout: 1500 }).toBe(1);
-    expect(t.clics()[0].props).toEqual({ cta_id: 'hero', kind: 'whatsapp' });
+    expect(t.clics()[0].props).toMatchObject({ cta_id: 'hero', kind: 'whatsapp', folio: expect.stringMatching(/^GW-[0-9A-F]{32}$/) });
   });
 
   test('3. clic sobre el ícono interno del enlace cuenta como clic del enlace', async ({ page }) => {
@@ -74,7 +74,7 @@ test.describe('analytics.js — eventos', () => {
     await page.goto(PAGE);
     await page.click('#lightbox');
     await expect.poll(() => t.clics().length, { timeout: 1500 }).toBe(1);
-    expect(t.clics()[0].props).toEqual({ cta_id: 'lightbox', kind: 'whatsapp', work_cat: 'Pósters' });
+    expect(t.clics()[0].props).toMatchObject({ cta_id: 'lightbox', kind: 'whatsapp', work_cat: 'Pósters', folio: expect.stringMatching(/^GW-[0-9A-F]{32}$/) });
   });
 
   test('6. enlaces sin data-cta, o con href que no es wa.me/tel:, no producen cta_click', async ({ page }) => {

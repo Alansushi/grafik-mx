@@ -86,6 +86,7 @@ async function requestAccess() {
         const response = await fetch('/api/quote-intent', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ key, action: 'start', channel: 'estudio', name, email,
+            analyticsSid: sessionStorage.getItem('grafik_sid'),
             marketingConsent: document.getElementById('es-access-consent').checked,
             ...(() => { try { const ctx = JSON.parse(sessionStorage.getItem('grafik_ctx') || '{}');
               return { utmSource: ctx.utm_source, utmMedium: ctx.utm_medium,

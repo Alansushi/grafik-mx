@@ -76,7 +76,7 @@ export default defineConfig({
       name: 'analytics',
       // Anclado: sin el `$` y el separador, este patrón también capturaría
       // studio-analytics.spec.js y lo correría en paralelo con todo lo demás.
-      testMatch: /[\\/]analytics\.spec\.js$/,
+      testMatch: /[\\/](?:analytics|vercel-analytics)\.spec\.js$/,
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${LOCAL_PORT}` },
     },
     {

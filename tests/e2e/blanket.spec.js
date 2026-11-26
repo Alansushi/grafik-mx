@@ -5,6 +5,30 @@ import { fileURLToPath } from 'node:url';
 const IMAGE = fileURLToPath(new URL('../fixtures/logo-opaco.png', import.meta.url));
 const FABRIC = fileURLToPath(new URL('../fixtures/mockups/playera-front-v3.png', import.meta.url));
 
+test('el precio base de frazada se mide una vez cuando entra en pantalla', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 500 });
+  const events = [];
+  await page.route('**/api/track', (r) => {
+    events.push(...r.request().postDataJSON().events);
+    return r.fulfill({ status: 204 });
+  });
+  await page.addInitScript(() => { window.grafikAnalyticsConfig = { force: true }; });
+  await page.route('**/api/catalog', (r) => r.fulfill({ json: CATALOG_FIXTURE }));
+  await page.goto('/estudio/');
+  const hiddenPrice = await page.addStyleTag({ content: '.es-blanket-size { display: none !important }' });
+  await page.getByRole('radio', { name: 'Frazada personalizada' }).click();
+  await page.waitForTimeout(2200);
+  expect(events.filter((e) => e.name === 'studio_price_view')).toHaveLength(0);
+  await hiddenPrice.evaluate((el) => {
+    el.textContent = '.es-talla-field:has(#es-talla-P) .es-blanket-size, .es-talla-field:has(#es-talla-I) .es-blanket-size { display: none !important }';
+  });
+  await page.locator('.es-blanket-size').last().scrollIntoViewIfNeeded();
+  await expect.poll(() => events.filter((e) => e.name === 'studio_price_view').length).toBe(1);
+  await page.locator('.es-blanket-size').last().scrollIntoViewIfNeeded();
+  await page.waitForTimeout(2200);
+  expect(events.filter((e) => e.name === 'studio_price_view')).toHaveLength(1);
+});
+
 test('frazada conserva recortes por medida y envía original más dos previews en un pedido', async ({ page }) => {
   const uploads = [];
   let submitted;

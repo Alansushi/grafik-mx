@@ -119,7 +119,9 @@ order by clics desc;
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Las vistas del SITIO (v_intent_daily, v_sessions...) excluyen las sesiones del
 -- estudio; éstas son las del configurador. El "abrió el configurador" es el
--- page_view de /estudio/. Los porcentajes son sobre `sesiones`.
+-- page_view exacto de /estudio/; /estudio/pedido/ no es una entrada. "Vio precio"
+-- exige studio_price_view al hacerse visible el precio base de frazada.
+-- Los porcentajes son sobre `sesiones`.
 
 -- 17. Embudo del configurador, en porcentajes, por día y dispositivo.
 select dia, device, sesiones,
@@ -136,6 +138,17 @@ order by dia desc, device;
 -- 18. ¿Dónde se atora la gente? Errores, avisos, archivos rechazados y respaldos a WhatsApp.
 --     Ojo con `archivo_rechazado`: la extensión dice QUÉ formato intentan subir (¿PDF, AI, CDR?).
 select * from v_studio_problems;
+
+-- Solicitudes que pueden unirse a la sesión de navegación del mismo canal.
+-- Los registros históricos sin analytics_sid permanecen sin asociación.
+select i.channel, i.status, count(*) as solicitudes,
+       count(*) filter (where i.analytics_sid is not null) as con_sesion,
+       count(*) filter (where i.analytics_sid is not null and exists (
+         select 1 from public.site_events e where e.sid = i.analytics_sid
+       )) as con_eventos
+from public.quote_intents i
+group by i.channel, i.status
+order by i.channel, i.status;
 
 -- 19. Cuadre con los pedidos reales: cada envío medido y su fila en `orders`.
 --     Un `estado_pedido` nulo = evento sin pedido (raro: el evento sale DESPUÉS de crear el pedido).

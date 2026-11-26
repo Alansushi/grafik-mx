@@ -1,5 +1,6 @@
 // Captura privada. Se activa sólo tras publicar el aviso de privacidad.
 import { createHmac, randomBytes } from 'node:crypto';
+import { metric } from '@vercel/functions';
 import { readEnv } from './_lib/env.js';
 import { json, readJsonBody, clientIp } from './_lib/http.js';
 import { buildPostgrestUrl, sbHeaders } from './_lib/supabase.js';
@@ -29,6 +30,7 @@ export default async function handler(req, res) {
   } : { enabled: false });
   if (req.method !== 'POST') return json(res, 405, { error: 'METHOD_NOT_ALLOWED' });
   if (!captureEnabled()) return json(res, 503, { error: 'CAPTURE_DISABLED' });
+  const startedAt = performance.now();
   let body;
   try { body = await readJsonBody(req, { maxBytes: 8192 }); }
   catch { return json(res, 400, { error: 'INVALID_BODY' }); }
@@ -56,6 +58,8 @@ export default async function handler(req, res) {
   const referrer = /^[a-z0-9.-]{1,100}$/.test(body.referrerHost || '') ? body.referrerHost : null;
   const utmMedium = /^[\p{L}\p{N} _.\-]{1,100}$/u.test(body.utmMedium || '') ? body.utmMedium : null;
   const utmCampaign = /^[\p{L}\p{N} _.\-]{1,100}$/u.test(body.utmCampaign || '') ? body.utmCampaign : null;
+  const analyticsSid = typeof body.analyticsSid === 'string' && /^[a-z0-9]{8,32}$/.test(body.analyticsSid)
+    ? body.analyticsSid : null;
 
   let base, secret;
   try {
@@ -101,8 +105,8 @@ export default async function handler(req, res) {
         personalization: catalogData.personalization, required_date: catalogData.required_date,
         return_catalog: catalogData.return_catalog, return_page: catalogData.return_page,
         buyer_type: catalogData.buyer_type,
-        analytics_sid: /^[a-z0-9]{8,32}$/.test(body.analyticsSid || '') ? body.analyticsSid : null,
       } : {}),
+      ...(analyticsSid ? { analytics_sid: analyticsSid } : {}),
       marketing_consent: consent && Boolean(email) && !suppressed,
       consent_at: consent && email && !suppressed ? now : null,
       ...(suppressed ? { unsubscribed_at: existing?.unsubscribed_at || now } : {}),
@@ -155,8 +159,12 @@ export default async function handler(req, res) {
       }
       if (intent) await sendCompletionMail(base, secret, intent);
     }
+    metric('quote_intent.write', 1, { channel, action, outcome: 'success' });
+    metric('quote_intent.duration_ms', performance.now() - startedAt, { channel, action });
     return json(res, 200, { saved: true, completed: action === 'complete', ...(channel === 'catalogos' && action === 'complete' ? { folio } : {}) });
   } catch (err) {
+    metric('quote_intent.write', 1, { channel: channel || 'unknown', action, outcome: 'error' });
+    metric('quote_intent.duration_ms', performance.now() - startedAt, { channel: channel || 'unknown', action });
     logError('quote-intent', err);
     return json(res, 502, { error: 'SAVE_FAILED' });
   }

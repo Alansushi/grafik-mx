@@ -126,6 +126,7 @@ const EVENTS = {
   // cerrada (¿suben PDF, AI, CDR?), nunca el nombre del archivo.
   studio_logo_rejected: { fields: { reason: enumOf(['type', 'size']), ext: enumOf(REJECTED_KINDS) }, required: ['reason'] },
   studio_sizes: { fields: { qty: QTY }, required: ['qty'] },
+  studio_price_view: { fields: {}, required: [] },
   studio_lowres: { fields: { level: enumOf(['warn', 'fail']), dpi: int(1, 2000) }, required: ['level'] },
   // `short_code` (folio GK-XXXXXX) es "sólo para mostrar, nunca sirve como
   // credencial" (spec §7.8): une este evento con su fila de `orders`.
